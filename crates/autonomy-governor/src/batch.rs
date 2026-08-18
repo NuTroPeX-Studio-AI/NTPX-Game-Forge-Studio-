@@ -1,8 +1,8 @@
 use std::{collections::BTreeSet, error::Error, fmt, path::PathBuf};
 
 use crate::{
-    resolve_filesystem_target, ApprovalContext, GovernanceRuntime, GovernedFileTransaction, Request,
-    RuntimeError, TransactionError, TransactionReceipt,
+    resolve_filesystem_target, ApprovalContext, GovernanceRuntime, GovernedFileTransaction,
+    Request, RuntimeError, TransactionError, TransactionReceipt,
 };
 
 /// One owned filesystem mutation in a governed multi-file transaction set.
