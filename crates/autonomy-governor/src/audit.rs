@@ -243,6 +243,7 @@ impl AuditLog {
     ) -> Result<T, AuditError> {
         let lock_file = OpenOptions::new()
             .create(true)
+            .truncate(false)
             .read(true)
             .write(true)
             .open(self.lock_path())?;
