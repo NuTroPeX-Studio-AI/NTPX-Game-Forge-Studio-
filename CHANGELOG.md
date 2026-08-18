@@ -2,6 +2,23 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.4.0-dev.1 — Phase 04 — Build B000013
+
+### Verified Model Router
+- Added the provider-neutral `model-router` Rust workspace crate and a shared `ProviderAdapter` catalog contract.
+- Added interchangeable validated local and cloud catalog adapters without introducing provider SDKs, model invocation, network calls, credentials, paid usage, tool execution, or repository/engine authority.
+- Added typed capabilities, context/output capacity, local-only/cloud-allowed privacy, optional cost/latency/reliability constraints, and deterministic request-specific integer cost estimation.
+- Added deterministic lexicographic routing policies with stable provider/model identity as the final tie-breaker, making equivalent decisions independent of adapter enumeration order.
+- Added ordered bounded fallback candidates and explicit fail-closed abstention when no model satisfies all hard constraints.
+- Added deterministic rejection evidence for missing capabilities, insufficient capacity, privacy violations, cost/latency ceilings, and reliability floors.
+- Added fail-closed validation for duplicate model identities, adapter provider/class mismatches, invalid reliability values, and repeated/empty ranking policies.
+- Added SHA-256 routing evidence covering request, policy, eligible/rejected candidates, and outcome.
+- Added acceptance tests for adapter interchangeability, local-only privacy, deterministic ordering/digest, policy precedence, fallbacks, abstention, rejection evidence, duplicate identities, and invalid policy.
+- Safely repaired CI findings from rustfmt and one strict Clippy documentation-markdown issue without weakening routing behavior or tests.
+- Implementation candidate CI run `32196581575` passed Rust formatting, strict Clippy, all workspace tests including Model Router acceptance tests, desktop frontend typecheck/build, and the existing Windows Autonomy Governor regression gate.
+- Recorded the architecture/security boundary in ADR 0011: a routing decision is selection evidence only and never grants network, credential, tool, repository, engine, publishing, or release authority.
+- Phase 04 is VERIFIED pending exact stamped-head CI evidence. Phase 05 Agent Orchestrator is next.
+
 ## 0.3.0-dev.7 — Phase 03 — Build B000012
 
 ### Verified Autonomy Governor completion
