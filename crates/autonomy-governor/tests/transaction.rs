@@ -57,15 +57,9 @@ fn authorized_existing_file_commit_and_rollback_are_reversible() {
     let audit = AuditLog::new(dir.join("audit.jsonl"));
     let (policy, request) = policy_for(&target);
 
-    let receipt = GovernedFileTransaction::commit(
-        &policy,
-        request,
-        &target,
-        b"after",
-        "tx-existing",
-        &audit,
-    )
-    .expect("authorized transaction should commit");
+    let receipt =
+        GovernedFileTransaction::commit(&policy, request, &target, b"after", "tx-existing", &audit)
+            .expect("authorized transaction should commit");
 
     assert_eq!(fs::read(&target).expect("target should exist"), b"after");
     assert!(receipt.snapshot_path.exists());
@@ -84,16 +78,13 @@ fn authorized_new_file_rollback_removes_created_file() {
     let audit = AuditLog::new(dir.join("audit.jsonl"));
     let (policy, request) = policy_for(&target);
 
-    let receipt = GovernedFileTransaction::commit(
-        &policy,
-        request,
-        &target,
-        b"created",
-        "tx-create",
-        &audit,
-    )
-    .expect("authorized create should commit");
-    assert_eq!(fs::read(&target).expect("created target should exist"), b"created");
+    let receipt =
+        GovernedFileTransaction::commit(&policy, request, &target, b"created", "tx-create", &audit)
+            .expect("authorized create should commit");
+    assert_eq!(
+        fs::read(&target).expect("created target should exist"),
+        b"created"
+    );
 
     GovernedFileTransaction::rollback(&receipt).expect("rollback should remove created file");
     assert!(!target.exists());
@@ -108,19 +99,16 @@ fn denied_request_creates_no_file_snapshot_or_audit_entry() {
     let (_, request) = policy_for(&target);
     let policy = Policy::default();
 
-    let error = GovernedFileTransaction::commit(
-        &policy,
-        request,
-        &target,
-        b"blocked",
-        "tx-denied",
-        &audit,
-    )
-    .expect_err("unknown principal must be denied");
+    let error =
+        GovernedFileTransaction::commit(&policy, request, &target, b"blocked", "tx-denied", &audit)
+            .expect_err("unknown principal must be denied");
 
     assert!(matches!(error, TransactionError::Unauthorized { .. }));
     assert!(!target.exists());
-    assert!(audit.load_verified().expect("empty audit should verify").is_empty());
+    assert!(audit
+        .load_verified()
+        .expect("empty audit should verify")
+        .is_empty());
     fs::remove_dir_all(dir).expect("temp directory should remove");
 }
 
@@ -132,15 +120,9 @@ fn scope_mismatch_fails_before_mutation() {
     let audit = AuditLog::new(dir.join("audit.jsonl"));
     let (policy, request) = policy_for(&other);
 
-    let error = GovernedFileTransaction::commit(
-        &policy,
-        request,
-        &target,
-        b"blocked",
-        "tx-scope",
-        &audit,
-    )
-    .expect_err("scope mismatch must fail");
+    let error =
+        GovernedFileTransaction::commit(&policy, request, &target, b"blocked", "tx-scope", &audit)
+            .expect_err("scope mismatch must fail");
 
     assert!(matches!(error, TransactionError::ScopeMismatch { .. }));
     assert!(!target.exists());
@@ -168,7 +150,10 @@ fn audit_failure_automatically_restores_prewrite_state() {
     .expect_err("corrupt audit must fail closed");
 
     assert!(matches!(error, TransactionError::Audit(_)));
-    assert_eq!(fs::read(&target).expect("target should be restored"), b"before");
+    assert_eq!(
+        fs::read(&target).expect("target should be restored"),
+        b"before"
+    );
     fs::remove_dir_all(dir).expect("temp directory should remove");
 }
 

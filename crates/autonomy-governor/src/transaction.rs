@@ -39,8 +39,13 @@ struct RollbackSnapshot {
 #[derive(Debug)]
 pub enum TransactionError {
     InvalidTransactionId,
-    Unauthorized { reason: String },
-    ScopeMismatch { expected: String, actual: String },
+    Unauthorized {
+        reason: String,
+    },
+    ScopeMismatch {
+        expected: String,
+        actual: String,
+    },
     SymlinkTarget(PathBuf),
     MissingFileName(PathBuf),
     Io(std::io::Error),
@@ -62,10 +67,18 @@ impl fmt::Display for TransactionError {
                 "filesystem scope mismatch: expected '{expected}', got '{actual}'"
             ),
             Self::SymlinkTarget(path) => {
-                write!(formatter, "refusing governed write through symlink '{}'", path.display())
+                write!(
+                    formatter,
+                    "refusing governed write through symlink '{}'",
+                    path.display()
+                )
             }
             Self::MissingFileName(path) => {
-                write!(formatter, "transaction target '{}' has no file name", path.display())
+                write!(
+                    formatter,
+                    "transaction target '{}' has no file name",
+                    path.display()
+                )
             }
             Self::Io(error) => write!(formatter, "transaction I/O failed: {error}"),
             Self::Encode(error) => write!(formatter, "snapshot encoding failed: {error}"),
@@ -292,8 +305,9 @@ fn restore_snapshot(
     }
 
     if snapshot.payload.existed {
-        let restore_path = sibling_path(target, transaction_id, "restore")
-            .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidInput, error.to_string()))?;
+        let restore_path = sibling_path(target, transaction_id, "restore").map_err(|error| {
+            std::io::Error::new(std::io::ErrorKind::InvalidInput, error.to_string())
+        })?;
         persist_stage(&restore_path, &snapshot.payload.contents)?;
         fs::rename(&restore_path, target)?;
     } else {
