@@ -1,8 +1,8 @@
 # NTPX GameForge Ω∞ — 18-Stage Roadmap
 
 1. 🟦 Repository Foundation — VERIFIED
-2. 🟪 GameSpec — IN DEVELOPMENT
-3. ⬛ Autonomy Governor
+2. 🟪 GameSpec — VERIFIED
+3. ⬛ Autonomy Governor — NEXT
 4. 🧠 Model Router
 5. 🧠 Agent Orchestrator
 6. 🟥 Code Intelligence
@@ -23,6 +23,11 @@
 
 A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence.
 
+## Verified foundation
+
+- Phase 01 established the repository, Rust workspace, desktop shell, CI, documentation, and build lineage.
+- Phase 02 established the canonical engine-neutral GameSpec 0.1.0 contract, deterministic IDs, schema, validation, dependency graph/cycle detection, migration, compiler manifest, CLI, and Signal Born reference fixtures.
+
 ## Current target
 
-Phase 02 completion: full GameSpec domains, schema, references, dependency graph, cycle detection, migration, deterministic IDs, and compiler CLI.
+Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates, audit records, transactional writes, and rollback policy.

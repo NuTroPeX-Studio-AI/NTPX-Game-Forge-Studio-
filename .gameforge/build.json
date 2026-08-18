@@ -3,9 +3,9 @@
   "generation": 0,
   "version": "0.2.0-dev.2",
   "milestone": "M02",
-  "build": 4,
-  "buildId": "NTPX-GFΩ-G0-v0.2.0-dev.2-M02-B000004",
-  "status": "implemented",
-  "phaseStatus": "in-progress",
+  "build": 5,
+  "buildId": "NTPX-GFΩ-G0-v0.2.0-dev.2-M02-B000005",
+  "status": "verified",
+  "phaseStatus": "verified",
   "release": false
 }
