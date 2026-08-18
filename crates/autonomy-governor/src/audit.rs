@@ -142,7 +142,10 @@ impl AuditLog {
     ) -> Result<Option<AuditEntry>, AuditError> {
         self.with_writer_lock(|| {
             let entries = self.load_verified()?;
-            if entries.iter().any(|entry| approval_nonce(entry) == Some(nonce)) {
+            if entries
+                .iter()
+                .any(|entry| approval_nonce(entry) == Some(nonce))
+            {
                 return Ok(None);
             }
             self.append_after_verified(record, &entries).map(Some)
