@@ -4,12 +4,7 @@
 //! network calls, hold credentials, invoke a model, or grant execution authority. Any later
 //! adapter that performs governed work must consume the verified Autonomy Governor boundary.
 
-use std::{
-    cmp::Ordering,
-    collections::BTreeSet,
-    error::Error,
-    fmt,
-};
+use std::{cmp::Ordering, collections::BTreeSet, error::Error, fmt};
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -495,7 +490,8 @@ fn validate_runtime_descriptor(
     if descriptor.provider_id != adapter.provider_id() {
         return Err(RouterError::AdapterContractViolation(format!(
             "adapter '{}' exposed descriptor for '{}'",
-            adapter.provider_id(), descriptor.provider_id
+            adapter.provider_id(),
+            descriptor.provider_id
         )));
     }
     if descriptor.provider_class != adapter.provider_class() {
