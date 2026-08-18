@@ -2,6 +2,18 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.2 — Phase 03 — Build B000007
+
+### Verified durable audit log increment
+- Added append-only JSONL persistence for Autonomy Governor decision records.
+- Added SHA-256 hash chaining across audit entries with deterministic sequence and previous-hash linkage.
+- Added fail-closed verification for malformed entries, sequence gaps, chain mismatches, and digest mismatches before any append.
+- Added storage flush with `sync_data` after each append.
+- Added tests for persistence, deterministic chaining, tamper detection, malformed records, corrupt-log append refusal, missing logs, and stored-decision preservation.
+- Added an explicit security boundary: the hash chain is tamper-evident, not an authenticity mechanism against an attacker able to rewrite the complete log.
+- Verified Rust formatting, strict Clippy, workspace tests, frontend typecheck, and frontend production build before final build stamping.
+- Phase 03 remains in progress; approval-proof verification, replay prevention, transactional writes, rollback snapshots, and runtime enforcement remain pending.
+
 ## 0.3.0-dev.1 — Phase 03 — Build B000006
 
 ### Verified Autonomy Governor policy core
