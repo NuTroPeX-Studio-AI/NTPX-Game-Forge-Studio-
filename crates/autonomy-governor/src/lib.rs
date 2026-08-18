@@ -204,9 +204,8 @@ impl Policy {
     /// denial or create a grant. This function records authorization evidence but performs no
     /// governed external capability itself.
     ///
-    /// Replay prevention is durable for serialized writers because consumed nonces are recovered
-    /// from the verified audit log. Cross-process concurrent-writer exclusion remains separate
-    /// Phase 03 work.
+    /// Replay prevention is durable across cooperating processes because nonce lookup and append
+    /// execute atomically under the audit log's cross-process writer lock.
     ///
     /// # Errors
     /// Returns [`GovernanceError`] when approval is missing, invalid, expired, replayed, or when
@@ -226,12 +225,7 @@ impl Policy {
 
         let proof = proof.ok_or(GovernanceError::MissingApprovalProof)?;
         let evidence = verifier.verify(&request, proof, now_unix)?;
-        if audit_log.contains_approval_nonce(&evidence.nonce)? {
-            return Err(GovernanceError::ReplayDetected {
-                nonce: evidence.nonce,
-            });
-        }
-
+        let nonce = evidence.nonce.clone();
         let approved = DecisionRecord {
             request,
             decision: Decision::Allow {
@@ -239,7 +233,10 @@ impl Policy {
             },
             approval: Some(evidence),
         };
-        audit_log.append(approved).map_err(GovernanceError::Audit)
+
+        audit_log
+            .append_if_approval_nonce_unused(approved, &nonce)?
+            .ok_or(GovernanceError::ReplayDetected { nonce })
     }
 }
 
