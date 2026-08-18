@@ -2,15 +2,19 @@ use std::{
     error::Error,
     ffi::OsStr,
     fmt,
-    fs::{self, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
 };
 
+use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::{AuditEntry, AuditError, AuditLog, Decision, Permission, Policy, Request, ScopeKind};
+use crate::{
+    ApprovalError, ApprovalProof, ApprovalVerifier, AuditEntry, AuditError, AuditLog, Decision,
+    DecisionRecord, Permission, Policy, Request, ScopeKind,
+};
 
 /// Result of a committed governed file transaction. The snapshot is deliberately retained until
 /// the caller explicitly rolls the transaction back or independently archives/removes it.
@@ -48,11 +52,19 @@ pub enum TransactionError {
     },
     SymlinkTarget(PathBuf),
     MissingFileName(PathBuf),
+    Approval(ApprovalError),
+    ReplayDetected {
+        nonce: String,
+    },
     Io(std::io::Error),
     Encode(serde_json::Error),
     Audit(AuditError),
     RollbackAfterAudit {
         audit: AuditError,
+        rollback: std::io::Error,
+    },
+    RollbackAfterReplay {
+        nonce: String,
         rollback: std::io::Error,
     },
 }
@@ -80,12 +92,20 @@ impl fmt::Display for TransactionError {
                     path.display()
                 )
             }
+            Self::Approval(error) => write!(formatter, "transaction approval failed: {error}"),
+            Self::ReplayDetected { nonce } => {
+                write!(formatter, "approval nonce '{nonce}' was already consumed")
+            }
             Self::Io(error) => write!(formatter, "transaction I/O failed: {error}"),
             Self::Encode(error) => write!(formatter, "snapshot encoding failed: {error}"),
             Self::Audit(error) => write!(formatter, "transaction audit failed: {error}"),
             Self::RollbackAfterAudit { audit, rollback } => write!(
                 formatter,
                 "audit failed ({audit}) and automatic rollback also failed ({rollback})"
+            ),
+            Self::RollbackAfterReplay { nonce, rollback } => write!(
+                formatter,
+                "approval nonce '{nonce}' was replayed and automatic rollback failed ({rollback})"
             ),
         }
     }
@@ -94,6 +114,7 @@ impl fmt::Display for TransactionError {
 impl Error for TransactionError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
+            Self::Approval(error) => Some(error),
             Self::Io(error) => Some(error),
             Self::Encode(error) => Some(error),
             Self::Audit(error) => Some(error),
@@ -102,7 +123,9 @@ impl Error for TransactionError {
             | Self::Unauthorized { .. }
             | Self::ScopeMismatch { .. }
             | Self::SymlinkTarget(_)
-            | Self::MissingFileName(_) => None,
+            | Self::MissingFileName(_)
+            | Self::ReplayDetected { .. }
+            | Self::RollbackAfterReplay { .. } => None,
         }
     }
 }
@@ -113,18 +136,25 @@ impl From<std::io::Error> for TransactionError {
     }
 }
 
+impl From<ApprovalError> for TransactionError {
+    fn from(error: ApprovalError) -> Self {
+        Self::Approval(error)
+    }
+}
+
 /// Execute exact-path local filesystem writes through the verified policy boundary.
 ///
-/// This initial transaction engine intentionally supports only ordinary files. It rejects symlink
-/// targets, requires a direct `Allow` result for `Permission::Write` on a matching filesystem
-/// scope, persists a durable pre-write snapshot, stages bytes in the target directory, renames the
-/// staged file into place, and appends the decision to the verified audit log. If audit persistence
-/// fails after replacement, the pre-write state is restored automatically.
+/// This transaction engine intentionally supports only ordinary files. It rejects symlink targets,
+/// requires exact `Permission::Write` + `Filesystem` scope matching, persists a durable pre-write
+/// snapshot, stages bytes in the target directory, renames the staged file into place, and appends
+/// the final authorization record to the verified audit log. A deterministic sibling transaction
+/// lock serializes cooperating processes writing the same target. If audit persistence or approval
+/// nonce consumption fails after replacement, the pre-write state is restored automatically.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct GovernedFileTransaction;
 
 impl GovernedFileTransaction {
-    /// Commit one governed file replacement or creation.
+    /// Commit one directly allowed governed file replacement or creation.
     ///
     /// # Errors
     /// Returns [`TransactionError`] for invalid IDs, denied/non-matching authorization, symlink
@@ -140,59 +170,79 @@ impl GovernedFileTransaction {
         validate_transaction_id(transaction_id)?;
         let target = target.into();
         validate_target(&target)?;
-
-        let actual = target.to_string_lossy().into_owned();
-        if request.permission != Permission::Write || request.scope.kind != ScopeKind::Filesystem {
-            return Err(TransactionError::Unauthorized {
-                reason: "transaction requires filesystem write permission".to_owned(),
-            });
-        }
-        if request.scope.resource != actual {
-            return Err(TransactionError::ScopeMismatch {
-                expected: request.scope.resource.clone(),
-                actual,
-            });
-        }
+        validate_request_target(&request, &target)?;
 
         let record = policy.evaluate(request);
         if !matches!(record.decision, Decision::Allow { .. }) {
-            let reason = match &record.decision {
-                Decision::Deny { reason } | Decision::RequireHumanApproval { reason } => {
-                    reason.clone()
-                }
-                Decision::Allow { .. } => unreachable!(),
-            };
-            return Err(TransactionError::Unauthorized { reason });
+            return Err(TransactionError::Unauthorized {
+                reason: decision_reason(&record.decision).to_owned(),
+            });
         }
 
-        let snapshot_path = sibling_path(&target, transaction_id, "rollback")?;
-        let stage_path = sibling_path(&target, transaction_id, "stage")?;
-        let snapshot = capture_snapshot(&target)?;
-        persist_snapshot(&snapshot_path, &snapshot)?;
+        with_target_lock(&target, || {
+            commit_record(record, &target, contents, transaction_id, audit_log, None)
+        })
+    }
 
-        if let Err(error) = persist_stage(&stage_path, contents).and_then(|()| {
-            fs::rename(&stage_path, &target)?;
-            Ok(())
-        }) {
-            let _ = fs::remove_file(&stage_path);
-            return Err(TransactionError::Io(error));
+    /// Commit one human-approved governed file replacement or creation.
+    ///
+    /// The proof must satisfy an existing `RequireHumanApproval` result. The exact request is
+    /// verified before mutation. The one-time approval nonce is consumed by the same durable audit
+    /// append that records the successful transaction. A replay discovered after replacement fails
+    /// closed and restores the pre-write snapshot before returning.
+    ///
+    /// # Errors
+    /// Returns [`TransactionError`] when the request does not require human approval, the proof is
+    /// missing/invalid/expired, the nonce was already consumed, filesystem work fails, audit
+    /// persistence fails, or automatic rollback fails.
+    pub fn commit_with_approval(
+        policy: &Policy,
+        request: Request,
+        target: impl Into<PathBuf>,
+        contents: &[u8],
+        transaction_id: &str,
+        proof: &ApprovalProof,
+        verifier: &ApprovalVerifier,
+        audit_log: &AuditLog,
+        now_unix: u64,
+    ) -> Result<TransactionReceipt, TransactionError> {
+        validate_transaction_id(transaction_id)?;
+        let target = target.into();
+        validate_target(&target)?;
+        validate_request_target(&request, &target)?;
+
+        let base = policy.evaluate(request.clone());
+        if !matches!(base.decision, Decision::RequireHumanApproval { .. }) {
+            return Err(TransactionError::Unauthorized {
+                reason: match &base.decision {
+                    Decision::Allow { .. } => {
+                        "approval transaction requires an existing human-approval gate".to_owned()
+                    }
+                    Decision::Deny { reason } => reason.clone(),
+                    Decision::RequireHumanApproval { .. } => unreachable!(),
+                },
+            });
         }
 
-        let audit_entry = match audit_log.append(record) {
-            Ok(entry) => entry,
-            Err(audit) => match restore_snapshot(&snapshot_path, &target, transaction_id) {
-                Ok(()) => return Err(TransactionError::Audit(audit)),
-                Err(rollback) => {
-                    return Err(TransactionError::RollbackAfterAudit { audit, rollback });
-                }
+        let evidence = verifier.verify(&request, proof, now_unix)?;
+        let nonce = evidence.nonce.clone();
+        let approved = DecisionRecord {
+            request,
+            decision: Decision::Allow {
+                reason: "matching grant with valid one-time human approval proof".to_owned(),
             },
+            approval: Some(evidence),
         };
 
-        Ok(TransactionReceipt {
-            transaction_id: transaction_id.to_owned(),
-            target,
-            snapshot_path,
-            audit_entry,
+        with_target_lock(&target, || {
+            commit_record(
+                approved,
+                &target,
+                contents,
+                transaction_id,
+                audit_log,
+                Some(&nonce),
+            )
         })
     }
 
@@ -206,13 +256,102 @@ impl GovernedFileTransaction {
     /// or restoration cannot be completed.
     pub fn rollback(receipt: &TransactionReceipt) -> Result<(), TransactionError> {
         validate_target(&receipt.target)?;
-        restore_snapshot(
-            &receipt.snapshot_path,
-            &receipt.target,
-            &receipt.transaction_id,
-        )?;
-        Ok(())
+        with_target_lock(&receipt.target, || {
+            restore_snapshot(
+                &receipt.snapshot_path,
+                &receipt.target,
+                &receipt.transaction_id,
+            )?;
+            Ok(())
+        })
     }
+}
+
+fn validate_request_target(request: &Request, target: &Path) -> Result<(), TransactionError> {
+    let actual = target.to_string_lossy().into_owned();
+    if request.permission != Permission::Write || request.scope.kind != ScopeKind::Filesystem {
+        return Err(TransactionError::Unauthorized {
+            reason: "transaction requires filesystem write permission".to_owned(),
+        });
+    }
+    if request.scope.resource != actual {
+        return Err(TransactionError::ScopeMismatch {
+            expected: request.scope.resource.clone(),
+            actual,
+        });
+    }
+    Ok(())
+}
+
+fn decision_reason(decision: &Decision) -> &str {
+    match decision {
+        Decision::Allow { reason }
+        | Decision::Deny { reason }
+        | Decision::RequireHumanApproval { reason } => reason,
+    }
+}
+
+fn commit_record(
+    record: DecisionRecord,
+    target: &Path,
+    contents: &[u8],
+    transaction_id: &str,
+    audit_log: &AuditLog,
+    approval_nonce: Option<&str>,
+) -> Result<TransactionReceipt, TransactionError> {
+    let snapshot_path = sibling_path(target, transaction_id, "rollback")?;
+    let stage_path = sibling_path(target, transaction_id, "stage")?;
+    let snapshot = capture_snapshot(target)?;
+    persist_snapshot(&snapshot_path, &snapshot)?;
+
+    if let Err(error) = persist_stage(&stage_path, contents).and_then(|()| {
+        fs::rename(&stage_path, target)?;
+        Ok(())
+    }) {
+        let _ = fs::remove_file(&stage_path);
+        return Err(TransactionError::Io(error));
+    }
+
+    let audit_entry = match approval_nonce {
+        Some(nonce) => match audit_log.append_if_approval_nonce_unused(record, nonce) {
+            Ok(Some(entry)) => entry,
+            Ok(None) => match restore_snapshot(&snapshot_path, target, transaction_id) {
+                Ok(()) => {
+                    return Err(TransactionError::ReplayDetected {
+                        nonce: nonce.to_owned(),
+                    });
+                }
+                Err(rollback) => {
+                    return Err(TransactionError::RollbackAfterReplay {
+                        nonce: nonce.to_owned(),
+                        rollback,
+                    });
+                }
+            },
+            Err(audit) => match restore_snapshot(&snapshot_path, target, transaction_id) {
+                Ok(()) => return Err(TransactionError::Audit(audit)),
+                Err(rollback) => {
+                    return Err(TransactionError::RollbackAfterAudit { audit, rollback });
+                }
+            },
+        },
+        None => match audit_log.append(record) {
+            Ok(entry) => entry,
+            Err(audit) => match restore_snapshot(&snapshot_path, target, transaction_id) {
+                Ok(()) => return Err(TransactionError::Audit(audit)),
+                Err(rollback) => {
+                    return Err(TransactionError::RollbackAfterAudit { audit, rollback });
+                }
+            },
+        },
+    };
+
+    Ok(TransactionReceipt {
+        transaction_id: transaction_id.to_owned(),
+        target: target.to_owned(),
+        snapshot_path,
+        audit_entry,
+    })
 }
 
 fn validate_transaction_id(value: &str) -> Result<(), TransactionError> {
@@ -240,6 +379,38 @@ fn validate_target(target: &Path) -> Result<(), TransactionError> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
         Err(error) => Err(TransactionError::Io(error)),
     }
+}
+
+fn with_target_lock<T>(
+    target: &Path,
+    operation: impl FnOnce() -> Result<T, TransactionError>,
+) -> Result<T, TransactionError> {
+    let lock_path = transaction_lock_path(target)?;
+    let lock_file = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .read(true)
+        .write(true)
+        .open(lock_path)?;
+    lock_file.lock_exclusive()?;
+    let result = operation();
+    let unlock = FileExt::unlock(&lock_file).map_err(TransactionError::Io);
+    match result {
+        Err(error) => Err(error),
+        Ok(value) => {
+            unlock?;
+            Ok(value)
+        }
+    }
+}
+
+fn transaction_lock_path(target: &Path) -> Result<PathBuf, TransactionError> {
+    let file_name = target
+        .file_name()
+        .and_then(OsStr::to_str)
+        .ok_or_else(|| TransactionError::MissingFileName(target.to_owned()))?;
+    let parent = target.parent().unwrap_or_else(|| Path::new("."));
+    Ok(parent.join(format!(".{file_name}.gameforge-transaction.lock")))
 }
 
 fn sibling_path(
