@@ -1,7 +1,7 @@
 # NTPX GameForge Ω∞ — 18-Stage Roadmap
 
 1. 🟦 Repository Foundation — VERIFIED
-2. 🟪 GameSpec — IN PROGRESS
+2. 🟪 GameSpec — IN DEVELOPMENT
 3. ⬛ Autonomy Governor
 4. 🧠 Model Router
 5. 🧠 Agent Orchestrator
@@ -25,4 +25,4 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 02: GameSpec. Current increment establishes the engine-neutral core model and validation spine. Full Phase 02 acceptance remains pending.
+Phase 02 completion: full GameSpec domains, schema, references, dependency graph, cycle detection, migration, deterministic IDs, and compiler CLI.

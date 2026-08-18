@@ -1,0 +1,20 @@
+{
+  "schema_version": "0.1",
+  "project_id": "signal-born-first-thought",
+  "title": "Signal Born: First Thought",
+  "modules": [
+    {
+      "id": "gameplay",
+      "name": "Gameplay",
+      "features": [
+        {
+          "id": "investigation",
+          "name": "Investigation",
+          "entities": [
+            { "id": "player", "name": "Player", "components": ["Transform", "Monad Load"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

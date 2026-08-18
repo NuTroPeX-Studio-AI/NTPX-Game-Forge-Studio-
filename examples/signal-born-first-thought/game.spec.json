@@ -1,24 +1,69 @@
 {
-  "schema_version": "0.1",
-  "project_id": "signal-born-first-thought",
-  "title": "Signal Born: First Thought",
-  "modules": [
+  "schema_version": "0.1.0",
+  "project": {
+    "id": "signal-born-first-thought",
+    "title": "Signal Born: First Thought",
+    "slug": "signal-born-first-thought",
+    "description": "Primary reference project for NTPX GameForge GameSpec.",
+    "engine_targets": ["unreal"],
+    "platform_targets": ["windows"]
+  },
+  "architecture": {
+    "modules": [
+      { "id": "core-gameplay", "name": "Core Gameplay", "kind": "gameplay", "depends_on": [] },
+      { "id": "monad-system", "name": "Monad System", "kind": "gameplay", "depends_on": ["core-gameplay"] }
+    ]
+  },
+  "features": [
     {
-      "id": "continuity-district",
-      "name": "Continuity District",
-      "features": [
-        {
-          "id": "player-foundation",
-          "name": "Player Foundation",
-          "entities": [
-            {
-              "id": "continuity-technician",
-              "name": "Continuity Technician",
-              "components": ["transform", "movement", "interaction"]
-            }
-          ]
-        }
-      ]
+      "id": "feature-monad-phase-shift",
+      "name": "Monad Phase Shift",
+      "owner_module": "monad-system",
+      "requirements": ["Reveal hidden Archonic structures", "Remain save-compatible"],
+      "dependencies": ["component-monad-load"],
+      "tests": ["test-monad-phase-shift"]
     }
+  ],
+  "components": [
+    { "id": "component-transform", "name": "Transform", "data": { "space": "world" } },
+    { "id": "component-monad-load", "name": "Monad Load", "data": { "maximum": 100 } }
+  ],
+  "entities": [
+    { "id": "player-nema", "name": "Nema", "components": ["component-transform", "component-monad-load"] }
+  ],
+  "inputs": [
+    { "id": "input-interact", "name": "Interact", "value_type": "digital" },
+    { "id": "input-speak", "name": "Speak", "value_type": "voice" }
+  ],
+  "abilities": [
+    { "id": "ability-monad-phase-shift", "name": "Monad Phase Shift", "owner_module": "monad-system", "tags": ["ability.monad.phase_shift"], "requirements": ["Consumes Monad Load"] }
+  ],
+  "npcs": [
+    { "id": "npc-continuity-witness", "display_name": "Continuity Witness", "components": ["component-transform"], "tags": ["investigation"] }
+  ],
+  "dialogues": [
+    { "id": "dialogue-first-witness", "title": "First Witness", "participants": ["npc-continuity-witness"], "nodes": [ { "id": "witness-opening", "speaker": "npc-continuity-witness", "text": "You saw it too, didn't you?", "next": [] } ] }
+  ],
+  "quests": [
+    { "id": "quest-first-interruption", "title": "The First Interruption", "steps": [ { "id": "investigate-anomaly", "objective": "Investigate the anomaly.", "requires_features": ["feature-monad-phase-shift"] } ] }
+  ],
+  "worlds": [
+    { "id": "world-continuity-district", "name": "Continuity District", "regions": [ { "id": "continuity-block-a", "name": "Block A", "tags": ["urban", "anomaly"] } ] }
+  ],
+  "assets": [
+    {
+      "id": "asset-placeholder-anomaly",
+      "name": "Placeholder Anomaly",
+      "kind": "mesh",
+      "source_uri": "local://assets/placeholders/anomaly.glb",
+      "license": { "name": "NTPX internal placeholder", "commercial_use": true, "attribution": null },
+      "provenance": { "origin": "human", "generator": null, "source_reference": "phase-02-reference" }
+    }
+  ],
+  "tests": [
+    { "id": "test-monad-phase-shift", "name": "Monad Phase Shift acceptance", "kind": "functional", "target": "feature-monad-phase-shift", "acceptance": ["Direct references are valid"] }
+  ],
+  "builds": [
+    { "id": "build-windows-development", "name": "Windows Development", "platform": "windows", "profile": "development", "output": "artifacts/windows-development" }
   ]
 }

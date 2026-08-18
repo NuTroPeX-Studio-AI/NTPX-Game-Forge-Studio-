@@ -6,11 +6,14 @@ All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
 ### Phase 02 — GameSpec
 - VERIFIED B000003: initial engine-neutral `gamespec` Rust crate.
-- Added project/module/feature/entity model.
-- Added JSON decode/encode with semantic validation.
-- Added duplicate identifier and schema-version rejection.
-- Added Signal Born reference GameSpec and deterministic round-trip tests.
-- Phase 02 remains in progress; deferred compiler/schema/reference capabilities are tracked in ADR 0002.
+- B000004 candidate expands GameSpec to the complete Phase 02 domain contract.
+- Added canonical IDs and fixed-algorithm deterministic generated IDs.
+- Added full project/architecture/features/components/entities/inputs/abilities/NPC/dialogue/quest/world/asset/test/build domains.
+- Added direct-reference graph extraction and dependency cycle detection.
+- Added versioned JSON Schema and schema CLI emission.
+- Added migration from the verified legacy `0.1` GameSpec shape to `0.1.0`.
+- Added deterministic compiler manifest and `gamespec-compiler` CLI.
+- Added Signal Born full reference specification, legacy fixture, and regression tests.
 
 ## 0.1.0-dev.1 — Phase 01
 - Established Rust workspace and `gameforge-core`.
