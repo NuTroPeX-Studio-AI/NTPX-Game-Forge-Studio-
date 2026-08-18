@@ -12,7 +12,9 @@ use std::{error::Error, fmt};
 
 use serde::{Deserialize, Serialize};
 
-pub use approval::{ApprovalError, ApprovalEvidence, ApprovalProof, ApprovalSigner, ApprovalVerifier};
+pub use approval::{
+    ApprovalError, ApprovalEvidence, ApprovalProof, ApprovalSigner, ApprovalVerifier,
+};
 pub use audit::{AuditEntry, AuditError, AuditLog};
 
 /// Stable identity for an agent or human principal.
