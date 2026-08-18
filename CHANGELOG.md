@@ -2,6 +2,17 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## Unreleased — Phase 03 — Build B000006 candidate
+
+### Autonomy Governor policy core
+- Added a provider-neutral, engine-neutral `autonomy-governor` Rust crate.
+- Added typed principals, permissions, exact resource scopes, risk levels, and approval requirements.
+- Added deny-by-default deterministic policy evaluation.
+- Added protected-action escalation so credential, merge, publish, destructive, and release capabilities always require human approval.
+- Added deterministic audit-ready decision records.
+- Added tests for default denial, exact-scope enforcement, grants, human gates, protected actions, and deterministic records.
+- Phase 03 remains in progress; no tool execution or external mutation authority is introduced by this increment.
+
 ## 0.2.0-dev.2 — Phase 02 — Build B000005
 
 ### Verified GameSpec foundation

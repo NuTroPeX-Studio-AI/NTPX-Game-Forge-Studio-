@@ -2,14 +2,14 @@
 
 ## Current boundary
 
-Phase 01 and Phase 02 are verified foundations. GameSpec 0.1.0 is now the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. Phase 03 introduces governance; no autonomous execution authority is implied by GameSpec itself.
+Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor begins as a pure policy decision boundary: it can classify a request as allowed, denied, or requiring human approval, but it performs no external action itself.
 
 ## Layers
 
 1. **Studio UI** — Tauri + React desktop shell.
 2. **Core services** — Rust workspace crates with explicit interfaces.
 3. **Specifications** — verified GameSpec types, versioned schema, validation, dependency graph, migrations, deterministic compiler metadata, and CLI.
-4. **Governance** — identities, permissions, policy, audit, transactions, and rollback (Phase 03).
+4. **Governance** — deny-by-default identities, permissions, exact scopes, risk classification, approval gates, audit-ready decisions, transactions, and rollback (Phase 03).
 5. **Intelligence** — model routing, orchestration, code intelligence, project world model, and evaluation council (Phases 04–13).
 6. **Execution** — Agent Zero, engine/tool adapters, build/test/repair (Phases 07–11).
 7. **Production** — assets, narrative/audio/NPCs, controlled improvement, game build, and release (Phases 14–18).
@@ -24,6 +24,15 @@ Phase 01 and Phase 02 are verified foundations. GameSpec 0.1.0 is now the canoni
 - Asset records carry licensing and provenance metadata.
 - Engine adapters must consume validated/compiled GameSpec data rather than create untracked canonical state.
 
+## Autonomy Governor boundary
+
+- Policy evaluation is deny-by-default.
+- Principal, permission, and resource scope matching is exact in the initial increment.
+- Protected credential, merge, publish, destructive, and release capabilities always require explicit human approval.
+- Decision records are deterministic and audit-ready, but durable audit storage is not yet implemented.
+- The policy core does not execute tools or mutate external state.
+- Runtime enforcement, approval proof verification, transactional writes, and rollback snapshots remain Phase 03 work.
+
 ## Non-negotiable boundaries
 
 - Shared core crates must not depend on a specific game engine.
@@ -37,7 +46,7 @@ Phase 01 and Phase 02 are verified foundations. GameSpec 0.1.0 is now the canoni
 
 ```text
 apps/                  User-facing applications
-crates/                Shared Rust core services and GameSpec compiler
+crates/                Shared Rust core services, governance, and GameSpec compiler
 schemas/               Versioned GameSpec JSON Schema contracts
 examples/              Reference and migration fixtures
 docs/                  ADRs and verification evidence

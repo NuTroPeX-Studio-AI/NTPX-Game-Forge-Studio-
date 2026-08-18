@@ -2,7 +2,7 @@
 
 1. 🟦 Repository Foundation — VERIFIED
 2. 🟪 GameSpec — VERIFIED
-3. ⬛ Autonomy Governor — NEXT
+3. ⬛ Autonomy Governor — IN PROGRESS
 4. 🧠 Model Router
 5. 🧠 Agent Orchestrator
 6. 🟥 Code Intelligence
@@ -30,4 +30,4 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates, audit records, transactional writes, and rollback policy.
+Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates, audit records, transactional writes, and rollback policy. The first increment establishes a deterministic deny-by-default policy core; runtime enforcement and reversible write transactions remain pending.
