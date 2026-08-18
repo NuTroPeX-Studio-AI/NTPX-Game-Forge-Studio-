@@ -1,0 +1,22 @@
+[workspace]
+members = [
+  "crates/gameforge-core",
+]
+exclude = [
+  "apps/studio-desktop/src-tauri",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "UNLICENSED"
+authors = ["NuTroPeX"]
+rust-version = "1.80"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
