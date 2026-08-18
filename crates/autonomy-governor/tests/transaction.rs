@@ -180,3 +180,41 @@ fn human_approval_gate_is_not_bypassed_by_transaction_engine() {
     assert!(!target.exists());
     fs::remove_dir_all(dir).expect("temp directory should remove");
 }
+
+#[cfg(unix)]
+#[test]
+fn symlink_ancestor_is_rejected_before_mutation() {
+    use std::os::unix::fs::symlink;
+
+    let dir = temp_dir("symlink-ancestor");
+    let real_parent = dir.join("real");
+    let linked_parent = dir.join("linked");
+    fs::create_dir_all(&real_parent).expect("real parent should be created");
+    symlink(&real_parent, &linked_parent).expect("symlink parent should be created");
+
+    let target = linked_parent.join("state.txt");
+    let real_target = real_parent.join("state.txt");
+    let audit = AuditLog::new(dir.join("audit.jsonl"));
+    let (policy, request) = policy_for(&target);
+
+    let error = GovernedFileTransaction::commit(
+        &policy,
+        request,
+        &target,
+        b"blocked",
+        "tx-symlink-ancestor",
+        &audit,
+    )
+    .expect_err("symlink ancestor must fail closed");
+
+    assert!(matches!(
+        error,
+        TransactionError::SymlinkAncestor(ref path) if path == &linked_parent
+    ));
+    assert!(!real_target.exists());
+    assert!(audit
+        .load_verified()
+        .expect("empty audit should verify")
+        .is_empty());
+    fs::remove_dir_all(dir).expect("temp directory should remove");
+}

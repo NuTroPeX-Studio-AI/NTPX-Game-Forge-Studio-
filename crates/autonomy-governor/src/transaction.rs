@@ -59,6 +59,7 @@ pub enum TransactionError {
         actual: String,
     },
     SymlinkTarget(PathBuf),
+    SymlinkAncestor(PathBuf),
     MissingFileName(PathBuf),
     Approval(ApprovalError),
     ReplayDetected {
@@ -90,6 +91,13 @@ impl fmt::Display for TransactionError {
                 write!(
                     formatter,
                     "refusing governed write through symlink '{}'",
+                    path.display()
+                )
+            }
+            Self::SymlinkAncestor(path) => {
+                write!(
+                    formatter,
+                    "refusing governed write through symlink ancestor '{}'",
                     path.display()
                 )
             }
@@ -131,6 +139,7 @@ impl Error for TransactionError {
             | Self::Unauthorized { .. }
             | Self::ScopeMismatch { .. }
             | Self::SymlinkTarget(_)
+            | Self::SymlinkAncestor(_)
             | Self::MissingFileName(_)
             | Self::ReplayDetected { .. }
             | Self::RollbackAfterReplay { .. } => None,
@@ -152,12 +161,13 @@ impl From<ApprovalError> for TransactionError {
 
 /// Execute exact-path local filesystem writes through the verified policy boundary.
 ///
-/// This transaction engine intentionally supports only ordinary files. It rejects symlink targets,
-/// requires exact `Permission::Write` + `Filesystem` scope matching, persists a durable pre-write
-/// snapshot, stages bytes in the target directory, renames the staged file into place, and appends
-/// the final authorization record to the verified audit log. A deterministic sibling transaction
-/// lock serializes cooperating processes writing the same target. If audit persistence or approval
-/// nonce consumption fails after replacement, the pre-write state is restored automatically.
+/// This transaction engine intentionally supports only ordinary files. It rejects symlink targets
+/// and existing symlink ancestors, requires exact `Permission::Write` + `Filesystem` scope matching,
+/// persists a durable pre-write snapshot, stages bytes in the target directory, renames the staged
+/// file into place, and appends the final authorization record to the verified audit log. A
+/// deterministic sibling transaction lock serializes cooperating processes writing the same target.
+/// If audit persistence or approval nonce consumption fails after replacement, the pre-write state
+/// is restored automatically.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct GovernedFileTransaction;
 
@@ -166,7 +176,7 @@ impl GovernedFileTransaction {
     ///
     /// # Errors
     /// Returns [`TransactionError`] for invalid IDs, denied/non-matching authorization, symlink
-    /// targets, snapshot/staging failures, audit failures, or rollback failures.
+    /// targets or ancestors, snapshot/staging failures, audit failures, or rollback failures.
     pub fn commit(
         policy: &Policy,
         request: Request,
@@ -260,8 +270,8 @@ impl GovernedFileTransaction {
     /// remains immutable evidence that the write was authorized and committed.
     ///
     /// # Errors
-    /// Returns [`TransactionError`] when the snapshot is missing/corrupt, the target is a symlink,
-    /// or restoration cannot be completed.
+    /// Returns [`TransactionError`] when the snapshot is missing/corrupt, the target or an existing
+    /// ancestor is a symlink, or restoration cannot be completed.
     pub fn rollback(receipt: &TransactionReceipt) -> Result<(), TransactionError> {
         validate_target(&receipt.target)?;
         with_target_lock(&receipt.target, || {
@@ -379,6 +389,7 @@ fn validate_target(target: &Path) -> Result<(), TransactionError> {
     if target.file_name().is_none() {
         return Err(TransactionError::MissingFileName(target.to_owned()));
     }
+    validate_ancestor_chain(target)?;
     match fs::symlink_metadata(target) {
         Ok(metadata) if metadata.file_type().is_symlink() => {
             Err(TransactionError::SymlinkTarget(target.to_owned()))
@@ -387,6 +398,24 @@ fn validate_target(target: &Path) -> Result<(), TransactionError> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
         Err(error) => Err(TransactionError::Io(error)),
     }
+}
+
+fn validate_ancestor_chain(target: &Path) -> Result<(), TransactionError> {
+    let mut current = target.parent();
+    while let Some(path) = current {
+        if !path.as_os_str().is_empty() {
+            match fs::symlink_metadata(path) {
+                Ok(metadata) if metadata.file_type().is_symlink() => {
+                    return Err(TransactionError::SymlinkAncestor(path.to_owned()));
+                }
+                Ok(_) => {}
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => return Err(TransactionError::Io(error)),
+            }
+        }
+        current = path.parent();
+    }
+    Ok(())
 }
 
 fn with_target_lock<T>(
