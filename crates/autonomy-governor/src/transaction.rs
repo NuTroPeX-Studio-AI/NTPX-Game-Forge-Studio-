@@ -51,12 +51,19 @@ struct RollbackSnapshot {
 #[derive(Debug)]
 pub enum TransactionError {
     InvalidTransactionId,
-    Unauthorized { reason: String },
-    ScopeMismatch { expected: String, actual: String },
+    Unauthorized {
+        reason: String,
+    },
+    ScopeMismatch {
+        expected: String,
+        actual: String,
+    },
     SymlinkTarget(PathBuf),
     MissingFileName(PathBuf),
     Approval(ApprovalError),
-    ReplayDetected { nonce: String },
+    ReplayDetected {
+        nonce: String,
+    },
     Io(std::io::Error),
     Encode(serde_json::Error),
     Audit(AuditError),
