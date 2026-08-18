@@ -30,4 +30,4 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates, audit records, transactional writes, and rollback policy. Verified increments now include the deterministic deny-by-default policy core and durable tamper-evident audit persistence. Approval-proof verification/replay prevention, runtime enforcement, transactional writes, and rollback snapshots remain pending.
+Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates/proofs, audit records, transactional writes, and rollback policy. Verified increments now include the deterministic deny-by-default policy core, durable tamper-evident audit persistence, and exact request-bound HMAC approval proofs with expiry and serialized-writer replay prevention. Cross-process concurrent-writer exclusion, runtime enforcement, transactional governed writes, and rollback snapshots remain pending.
