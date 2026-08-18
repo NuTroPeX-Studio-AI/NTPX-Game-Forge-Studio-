@@ -52,10 +52,7 @@ pub enum RecoveryError {
     InvalidRoot(PathBuf),
     InvalidSnapshotName(PathBuf),
     CorruptSnapshot(PathBuf),
-    SnapshotTargetMismatch {
-        expected: PathBuf,
-        actual: PathBuf,
-    },
+    SnapshotTargetMismatch { expected: PathBuf, actual: PathBuf },
     Runtime(RuntimeError),
     Io(std::io::Error),
     Decode(serde_json::Error),
