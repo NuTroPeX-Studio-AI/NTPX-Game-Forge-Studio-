@@ -52,7 +52,10 @@ pub enum RecoveryError {
     InvalidRoot(PathBuf),
     InvalidSnapshotName(PathBuf),
     CorruptSnapshot(PathBuf),
-    SnapshotTargetMismatch { expected: PathBuf, actual: PathBuf },
+    SnapshotTargetMismatch {
+        expected: PathBuf,
+        actual: PathBuf,
+    },
     Runtime(RuntimeError),
     Io(std::io::Error),
     Decode(serde_json::Error),
@@ -63,7 +66,7 @@ impl fmt::Display for RecoveryError {
         match self {
             Self::InvalidRoot(path) => write!(
                 formatter,
-                "recovery scan root must be an existing ordinary directory: '{}'",
+                "recovery scan root must be an absolute existing ordinary directory: '{}'",
                 path.display()
             ),
             Self::InvalidSnapshotName(path) => write!(
@@ -124,12 +127,15 @@ impl From<RuntimeError> for RecoveryError {
 pub struct RecoveryScanner;
 
 impl RecoveryScanner {
-    /// Recursively scan one directory tree for GameForge rollback artifacts.
+    /// Recursively scan one absolute directory tree for GameForge rollback artifacts.
     ///
     /// # Errors
-    /// Returns [`RecoveryError`] when the root is invalid or directory traversal fails.
+    /// Returns [`RecoveryError`] when the root is relative/invalid or directory traversal fails.
     pub fn scan_directory(root: impl AsRef<Path>) -> Result<Vec<RecoveryCandidate>, RecoveryError> {
         let root = root.as_ref();
+        if !root.is_absolute() {
+            return Err(RecoveryError::InvalidRoot(root.to_owned()));
+        }
         let metadata = fs::symlink_metadata(root).map_err(RecoveryError::Io)?;
         if metadata.file_type().is_symlink() || !metadata.is_dir() {
             return Err(RecoveryError::InvalidRoot(root.to_owned()));
@@ -326,28 +332,31 @@ fn replace_file(stage: &Path, target: &Path) -> std::io::Result<()> {
 
 #[cfg(windows)]
 fn replace_file(stage: &Path, target: &Path) -> std::io::Result<()> {
+    let first_error = match fs::rename(stage, target) {
+        Ok(()) => return Ok(()),
+        Err(error) => error,
+    };
+    if !target.exists() {
+        return Err(first_error);
+    }
+
+    let backup = stage.with_extension("backup");
+    if backup.exists() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::AlreadyExists,
+            "recovery replacement backup already exists",
+        ));
+    }
+    fs::rename(target, &backup)?;
     match fs::rename(stage, target) {
-        Ok(()) => Ok(()),
-        Err(first_error) if target.exists() => {
-            let backup = target.with_extension("gameforge-recovery-backup");
-            if backup.exists() {
-                fs::remove_file(&backup)?;
-            }
-            fs::rename(target, &backup)?;
-            match fs::rename(stage, target) {
-                Ok(()) => {
-                    fs::remove_file(backup)?;
-                    Ok(())
-                }
-                Err(error) => {
-                    let _ = fs::rename(&backup, target);
-                    Err(error)
-                }
-            }
+        Ok(()) => {
+            fs::remove_file(backup)?;
+            Ok(())
         }
-        Err(error) => Err(std::io::Error::new(error.kind(), format!(
-            "replacement failed after initial rename error: {first_error}"
-        ))),
+        Err(error) => {
+            let _ = fs::rename(&backup, target);
+            Err(error)
+        }
     }
 }
 
