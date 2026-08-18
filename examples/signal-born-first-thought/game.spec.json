@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.1",
+  "project_id": "signal-born-first-thought",
+  "title": "Signal Born: First Thought",
+  "modules": [
+    {
+      "id": "continuity-district",
+      "name": "Continuity District",
+      "features": [
+        {
+          "id": "player-foundation",
+          "name": "Player Foundation",
+          "entities": [
+            {
+              "id": "continuity-technician",
+              "name": "Continuity Technician",
+              "components": ["transform", "movement", "interaction"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

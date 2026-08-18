@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/gameforge-core",
+  "crates/gamespec",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",

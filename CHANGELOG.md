@@ -1,26 +1,18 @@
 # Changelog
 
-All notable changes to NTPX GameForge Ω∞ are recorded here.
+All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
-## [0.1.0-dev.1] - 2026-08-18
+## Unreleased
 
-### Verified foundation — Build B000002
-- Rust formatting passed.
-- Strict Clippy passed with warnings denied.
-- Rust tests passed.
-- Frontend dependency installation passed.
-- TypeScript typecheck passed.
-- Vite production build passed.
-- Phase 01 acceptance criteria satisfied.
+### Phase 02 — GameSpec
+- Added initial engine-neutral `gamespec` Rust crate.
+- Added project/module/feature/entity model.
+- Added JSON decode/encode with semantic validation.
+- Added duplicate identifier and schema-version rejection.
+- Added Signal Born reference GameSpec and round-trip tests.
 
-### Added
-- Rust workspace foundation.
-- `gameforge-core` crate with build identity and phase metadata.
-- Tauri + React + TypeScript desktop shell.
-- pnpm workspace configuration.
-- GitHub Actions CI for Rust formatting, linting, tests, and frontend type/build checks.
-- Architecture, roadmap, security, agent-policy, ADR, and verification documentation.
-- Continuous build lineage.
-
-### Scope
-- Phase 01 only. No GameSpec, autonomous execution, engine integration, or AI-provider implementation yet.
+## 0.1.0-dev.1 — Phase 01
+- Established Rust workspace and `gameforge-core`.
+- Added Tauri + React + TypeScript desktop shell.
+- Added CI, governance docs, ADRs, and build metadata.
+- Verified foundation as build B000002.
