@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-/// Stable identity for the current GameForge foundation build.
+/// Stable identity for the current `GameForge` foundation build.
 pub const BUILD_ID: &str = "NTPX-GFΩ-G0-v0.1.0-dev.1-M01-B000001";
 pub const VERSION: &str = "0.1.0-dev.1";
 pub const MILESTONE: &str = "M01";
