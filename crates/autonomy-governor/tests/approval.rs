@@ -6,7 +6,7 @@ use autonomy_governor::{
     ScopeKind,
 };
 
-const KEY: &[u8; 32] = b"gameforge-phase03-test-key-000001";
+const KEY: &[u8] = b"gameforge-phase03-test-key-000001";
 
 fn unique_path(label: &str) -> PathBuf {
     let nanos = SystemTime::now()
