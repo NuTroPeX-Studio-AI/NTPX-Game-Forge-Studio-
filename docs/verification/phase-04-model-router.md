@@ -1,8 +1,8 @@
 # Phase 04 Model Router verification
 
-Status: CANDIDATE — exact stamped-head CI required before merge.
+Status: VERIFIED
 
-Candidate build: `NTPX-GFΩ-G0-v0.4.0-dev.1-M04-B000013`
+Final build: `NTPX-GFΩ-G0-v0.4.0-dev.1-M04-B000013`
 
 ## Acceptance gate
 
@@ -36,7 +36,8 @@ Candidate build: `NTPX-GFΩ-G0-v0.4.0-dev.1-M04-B000013`
 - CI run `32196317963` identified only rustfmt differences in the initial implementation candidate; formatter output was applied without changing routing policy or tests.
 - CI run `32196458325` passed formatting and identified one Clippy documentation-markdown issue; no behavior or test was weakened.
 - CI run `32196581575` passed the implementation candidate: Rust formatting, strict Clippy, full workspace tests including Model Router tests, desktop frontend typecheck/build, and the Windows Autonomy Governor regression gate.
-- The final B000013 documentation/build/UI stamp must pass the same CI gate on the exact branch head before this record changes from CANDIDATE to VERIFIED and before PR #13 is merged.
+- CI run `32196949741` passed the exact stamped B000013 candidate containing the final code, ADR, architecture/security/agent boundaries, roadmap, changelog, desktop UI, build metadata, and candidate verification record. All three CI jobs passed.
+- This VERIFIED evidence-record commit must pass the same CI gate before PR #13 is merged; no code or acceptance criteria changed in this final evidence-only edit.
 
 ## Explicit boundaries
 
