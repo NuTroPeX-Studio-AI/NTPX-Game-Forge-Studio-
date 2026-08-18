@@ -2,7 +2,7 @@
 
 ## Current boundary
 
-Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy and evidence boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, and rejects replayed approval nonces for serialized writers, but it performs no requested external action itself.
+Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy and evidence boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, and rejects replayed approval nonces atomically across cooperating processes, but it performs no requested external action itself.
 
 ## Layers
 
@@ -33,12 +33,14 @@ Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpe
 - Approval secrets are external inputs, require at least 32 bytes, and are not serialized or exposed through `Debug`.
 - A proof can satisfy only an existing `RequireHumanApproval` policy result; it cannot override a denial or create a grant.
 - Successful approval evidence is persisted in the authorization audit record.
-- Reuse of a consumed approval nonce is rejected by scanning the verified audit chain. This provides durable replay prevention for serialized writers.
+- Audit mutations acquire an exclusive advisory lock on a deterministic sibling `<audit-path>.lock` file. Full-chain verification, next-sequence allocation, hash construction, append, and durable flush occur while the writer lock is held.
+- Approval nonce lookup and append execute as one locked operation, providing durable replay prevention across cooperating processes sharing the same audit log.
 - Decision records are deterministic and can be persisted as append-only JSONL audit entries.
 - Audit entries are SHA-256 hash-chained by sequence and previous hash; existing entries are fully verified before append and corruption fails closed.
 - The hash chain is tamper-evident, not authenticated: unrestricted rewrite access could recreate the full log and recompute hashes.
+- The writer lock is cooperative/advisory. A process that bypasses the Autonomy Governor API or ignores advisory locking is outside this guarantee.
 - Audit and approval persistence do not execute the governed request or grant any additional capability.
-- Cross-process concurrent-writer exclusion, transactional governed writes, rollback snapshots, and runtime enforcement remain Phase 03 work.
+- Transactional governed writes, rollback snapshots, and runtime enforcement remain Phase 03 work.
 
 ## Non-negotiable boundaries
 
