@@ -149,7 +149,9 @@ impl RecoveryScanner {
     /// Recovery re-reads and re-verifies the artifact, requires its encoded target to match the
     /// candidate, requires the target to pass the canonical runtime path boundary, and requires the
     /// rollback artifact to be the expected same-directory sibling for the target/transaction ID.
-    /// The snapshot is removed only after successful restoration.
+    /// Snapshot identity comparison is canonical so Windows short/long-path aliases do not create
+    /// false mismatches. The artifact itself must remain an ordinary non-symlink file. The snapshot
+    /// is removed only after successful restoration.
     ///
     /// # Errors
     /// Returns [`RecoveryError`] for corrupt/mismatched artifacts, path-hardening failures, or I/O
@@ -169,6 +171,7 @@ impl RecoveryScanner {
             .as_ref()
             .ok_or_else(|| RecoveryError::CorruptSnapshot(candidate.snapshot_path.clone()))?;
 
+        validate_snapshot_file(&candidate.snapshot_path)?;
         let encoded = fs::read(&candidate.snapshot_path)?;
         let snapshot: RollbackSnapshot =
             serde_json::from_slice(&encoded).map_err(RecoveryError::Decode)?;
@@ -188,7 +191,7 @@ impl RecoveryScanner {
             });
         }
         let expected_snapshot = rollback_path(target, transaction_id)?;
-        if expected_snapshot != candidate.snapshot_path {
+        if !same_existing_snapshot(&expected_snapshot, &candidate.snapshot_path)? {
             return Err(RecoveryError::InvalidSnapshotName(
                 candidate.snapshot_path.clone(),
             ));
@@ -259,6 +262,21 @@ fn inspect_snapshot(path: &Path) -> RecoveryCandidate {
             integrity: RecoveryIntegrity::Corrupt,
         },
     }
+}
+
+fn validate_snapshot_file(path: &Path) -> Result<(), RecoveryError> {
+    let metadata = fs::symlink_metadata(path)?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        Err(RecoveryError::InvalidSnapshotName(path.to_owned()))
+    } else {
+        Ok(())
+    }
+}
+
+fn same_existing_snapshot(expected: &Path, actual: &Path) -> Result<bool, RecoveryError> {
+    validate_snapshot_file(expected)?;
+    validate_snapshot_file(actual)?;
+    Ok(fs::canonicalize(expected)? == fs::canonicalize(actual)?)
 }
 
 fn verify_snapshot(snapshot: &RollbackSnapshot, path: &Path) -> Result<(), RecoveryError> {
