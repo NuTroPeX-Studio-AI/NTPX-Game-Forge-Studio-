@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::{
-    ApprovalError, ApprovalProof, ApprovalVerifier, AuditEntry, AuditError, AuditLog, Decision,
-    DecisionRecord, Permission, Policy, Request, ScopeKind,
+    replace::replace_file, ApprovalError, ApprovalProof, ApprovalVerifier, AuditEntry, AuditError,
+    AuditLog, Decision, DecisionRecord, Permission, Policy, Request, ScopeKind,
 };
 
 /// Result of a committed governed file transaction. The snapshot is deliberately retained until
@@ -51,19 +51,12 @@ struct RollbackSnapshot {
 #[derive(Debug)]
 pub enum TransactionError {
     InvalidTransactionId,
-    Unauthorized {
-        reason: String,
-    },
-    ScopeMismatch {
-        expected: String,
-        actual: String,
-    },
+    Unauthorized { reason: String },
+    ScopeMismatch { expected: String, actual: String },
     SymlinkTarget(PathBuf),
     MissingFileName(PathBuf),
     Approval(ApprovalError),
-    ReplayDetected {
-        nonce: String,
-    },
+    ReplayDetected { nonce: String },
     Io(std::io::Error),
     Encode(serde_json::Error),
     Audit(AuditError),
@@ -86,20 +79,16 @@ impl fmt::Display for TransactionError {
                 formatter,
                 "filesystem scope mismatch: expected '{expected}', got '{actual}'"
             ),
-            Self::SymlinkTarget(path) => {
-                write!(
-                    formatter,
-                    "refusing governed write through symlink '{}'",
-                    path.display()
-                )
-            }
-            Self::MissingFileName(path) => {
-                write!(
-                    formatter,
-                    "transaction target '{}' has no file name",
-                    path.display()
-                )
-            }
+            Self::SymlinkTarget(path) => write!(
+                formatter,
+                "refusing governed write through symlink '{}'",
+                path.display()
+            ),
+            Self::MissingFileName(path) => write!(
+                formatter,
+                "transaction target '{}' has no file name",
+                path.display()
+            ),
             Self::Approval(error) => write!(formatter, "transaction approval failed: {error}"),
             Self::ReplayDetected { nonce } => {
                 write!(formatter, "approval nonce '{nonce}' was already consumed")
@@ -154,10 +143,11 @@ impl From<ApprovalError> for TransactionError {
 ///
 /// This transaction engine intentionally supports only ordinary files. It rejects symlink targets,
 /// requires exact `Permission::Write` + `Filesystem` scope matching, persists a durable pre-write
-/// snapshot, stages bytes in the target directory, renames the staged file into place, and appends
-/// the final authorization record to the verified audit log. A deterministic sibling transaction
-/// lock serializes cooperating processes writing the same target. If audit persistence or approval
-/// nonce consumption fails after replacement, the pre-write state is restored automatically.
+/// snapshot, stages bytes in the target directory, replaces the target through the platform-aware
+/// replacement primitive, and appends the final authorization record to the verified audit log. A
+/// deterministic sibling transaction lock serializes cooperating processes writing the same target.
+/// If audit persistence or approval nonce consumption fails after replacement, the pre-write state
+/// is restored automatically.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct GovernedFileTransaction;
 
@@ -313,7 +303,7 @@ fn commit_record(
     persist_snapshot(&snapshot_path, &snapshot)?;
 
     if let Err(error) = persist_stage(&stage_path, contents).and_then(|()| {
-        fs::rename(&stage_path, target)?;
+        replace_file(&stage_path, target)?;
         Ok(())
     }) {
         let _ = fs::remove_file(&stage_path);
@@ -488,7 +478,7 @@ fn restore_snapshot(
             std::io::Error::new(std::io::ErrorKind::InvalidInput, error.to_string())
         })?;
         persist_stage(&restore_path, &snapshot.payload.contents)?;
-        fs::rename(&restore_path, target)?;
+        replace_file(&restore_path, target)?;
     } else {
         match fs::remove_file(target) {
             Ok(()) => {}
