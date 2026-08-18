@@ -1,6 +1,6 @@
 # Phase 03 — Build B000007 evidence
 
-Status: VERIFIED candidate pending final exact-state CI
+Status: VERIFIED
 
 Build: `NTPX-GFΩ-G0-v0.3.0-dev.2-M03-B000007`
 
@@ -16,9 +16,15 @@ Durable Autonomy Governor audit evidence increment: append-only JSONL persistenc
 - frontend typecheck
 - frontend production build
 
-## Candidate evidence
+## Verified evidence
 
-GitHub Actions run `32169331316` passed the Rust format, strict Clippy, and full workspace test gates for the implementation candidate after safe repairs. The frontend regression gate is also required before final merge.
+GitHub Actions run `32169570753` passed the exact B000007 implementation and metadata state before this evidence-only finalization commit:
+
+- Rust formatting: PASS
+- strict Clippy with warnings denied: PASS
+- all Rust workspace tests: PASS
+- frontend typecheck: PASS
+- frontend production build: PASS
 
 Quality repairs made without weakening checks:
 1. applied formatter-prescribed layout changes;
@@ -39,6 +45,8 @@ Quality repairs made without weakening checks:
 
 The hash chain is tamper-evident, not authenticated against a principal capable of rewriting the complete audit file. Concurrent multi-process writers, approval-proof replay prevention, transactional writes, rollback snapshots, and runtime enforcement remain pending Phase 03 work.
 
-## Finalization
+## Classification
 
-This evidence file must be updated to reference a successful CI run on the exact B000007 metadata state before merge. Until then the implementation is a VERIFIED candidate, while Phase 03 remains IN PROGRESS.
+VERIFIED — B000007 is a validated Phase 03 increment. Phase 03 remains IN PROGRESS.
+
+A final CI run on this evidence-only commit is required before merge so the branch head itself is green.
