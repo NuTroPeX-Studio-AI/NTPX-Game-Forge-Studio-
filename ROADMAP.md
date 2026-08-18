@@ -30,4 +30,4 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates, audit records, transactional writes, and rollback policy. The first increment establishes a deterministic deny-by-default policy core; runtime enforcement and reversible write transactions remain pending.
+Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates, audit records, transactional writes, and rollback policy. Verified increments now include the deterministic deny-by-default policy core and durable tamper-evident audit persistence. Approval-proof verification/replay prevention, runtime enforcement, transactional writes, and rollback snapshots remain pending.
