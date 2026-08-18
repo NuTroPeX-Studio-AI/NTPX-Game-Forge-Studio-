@@ -25,9 +25,7 @@ pub use audit::{AuditEntry, AuditError, AuditLog};
 pub use batch::{
     BatchFileWrite, BatchTransactionError, BatchTransactionReceipt, GovernedFileBatch,
 };
-pub use recovery::{
-    RecoveryCandidate, RecoveryError, RecoveryIntegrity, RecoveryScanner,
-};
+pub use recovery::{RecoveryCandidate, RecoveryError, RecoveryIntegrity, RecoveryScanner};
 pub use runtime::{
     canonical_filesystem_resource, resolve_filesystem_target, AuthorizationPermit,
     GovernanceRuntime, ResolvedFilesystemTarget, RuntimeError,
