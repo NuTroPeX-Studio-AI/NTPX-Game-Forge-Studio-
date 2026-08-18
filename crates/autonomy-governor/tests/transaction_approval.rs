@@ -137,10 +137,7 @@ fn replayed_approval_fails_closed_and_restores_winner_state() {
         error,
         TransactionError::ReplayDetected { nonce } if nonce == "nonce-replay-1"
     ));
-    assert_eq!(
-        fs::read(&target).expect("target should remain"),
-        b"winner"
-    );
+    assert_eq!(fs::read(&target).expect("target should remain"), b"winner");
     assert_eq!(audit.load_verified().expect("audit should verify").len(), 1);
     fs::remove_dir_all(dir).expect("temp directory should remove");
 }
@@ -241,7 +238,10 @@ fn approval_api_cannot_create_authority_for_direct_allow_or_denial() {
         150,
     )
     .expect_err("approval proof must not override policy denial");
-    assert!(matches!(denial_error, TransactionError::Unauthorized { .. }));
+    assert!(matches!(
+        denial_error,
+        TransactionError::Unauthorized { .. }
+    ));
     assert!(!target.exists());
     fs::remove_dir_all(dir).expect("temp directory should remove");
 }
