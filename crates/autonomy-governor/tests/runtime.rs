@@ -109,7 +109,12 @@ fn relative_target_is_rejected_before_mutation() {
     let runtime = GovernanceRuntime::new(&policy, &audit);
 
     let error = runtime
-        .write_file(request, Path::new("relative-state.txt"), b"blocked", "relative")
+        .write_file(
+            request,
+            Path::new("relative-state.txt"),
+            b"blocked",
+            "relative",
+        )
         .expect_err("relative target must fail closed");
     assert!(matches!(error, RuntimeError::AbsolutePathRequired(_)));
     assert!(!Path::new("relative-state.txt").exists());
