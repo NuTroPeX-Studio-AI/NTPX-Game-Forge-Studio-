@@ -64,7 +64,9 @@ pub fn migrate_json(input: &str) -> Result<String, GameSpecError> {
 
     let legacy: LegacyProject = serde_json::from_value(value).map_err(GameSpecError::Decode)?;
     if legacy.schema_version != "0.1" {
-        return Err(GameSpecError::Migration("legacy version mismatch".to_owned()));
+        return Err(GameSpecError::Migration(
+            "legacy version mismatch".to_owned(),
+        ));
     }
     let spec = migrate_legacy(legacy)?;
     validate(&spec)?;

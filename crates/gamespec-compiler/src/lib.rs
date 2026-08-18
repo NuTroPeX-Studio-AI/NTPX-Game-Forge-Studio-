@@ -1,4 +1,6 @@
-use gamespec::{deterministic_id, to_pretty_json, DependencyGraph, GameSpec, GameSpecError, SpecId};
+use gamespec::{
+    deterministic_id, to_pretty_json, DependencyGraph, GameSpec, GameSpecError, SpecId,
+};
 use serde::{Deserialize, Serialize};
 
 /// Deterministic compiler output describing a validated specification.

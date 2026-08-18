@@ -194,7 +194,14 @@ fn find_dependency_cycles(edges: &[DependencyEdge]) -> Vec<Vec<SpecId>> {
     for start in adjacency.keys() {
         let mut path = Vec::new();
         let mut active = BTreeSet::new();
-        walk_cycles(start, start, &adjacency, &mut active, &mut path, &mut cycles);
+        walk_cycles(
+            start,
+            start,
+            &adjacency,
+            &mut active,
+            &mut path,
+            &mut cycles,
+        );
     }
     cycles.into_iter().collect()
 }

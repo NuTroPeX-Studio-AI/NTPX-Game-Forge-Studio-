@@ -80,30 +80,104 @@ fn collect_ids(spec: &GameSpec, errors: &mut Vec<ValidationError>) -> IdSets {
     let mut sets = IdSets::default();
     collect(&spec.project.id, "project.id", &mut sets.all, errors);
     for (index, module) in spec.architecture.modules.iter().enumerate() {
-        collect(&module.id, &format!("architecture.modules[{index}].id"), &mut sets.all, errors);
+        collect(
+            &module.id,
+            &format!("architecture.modules[{index}].id"),
+            &mut sets.all,
+            errors,
+        );
         sets.modules.insert(module.id.clone());
     }
-    collect_slice(&spec.features, |value| &value.id, "features", &mut sets.all, errors);
+    collect_slice(
+        &spec.features,
+        |value| &value.id,
+        "features",
+        &mut sets.all,
+        errors,
+    );
     for (index, component) in spec.components.iter().enumerate() {
-        collect(&component.id, &format!("components[{index}].id"), &mut sets.all, errors);
+        collect(
+            &component.id,
+            &format!("components[{index}].id"),
+            &mut sets.all,
+            errors,
+        );
         sets.components.insert(component.id.clone());
     }
-    collect_slice(&spec.entities, |value| &value.id, "entities", &mut sets.all, errors);
-    collect_slice(&spec.inputs, |value| &value.id, "inputs", &mut sets.all, errors);
-    collect_slice(&spec.abilities, |value| &value.id, "abilities", &mut sets.all, errors);
+    collect_slice(
+        &spec.entities,
+        |value| &value.id,
+        "entities",
+        &mut sets.all,
+        errors,
+    );
+    collect_slice(
+        &spec.inputs,
+        |value| &value.id,
+        "inputs",
+        &mut sets.all,
+        errors,
+    );
+    collect_slice(
+        &spec.abilities,
+        |value| &value.id,
+        "abilities",
+        &mut sets.all,
+        errors,
+    );
     for (index, npc) in spec.npcs.iter().enumerate() {
-        collect(&npc.id, &format!("npcs[{index}].id"), &mut sets.all, errors);
+        collect(
+            &npc.id,
+            &format!("npcs[{index}].id"),
+            &mut sets.all,
+            errors,
+        );
         sets.npcs.insert(npc.id.clone());
     }
-    collect_slice(&spec.dialogues, |value| &value.id, "dialogues", &mut sets.all, errors);
-    collect_slice(&spec.quests, |value| &value.id, "quests", &mut sets.all, errors);
-    collect_slice(&spec.worlds, |value| &value.id, "worlds", &mut sets.all, errors);
-    collect_slice(&spec.assets, |value| &value.id, "assets", &mut sets.all, errors);
+    collect_slice(
+        &spec.dialogues,
+        |value| &value.id,
+        "dialogues",
+        &mut sets.all,
+        errors,
+    );
+    collect_slice(
+        &spec.quests,
+        |value| &value.id,
+        "quests",
+        &mut sets.all,
+        errors,
+    );
+    collect_slice(
+        &spec.worlds,
+        |value| &value.id,
+        "worlds",
+        &mut sets.all,
+        errors,
+    );
+    collect_slice(
+        &spec.assets,
+        |value| &value.id,
+        "assets",
+        &mut sets.all,
+        errors,
+    );
     for (index, test) in spec.tests.iter().enumerate() {
-        collect(&test.id, &format!("tests[{index}].id"), &mut sets.all, errors);
+        collect(
+            &test.id,
+            &format!("tests[{index}].id"),
+            &mut sets.all,
+            errors,
+        );
         sets.tests.insert(test.id.clone());
     }
-    collect_slice(&spec.builds, |value| &value.id, "builds", &mut sets.all, errors);
+    collect_slice(
+        &spec.builds,
+        |value| &value.id,
+        "builds",
+        &mut sets.all,
+        errors,
+    );
     sets
 }
 
@@ -121,16 +195,35 @@ fn collect_slice<T, F>(
     }
 }
 
-fn collect(id: &SpecId, path: &str, all: &mut BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn collect(
+    id: &SpecId,
+    path: &str,
+    all: &mut BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     if !id.is_valid() {
-        push_error(errors, "invalid_id", path, format!("noncanonical identifier '{id}'"));
+        push_error(
+            errors,
+            "invalid_id",
+            path,
+            format!("noncanonical identifier '{id}'"),
+        );
     }
     if !all.insert(id.clone()) {
-        push_error(errors, "duplicate_id", path, format!("duplicate identifier '{id}'"));
+        push_error(
+            errors,
+            "duplicate_id",
+            path,
+            format!("duplicate identifier '{id}'"),
+        );
     }
 }
 
-fn validate_architecture(spec: &GameSpec, modules: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn validate_architecture(
+    spec: &GameSpec,
+    modules: &BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     for (module_index, module) in spec.architecture.modules.iter().enumerate() {
         for (dependency_index, dependency) in module.depends_on.iter().enumerate() {
             require_reference(
@@ -145,51 +238,119 @@ fn validate_architecture(spec: &GameSpec, modules: &BTreeSet<SpecId>, errors: &m
 
 fn validate_features(spec: &GameSpec, sets: &IdSets, errors: &mut Vec<ValidationError>) {
     for (index, feature) in spec.features.iter().enumerate() {
-        require_reference(&feature.owner_module, &sets.modules, &format!("features[{index}].owner_module"), errors);
+        require_reference(
+            &feature.owner_module,
+            &sets.modules,
+            &format!("features[{index}].owner_module"),
+            errors,
+        );
         for (dependency_index, dependency) in feature.dependencies.iter().enumerate() {
-            require_reference(dependency, &sets.all, &format!("features[{index}].dependencies[{dependency_index}]"), errors);
+            require_reference(
+                dependency,
+                &sets.all,
+                &format!("features[{index}].dependencies[{dependency_index}]"),
+                errors,
+            );
         }
         for (test_index, test) in feature.tests.iter().enumerate() {
-            require_reference(test, &sets.tests, &format!("features[{index}].tests[{test_index}]"), errors);
+            require_reference(
+                test,
+                &sets.tests,
+                &format!("features[{index}].tests[{test_index}]"),
+                errors,
+            );
         }
     }
 }
 
-fn validate_components(spec: &GameSpec, components: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn validate_components(
+    spec: &GameSpec,
+    components: &BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     for (entity_index, entity) in spec.entities.iter().enumerate() {
         for (component_index, component) in entity.components.iter().enumerate() {
-            require_reference(component, components, &format!("entities[{entity_index}].components[{component_index}]"), errors);
+            require_reference(
+                component,
+                components,
+                &format!("entities[{entity_index}].components[{component_index}]"),
+                errors,
+            );
         }
     }
 }
 
-fn validate_abilities(spec: &GameSpec, modules: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn validate_abilities(
+    spec: &GameSpec,
+    modules: &BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     for (index, ability) in spec.abilities.iter().enumerate() {
-        require_reference(&ability.owner_module, modules, &format!("abilities[{index}].owner_module"), errors);
+        require_reference(
+            &ability.owner_module,
+            modules,
+            &format!("abilities[{index}].owner_module"),
+            errors,
+        );
     }
 }
 
-fn validate_npcs(spec: &GameSpec, components: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn validate_npcs(
+    spec: &GameSpec,
+    components: &BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     for (npc_index, npc) in spec.npcs.iter().enumerate() {
         for (component_index, component) in npc.components.iter().enumerate() {
-            require_reference(component, components, &format!("npcs[{npc_index}].components[{component_index}]"), errors);
+            require_reference(
+                component,
+                components,
+                &format!("npcs[{npc_index}].components[{component_index}]"),
+                errors,
+            );
         }
     }
 }
 
-fn validate_dialogues(spec: &GameSpec, npcs: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn validate_dialogues(
+    spec: &GameSpec,
+    npcs: &BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     for (dialogue_index, dialogue) in spec.dialogues.iter().enumerate() {
         let mut nodes = BTreeSet::new();
         for (node_index, node) in dialogue.nodes.iter().enumerate() {
-            collect_local(&node.id, &format!("dialogues[{dialogue_index}].nodes[{node_index}].id"), &mut nodes, errors);
+            collect_local(
+                &node.id,
+                &format!("dialogues[{dialogue_index}].nodes[{node_index}].id"),
+                &mut nodes,
+                errors,
+            );
         }
         for (participant_index, participant) in dialogue.participants.iter().enumerate() {
-            require_reference(participant, npcs, &format!("dialogues[{dialogue_index}].participants[{participant_index}]"), errors);
+            require_reference(
+                participant,
+                npcs,
+                &format!("dialogues[{dialogue_index}].participants[{participant_index}]"),
+                errors,
+            );
         }
         for (node_index, node) in dialogue.nodes.iter().enumerate() {
-            require_reference(&node.speaker, npcs, &format!("dialogues[{dialogue_index}].nodes[{node_index}].speaker"), errors);
+            require_reference(
+                &node.speaker,
+                npcs,
+                &format!("dialogues[{dialogue_index}].nodes[{node_index}].speaker"),
+                errors,
+            );
             for (next_index, next) in node.next.iter().enumerate() {
-                require_reference(next, &nodes, &format!("dialogues[{dialogue_index}].nodes[{node_index}].next[{next_index}]"), errors);
+                require_reference(
+                    next,
+                    &nodes,
+                    &format!(
+                        "dialogues[{dialogue_index}].nodes[{node_index}].next[{next_index}]"
+                    ),
+                    errors,
+                );
             }
         }
     }
@@ -199,9 +360,21 @@ fn validate_quests(spec: &GameSpec, all: &BTreeSet<SpecId>, errors: &mut Vec<Val
     for (quest_index, quest) in spec.quests.iter().enumerate() {
         let mut steps = BTreeSet::new();
         for (step_index, step) in quest.steps.iter().enumerate() {
-            collect_local(&step.id, &format!("quests[{quest_index}].steps[{step_index}].id"), &mut steps, errors);
+            collect_local(
+                &step.id,
+                &format!("quests[{quest_index}].steps[{step_index}].id"),
+                &mut steps,
+                errors,
+            );
             for (feature_index, feature) in step.requires_features.iter().enumerate() {
-                require_reference(feature, all, &format!("quests[{quest_index}].steps[{step_index}].requires_features[{feature_index}]"), errors);
+                require_reference(
+                    feature,
+                    all,
+                    &format!(
+                        "quests[{quest_index}].steps[{step_index}].requires_features[{feature_index}]"
+                    ),
+                    errors,
+                );
             }
         }
     }
@@ -209,29 +382,63 @@ fn validate_quests(spec: &GameSpec, all: &BTreeSet<SpecId>, errors: &mut Vec<Val
 
 fn validate_tests(spec: &GameSpec, all: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
     for (index, test) in spec.tests.iter().enumerate() {
-        require_reference(&test.target, all, &format!("tests[{index}].target"), errors);
+        require_reference(
+            &test.target,
+            all,
+            &format!("tests[{index}].target"),
+            errors,
+        );
     }
 }
 
 fn validate_cycles(spec: &GameSpec, errors: &mut Vec<ValidationError>) {
     for cycle in DependencyGraph::from_spec(spec).cycles {
-        let rendered = cycle.iter().map(ToString::to_string).collect::<Vec<_>>().join(" -> ");
+        let rendered = cycle
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(" -> ");
         push_error(errors, "dependency_cycle", "dependency_graph", rendered);
     }
 }
 
-fn collect_local(id: &SpecId, path: &str, local: &mut BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
+fn collect_local(
+    id: &SpecId,
+    path: &str,
+    local: &mut BTreeSet<SpecId>,
+    errors: &mut Vec<ValidationError>,
+) {
     if !id.is_valid() {
-        push_error(errors, "invalid_id", path, format!("noncanonical identifier '{id}'"));
+        push_error(
+            errors,
+            "invalid_id",
+            path,
+            format!("noncanonical identifier '{id}'"),
+        );
     }
     if !local.insert(id.clone()) {
-        push_error(errors, "duplicate_local_id", path, format!("duplicate local identifier '{id}'"));
+        push_error(
+            errors,
+            "duplicate_local_id",
+            path,
+            format!("duplicate local identifier '{id}'"),
+        );
     }
 }
 
-fn require_reference(id: &SpecId, valid: &BTreeSet<SpecId>, path: &str, errors: &mut Vec<ValidationError>) {
+fn require_reference(
+    id: &SpecId,
+    valid: &BTreeSet<SpecId>,
+    path: &str,
+    errors: &mut Vec<ValidationError>,
+) {
     if !valid.contains(id) {
-        push_error(errors, "missing_reference", path, format!("unresolved reference '{id}'"));
+        push_error(
+            errors,
+            "missing_reference",
+            path,
+            format!("unresolved reference '{id}'"),
+        );
     }
 }
 

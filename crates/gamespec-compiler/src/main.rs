@@ -35,12 +35,18 @@ fn run() -> Result<(), Box<dyn Error>> {
         [command, path] if command == "graph" => {
             let input = fs::read_to_string(path)?;
             let spec = from_json(&input)?;
-            println!("{}", serde_json::to_string_pretty(&DependencyGraph::from_spec(&spec))?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&DependencyGraph::from_spec(&spec))?
+            );
         }
         [command, path] if command == "compile" => {
             let input = fs::read_to_string(path)?;
             let spec = from_json(&input)?;
-            println!("{}", serde_json::to_string_pretty(&compile_manifest(&spec)?)?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&compile_manifest(&spec)?)?
+            );
         }
         [command, path] if command == "migrate" => {
             let input = fs::read_to_string(path)?;

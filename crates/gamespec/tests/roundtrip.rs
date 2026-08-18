@@ -1,7 +1,10 @@
-use gamespec::{from_json, migrate_json, to_pretty_json, DependencyGraph, GameSpec, GameSpecError};
+use gamespec::{
+    from_json, migrate_json, to_pretty_json, DependencyGraph, GameSpec, GameSpecError,
+};
 
 const SAMPLE: &str = include_str!("../../../examples/signal-born-first-thought/game.spec.json");
-const LEGACY: &str = include_str!("../../../examples/signal-born-first-thought/legacy-0.1.spec.json");
+const LEGACY: &str =
+    include_str!("../../../examples/signal-born-first-thought/legacy-0.1.spec.json");
 
 #[test]
 fn signal_born_sample_round_trips_deterministically() {
@@ -33,9 +36,13 @@ fn duplicate_ids_are_rejected() {
 #[test]
 fn unresolved_references_are_rejected() {
     let mut value: serde_json::Value = serde_json::from_str(SAMPLE).expect("sample must be JSON");
-    value["entities"][0]["components"][0] = serde_json::Value::String("missing-component".to_owned());
+    value["entities"][0]["components"][0] =
+        serde_json::Value::String("missing-component".to_owned());
     let invalid = serde_json::to_string(&value).expect("mutated sample should encode");
-    assert!(matches!(from_json(&invalid), Err(GameSpecError::Validation(_))));
+    assert!(matches!(
+        from_json(&invalid),
+        Err(GameSpecError::Validation(_))
+    ));
 }
 
 #[test]
@@ -45,7 +52,9 @@ fn dependency_cycles_are_rejected() {
     let invalid = serde_json::to_string(&value).expect("mutated sample should encode");
     let error = from_json(&invalid).expect_err("cycle must fail");
     match error {
-        GameSpecError::Validation(errors) => assert!(errors.iter().any(|error| error.code == "dependency_cycle")),
+        GameSpecError::Validation(errors) => {
+            assert!(errors.iter().any(|error| error.code == "dependency_cycle"))
+        }
         other => panic!("expected validation error, got {other}"),
     }
 }
