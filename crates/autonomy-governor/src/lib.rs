@@ -1,4 +1,4 @@
-//! Deny-by-default authorization policy core for NTPX GameForge Ω∞.
+//! Deny-by-default authorization policy core for NTPX `GameForge` Ω∞.
 //!
 //! This crate decides whether a requested capability is allowed, denied, or requires
 //! explicit human approval. It deliberately performs no tool, filesystem, network,
