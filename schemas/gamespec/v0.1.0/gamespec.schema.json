@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ntpx.dev/schemas/gamespec/0.1.0",
+  "title": "NTPX GameForge GameSpec 0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project", "architecture"],
+  "properties": {
+    "schema_version": { "const": "0.1.0" },
+    "project": { "$ref": "#/$defs/project" },
+    "architecture": { "$ref": "#/$defs/architecture" },
+    "features": { "type": "array", "items": { "$ref": "#/$defs/feature" } },
+    "components": { "type": "array", "items": { "$ref": "#/$defs/component" } },
+    "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } },
+    "inputs": { "type": "array", "items": { "$ref": "#/$defs/input" } },
+    "abilities": { "type": "array", "items": { "$ref": "#/$defs/ability" } },
+    "npcs": { "type": "array", "items": { "$ref": "#/$defs/npc" } },
+    "dialogues": { "type": "array", "items": { "$ref": "#/$defs/dialogue" } },
+    "quests": { "type": "array", "items": { "$ref": "#/$defs/quest" } },
+    "worlds": { "type": "array", "items": { "$ref": "#/$defs/world" } },
+    "assets": { "type": "array", "items": { "$ref": "#/$defs/asset" } },
+    "tests": { "type": "array", "items": { "$ref": "#/$defs/test" } },
+    "builds": { "type": "array", "items": { "$ref": "#/$defs/build" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "slug", "description", "engine_targets", "platform_targets"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string", "minLength": 1 },
+        "slug": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "engine_targets": { "type": "array", "items": { "enum": ["unreal", "unity", "godot", "web", "ntpx"] } },
+        "platform_targets": { "type": "array", "items": { "$ref": "#/$defs/platform" } }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modules"],
+      "properties": { "modules": { "type": "array", "items": { "$ref": "#/$defs/module" } } }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "depends_on"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "kind": { "enum": ["core", "gameplay", "ai", "narrative", "world", "ui", "audio", "tooling", "adapter"] },
+        "depends_on": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "owner_module", "requirements", "dependencies", "tests"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "owner_module": { "$ref": "#/$defs/id" },
+        "requirements": { "type": "array", "items": { "type": "string" } },
+        "dependencies": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "tests": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "data"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "data": { "type": "object" }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "components"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "components": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "value_type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "value_type": { "enum": ["digital", "axis1d", "axis2d", "axis3d", "voice"] }
+      }
+    },
+    "ability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "owner_module", "tags", "requirements"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "owner_module": { "$ref": "#/$defs/id" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "requirements": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "npc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "display_name", "components", "tags"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "display_name": { "type": "string" },
+        "components": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "dialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "participants", "nodes"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string" },
+        "participants": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/dialogue_node" } }
+      }
+    },
+    "dialogue_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "speaker", "text", "next"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "speaker": { "$ref": "#/$defs/id" },
+        "text": { "type": "string" },
+        "next": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "quest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "steps"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string" },
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/quest_step" } }
+      }
+    },
+    "quest_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "objective", "requires_features"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "objective": { "type": "string" },
+        "requires_features": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "regions"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "regions": { "type": "array", "items": { "$ref": "#/$defs/world_region" } }
+      }
+    },
+    "world_region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "tags"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "source_uri", "license", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "kind": { "enum": ["mesh", "texture", "material", "animation", "audio", "video", "script", "data"] },
+        "source_uri": { "type": "string" },
+        "license": { "$ref": "#/$defs/license" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "commercial_use", "attribution"],
+      "properties": {
+        "name": { "type": "string" },
+        "commercial_use": { "type": "boolean" },
+        "attribution": { "type": ["string", "null"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "generator", "source_reference"],
+      "properties": {
+        "origin": { "enum": ["human", "generated", "licensed", "scanned", "imported"] },
+        "generator": { "type": ["string", "null"] },
+        "source_reference": { "type": ["string", "null"] }
+      }
+    },
+    "test": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "target", "acceptance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "kind": { "enum": ["unit", "integration", "functional", "performance", "security", "accessibility"] },
+        "target": { "$ref": "#/$defs/id" },
+        "acceptance": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "platform", "profile", "output"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "platform": { "$ref": "#/$defs/platform" },
+        "profile": { "enum": ["debug", "development", "test", "performance", "release_candidate", "release"] },
+        "output": { "type": "string" }
+      }
+    },
+    "platform": { "enum": ["windows", "linux", "macos", "android", "ios", "playstation", "xbox", "steam_deck", "web", "vr"] }
+  }
+}

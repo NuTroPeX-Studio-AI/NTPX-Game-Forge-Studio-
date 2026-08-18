@@ -14,22 +14,22 @@ export default function App() {
         <p className="eyebrow">NTPX GAMEFORGE Ω∞</p>
         <h1>Autonomous Game Development Command Center</h1>
         <p className="lede">
-          Phase 01 is verified. Phase 02 will add the deterministic GameSpec foundation for the 18-stage roadmap.
+          Phase 01 is verified. Phase 02 is implementing the canonical, engine-neutral GameSpec project model.
         </p>
       </section>
 
       <section className="panel">
         <div>
           <span className="label">Current build</span>
-          <strong>B000002</strong>
+          <strong>B000003</strong>
         </div>
         <div>
           <span className="label">Milestone</span>
-          <strong>M01</strong>
+          <strong>M02</strong>
         </div>
         <div>
           <span className="label">State</span>
-          <strong>Verified</strong>
+          <strong>In development</strong>
         </div>
       </section>
 
@@ -37,7 +37,7 @@ export default function App() {
         <h2>Roadmap</h2>
         <ol>
           {stages.map((stage, index) => (
-            <li key={stage} className={index === 0 ? "active" : "pending"}>
+            <li key={stage} className={index <= 1 ? "active" : "pending"}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               {stage}
             </li>
