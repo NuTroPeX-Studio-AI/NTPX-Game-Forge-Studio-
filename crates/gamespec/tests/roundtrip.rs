@@ -28,7 +28,9 @@ fn duplicate_module_ids_are_rejected() {
     let error = from_json(invalid).expect_err("duplicate IDs must fail validation");
     match error {
         GameSpecError::Validation(errors) => {
-            assert!(errors.iter().any(|error| error.message.contains("duplicate identifier")));
+            assert!(errors
+                .iter()
+                .any(|error| error.message.contains("duplicate identifier")));
         }
         other => panic!("expected validation error, got {other}"),
     }
@@ -43,5 +45,8 @@ fn unsupported_schema_version_is_rejected() {
       "modules": []
     }"#;
 
-    assert!(matches!(from_json(invalid), Err(GameSpecError::Validation(_))));
+    assert!(matches!(
+        from_json(invalid),
+        Err(GameSpecError::Validation(_))
+    ));
 }

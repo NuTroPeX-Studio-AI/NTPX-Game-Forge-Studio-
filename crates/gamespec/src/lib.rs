@@ -37,7 +37,11 @@ impl fmt::Display for GameSpecError {
         match self {
             Self::Decode(error) => write!(formatter, "failed to decode GameSpec: {error}"),
             Self::Encode(error) => write!(formatter, "failed to encode GameSpec: {error}"),
-            Self::Validation(errors) => write!(formatter, "GameSpec validation failed with {} error(s)", errors.len()),
+            Self::Validation(errors) => write!(
+                formatter,
+                "GameSpec validation failed with {} error(s)",
+                errors.len()
+            ),
         }
     }
 }
