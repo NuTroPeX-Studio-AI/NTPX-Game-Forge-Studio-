@@ -2,14 +2,14 @@
 
 ## Current boundary
 
-Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy and evidence boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, and rejects replayed approval nonces atomically across cooperating processes, but it performs no requested external action itself.
+Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy, evidence, and narrowly governed local-mutation boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, rejects replayed approval nonces atomically across cooperating processes, and now supports exact-path local file transactions that preserve durable pre-write rollback snapshots. It still does not provide general tool, network, repository, credential, engine, or release execution authority.
 
 ## Layers
 
 1. **Studio UI** — Tauri + React desktop shell.
 2. **Core services** — Rust workspace crates with explicit interfaces.
 3. **Specifications** — verified GameSpec types, versioned schema, validation, dependency graph, migrations, deterministic compiler metadata, and CLI.
-4. **Governance** — deny-by-default identities, permissions, exact scopes, risk classification, approval proofs/gates, durable audit evidence, transactions, and rollback (Phase 03).
+4. **Governance** — deny-by-default identities, permissions, exact scopes, risk classification, approval proofs/gates, durable audit evidence, governed file transactions, and rollback (Phase 03).
 5. **Intelligence** — model routing, orchestration, code intelligence, project world model, and evaluation council (Phases 04–13).
 6. **Execution** — Agent Zero, engine/tool adapters, build/test/repair (Phases 07–11).
 7. **Production** — assets, narrative/audio/NPCs, controlled improvement, game build, and release (Phases 14–18).
@@ -39,8 +39,12 @@ Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpe
 - Audit entries are SHA-256 hash-chained by sequence and previous hash; existing entries are fully verified before append and corruption fails closed.
 - The hash chain is tamper-evident, not authenticated: unrestricted rewrite access could recreate the full log and recompute hashes.
 - The writer lock is cooperative/advisory. A process that bypasses the Autonomy Governor API or ignores advisory locking is outside this guarantee.
-- Audit and approval persistence do not execute the governed request or grant any additional capability.
-- Transactional governed writes, rollback snapshots, and runtime enforcement remain Phase 03 work.
+- Exact-path governed local file transactions re-evaluate policy internally and require direct `Allow` for `Permission::Write` on an exact lexical `Filesystem` scope matching the target.
+- Governed file transactions reject symlink targets, persist a same-directory SHA-256-protected pre-write snapshot, durably flush staged bytes before rename, append the authorization record after replacement, and automatically restore the pre-write state if audit persistence fails.
+- Successful file commits retain their rollback snapshot and return a receipt for explicit restoration. Consumed snapshots are removed only after successful rollback.
+- Snapshot integrity is tamper-evident, not authenticated. Parent-directory symlink/race hardening, canonical path containment, crash recovery, approved-proof transaction execution, multi-file atomicity, and platform-specific replacement semantics remain future Phase 03 work.
+- Audit/approval/transaction persistence does not grant general tool, network, repository, credential, engine, or release authority.
+- Runtime enforcement remains Phase 03 work.
 
 ## Non-negotiable boundaries
 

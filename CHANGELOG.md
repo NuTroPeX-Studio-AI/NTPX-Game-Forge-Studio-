@@ -2,6 +2,21 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.5 — Phase 03 — Build B000010
+
+### Verified governed transactional file-write increment
+- Added exact-path governed local file transactions inside `autonomy-governor`.
+- Re-evaluate deny-by-default policy inside the transaction boundary and require direct `Allow` for exact `Filesystem` + `Write` scope matching.
+- Added durable same-directory pre-write rollback snapshots with SHA-256 integrity digests.
+- Added same-directory staging with durable flush before rename into place.
+- Added verified audit append after mutation and automatic restoration of pre-write state if audit persistence fails.
+- Added explicit transaction receipts and rollback support for both replaced and newly created files.
+- Added symlink-target refusal and bounded canonical transaction-ID grammar.
+- Added tests for existing-file rollback, new-file rollback, denial/no mutation, scope mismatch, corrupt-audit auto-rollback, and preservation of human-approval gates.
+- Added ADR 0008 and verification evidence for the transaction/rollback boundary.
+- Candidate CI run `32186220917` passed Rust formatting, strict Clippy, all workspace tests, frontend typecheck, and frontend production build.
+- Phase 03 remains in progress; runtime enforcement and the remaining path-hardening/crash-recovery/multi-file work remain pending.
+
 ## 0.3.0-dev.4 — Phase 03 — Build B000009
 
 ### Verified cross-process audit writer exclusion increment
