@@ -193,8 +193,11 @@ impl AuditLog {
                 });
             }
 
-            let expected_hash =
-                compute_hash(entry.sequence, entry.previous_hash.as_deref(), &entry.record)?;
+            let expected_hash = compute_hash(
+                entry.sequence,
+                entry.previous_hash.as_deref(),
+                &entry.record,
+            )?;
             if entry.hash != expected_hash {
                 return Err(AuditError::Integrity {
                     line: line_number,
