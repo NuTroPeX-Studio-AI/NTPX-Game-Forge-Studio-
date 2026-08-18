@@ -23,7 +23,7 @@ pub struct AuditEntry {
 #[derive(Serialize)]
 struct AuditPayload<'a> {
     sequence: u64,
-    previous_hash: &'a Option<String>,
+    previous_hash: Option<&'a str>,
     record: &'a DecisionRecord,
 }
 
@@ -118,7 +118,7 @@ impl AuditLog {
             message: "audit sequence exceeds u64 capacity".to_owned(),
         })?;
         let previous_hash = entries.last().map(|entry| entry.hash.clone());
-        let hash = compute_hash(sequence, &previous_hash, &record)?;
+        let hash = compute_hash(sequence, previous_hash.as_deref(), &record)?;
         let entry = AuditEntry {
             sequence,
             previous_hash,
@@ -193,7 +193,8 @@ impl AuditLog {
                 });
             }
 
-            let expected_hash = compute_hash(entry.sequence, &entry.previous_hash, &entry.record)?;
+            let expected_hash =
+                compute_hash(entry.sequence, entry.previous_hash.as_deref(), &entry.record)?;
             if entry.hash != expected_hash {
                 return Err(AuditError::Integrity {
                     line: line_number,
@@ -211,7 +212,7 @@ impl AuditLog {
 
 fn compute_hash(
     sequence: u64,
-    previous_hash: &Option<String>,
+    previous_hash: Option<&str>,
     record: &DecisionRecord,
 ) -> Result<String, AuditError> {
     let payload = AuditPayload {
