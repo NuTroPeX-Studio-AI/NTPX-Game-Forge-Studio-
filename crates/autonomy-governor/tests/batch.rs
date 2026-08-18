@@ -6,7 +6,7 @@ use std::{
 
 use autonomy_governor::{
     canonical_filesystem_resource, ApprovalRequirement, AuditLog, BatchFileWrite,
-    BatchTransactionError, GovernedFileBatch, GovernanceRuntime, Grant, Permission, Policy,
+    BatchTransactionError, GovernanceRuntime, GovernedFileBatch, Grant, Permission, Policy,
     Principal, PrincipalId, Request, RiskLevel, Scope, ScopeKind,
 };
 
