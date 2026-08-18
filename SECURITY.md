@@ -32,6 +32,26 @@ The following always require explicit human authorization:
 - Crash-recovery discovery is read-only. Explicit recovery verifies snapshot integrity/target binding and rejects corrupt or symlink-substituted artifacts.
 - The Autonomy Governor is compiled and tested on Windows in addition to the full Ubuntu workspace CI gate.
 
+## Verified Model Router guarantees
+
+- Model/provider selection is provider-neutral and based only on declared catalog metadata plus a typed routing request/policy.
+- Local-only privacy constraints exclude cloud models before ranking.
+- Capability, context/output capacity, cost, latency, and reliability constraints fail closed by rejecting non-qualifying models with explicit evidence.
+- Model/provider enumeration order is normalized and stable identity is the final tie-breaker, making equivalent request/policy/catalog inputs reproducible.
+- Duplicate model identities, adapter provider/class inconsistencies, invalid reliability values, and repeated/empty ranking policies fail closed.
+- The result is an ordered primary/fallback selection or explicit abstention; the router does not silently relax hard constraints to force a result.
+- Routing evidence is SHA-256 digested for deterministic correlation.
+- `ProviderAdapter`, `LocalProviderAdapter`, and `CloudProviderAdapter` expose catalog information only. Phase 04 adds no provider network-call or credential-use API.
+
+## Model Router authority boundaries
+
+- Selecting a cloud model does not authorize a network connection, API request, paid usage, or credential access.
+- Selecting a model that advertises tool-use capability does not authorize any tool invocation.
+- Routing evidence is not an Autonomy Governor permit and cannot override a denial or human approval gate.
+- Provider capability, cost, latency, and reliability values are input metadata. Structural consistency is validated, but the router does not independently authenticate or prove those provider claims.
+- Future live-provider/inference adapters must keep credentials external, obtain governor authorization for governed actions, and preserve protected-action human approval.
+- Prompt/project payload content should not be included merely to make a routing decision; Phase 04 routes from requirements and estimates rather than content.
+
 ## Residual security boundaries
 
 - Advisory audit/transaction locks coordinate cooperating processes only. An actor bypassing governor APIs is outside the locking guarantee.
@@ -40,7 +60,7 @@ The following always require explicit human authorization:
 - The Windows replacement fallback is reversible/failure-safe but not kernel-atomic across the target-to-backup and stage-to-target renames.
 - Multi-file batches are all-or-reverted for ordinary failures, not kernel-level atomic across multiple files or crash points.
 - Verified rollback snapshots are intentionally not auto-restored because a retained snapshot can represent a successful reversible transaction as well as interrupted work.
-- Phase 03 does not grant production credentials, network connections, repository merge rights, engine execution, publishing, or release authority. Future adapters must consume the governor rather than bypass it.
+- Phase 04 does not grant production credentials, network connections, provider invocation, repository merge rights, engine execution, publishing, or release authority. Future adapters must consume the governor rather than bypass it.
 
 ## Agent execution principles
 
@@ -53,10 +73,11 @@ The following always require explicit human authorization:
 - transactional edits
 - snapshot/rollback before high-risk changes
 - fail closed on ambiguity or corrupted evidence
+- keep selection separate from authorization and execution
 
 ## Secret handling
 
-Never commit secrets, tokens, private keys, certificates, `.env` files, or production credentials. Approval-signing secrets must remain external inputs and must not be serialized or logged. Use environment variables or an approved secret store.
+Never commit secrets, tokens, private keys, certificates, `.env` files, or production credentials. Approval-signing secrets and future model-provider credentials must remain external inputs and must not be serialized or logged. Use environment variables or an approved secret store.
 
 ## Reporting
 

@@ -4,6 +4,7 @@ members = [
   "crates/gamespec",
   "crates/gamespec-compiler",
   "crates/autonomy-governor",
+  "crates/model-router",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",

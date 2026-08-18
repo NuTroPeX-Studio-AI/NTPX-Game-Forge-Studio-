@@ -2,7 +2,7 @@
 
 ## Current boundary
 
-Phases 01–03 are verified foundations. GameSpec 0.1.0 is the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is now the verified authorization, evidence, approval, reversible-mutation, recovery, and in-process runtime-enforcement boundary. It still does not grant general model-provider, network, repository, credential, engine, publishing, or release authority. Phase 04 Model Router is the next construction target.
+Phases 01–04 are verified foundations. GameSpec 0.1.0 is the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is the verified authorization, evidence, approval, reversible-mutation, recovery, and in-process runtime-enforcement boundary. The Model Router is the verified provider-neutral selection boundary: it filters and deterministically ranks declared local/cloud model capabilities under privacy, cost, latency, capacity, and reliability constraints, emits bounded fallbacks or abstention, and produces reproducible routing evidence. Model selection does not grant model-provider, network, credential, tool, repository, engine, publishing, or release authority. Phase 05 Agent Orchestrator is the next construction target.
 
 ## Layers
 
@@ -10,7 +10,7 @@ Phases 01–03 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 2. **Core services** — Rust workspace crates with explicit interfaces.
 3. **Specifications** — verified GameSpec types, versioned schema, validation, dependency graph, migrations, deterministic compiler metadata, and CLI.
 4. **Governance** — verified deny-by-default identities, permissions, exact scopes, risk classification, approval proofs/gates, durable audit evidence, canonical runtime permits, governed transactions, batch rollback, recovery, and rollback (Phase 03).
-5. **Intelligence** — model routing, orchestration, code intelligence, project world model, and evaluation council (Phases 04–13).
+5. **Intelligence** — verified model routing plus orchestration, code intelligence, project world model, and evaluation council (Phases 04–13).
 6. **Execution** — Agent Zero, engine/tool adapters, build/test/repair (Phases 07–11).
 7. **Production** — assets, narrative/audio/NPCs, controlled improvement, game build, and release (Phases 14–18).
 
@@ -78,6 +78,35 @@ Phases 01–03 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 - Snapshot and audit hashes are tamper-evident, not secret-key authenticity proofs.
 - Phase 03 grants no production credential, network, repository merge, engine, publishing, or release authority. Later adapters must consume the governor boundary rather than bypass it.
 
+## Model Router boundary
+
+### Provider-neutral catalog contract
+
+- `model-router` depends on provider-neutral typed descriptors rather than a vendor SDK.
+- `ProviderAdapter` exposes read-only provider identity, locality class, and model catalog data only.
+- Concrete local and cloud catalog adapters implement the same interface and validate descriptor ownership/class consistency.
+- Model capabilities are typed and include text, code, reasoning, vision, audio, speech, embeddings, structured output, and tool-use declarations.
+- Catalog descriptors also declare context/output capacity, expected latency, token-cost metadata, and reliability basis points.
+
+### Constraint filtering and deterministic ranking
+
+- Routing requests contain selection requirements and estimates, not prompt/project payload content.
+- Hard constraints cover required capabilities, context/output capacity, local-only privacy, optional estimated-cost ceiling, optional latency ceiling, and optional reliability floor.
+- Rejected candidates remain in evidence with deterministic explicit rejection reasons.
+- Eligible candidates are ranked lexicographically using an ordered `RoutingPolicy`; integer comparisons avoid floating-point score instability.
+- Provider/model identity is the final tie-breaker.
+- Adapter/model enumeration is normalized before filtering/ranking, so equivalent catalogs produce the same decision regardless of adapter order.
+- The result contains one primary candidate and a bounded ordered fallback list, or explicit abstention if no model qualifies.
+
+### Routing evidence and authority separation
+
+- The complete routing request, policy, eligible set, rejection set, and outcome form deterministic routing evidence.
+- Evidence is SHA-256 digested for reproducible correlation. The digest is not an authorization token or secret-key authenticity mechanism.
+- A routing decision selects a model identity only. It does not invoke the model or authorize network access, credentials, tools, filesystem/repository writes, merges, engine actions, publishing, or release.
+- A selected model advertising tool-use capability still requires separately governed tool execution.
+- Future provider invocation adapters must use the Autonomy Governor for governed capabilities and must preserve human approval gates for protected actions.
+- Catalog cost/latency/reliability/capability data is input metadata. Phase 04 validates structure and consistency but does not independently prove that provider-declared values are current or empirically correct.
+
 ## Non-negotiable boundaries
 
 - Shared core crates must not depend on a specific game engine.
@@ -86,13 +115,14 @@ Phases 01–03 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 - Destructive, credentialed, financial, production, and public-release actions require human authorization.
 - Every automated write must ultimately be auditable and reversible.
 - GameSpec validation does not grant agents permission to execute tools or change repositories.
+- Model selection is not execution authority.
 - Later model, agent, tool, network, and engine adapters must obtain governor authorization rather than invent parallel permission paths.
 
 ## Repository layout
 
 ```text
 apps/                  User-facing applications
-crates/                Shared Rust core services, governance, and GameSpec compiler
+crates/                Shared Rust core services, governance, GameSpec compiler, and Model Router
 schemas/               Versioned GameSpec JSON Schema contracts
 examples/              Reference and migration fixtures
 docs/                  ADRs and verification evidence

@@ -20,3 +20,7 @@
 18. Model, agent, tool, network, repository, engine, and release adapters must consume the verified Autonomy Governor boundary for governed actions; they must not create parallel permission paths.
 19. Protected actions remain human-gated even when a later model or agent recommends execution.
 20. Do not represent advisory locking, reversible Windows replacement, all-or-reverted batches, or canonical path revalidation as stronger guarantees than documented in `ARCHITECTURE.md` and `SECURITY.md`.
+21. Treat Model Router outputs as selection evidence only. A selected provider/model never grants network, credential, tool, repository, engine, publishing, or release authority.
+22. Preserve deterministic routing: hard constraints must not be silently relaxed, adapter enumeration order must not change equivalent decisions, and stable identity must remain the final tie-breaker unless an ADR explicitly changes the contract.
+23. Keep prompt/project payload content out of routing requests unless a future reviewed architecture explicitly requires content-aware routing and documents its privacy/provenance implications.
+24. Treat provider capability, cost, latency, and reliability declarations as versioned input metadata, not independently verified truth or permission evidence.
