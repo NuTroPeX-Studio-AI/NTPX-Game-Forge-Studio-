@@ -67,7 +67,8 @@ fn tampering_is_detected_and_fails_closed() {
         .expect("audit append succeeds");
 
     let contents = fs::read_to_string(&path).expect("audit file readable");
-    let tampered = contents.replace("unknown principal", "matching explicit grant");
+    let tampered = contents.replace("workspace/src", "workspace/tampered");
+    assert_ne!(contents, tampered, "test mutation must alter stored data");
     fs::write(&path, tampered).expect("test mutation succeeds");
 
     assert!(matches!(
