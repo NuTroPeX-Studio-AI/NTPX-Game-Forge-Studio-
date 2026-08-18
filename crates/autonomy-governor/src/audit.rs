@@ -1,11 +1,13 @@
 use std::{
     error::Error,
+    ffi::OsString,
     fmt,
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Write},
     path::{Path, PathBuf},
 };
 
+use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -47,18 +49,14 @@ impl fmt::Display for AuditError {
         match self {
             Self::Io(error) => write!(formatter, "audit I/O failed: {error}"),
             Self::Encode(error) => write!(formatter, "audit encoding failed: {error}"),
-            Self::Decode { line, source } => {
-                write!(
-                    formatter,
-                    "audit entry on line {line} is invalid JSON: {source}"
-                )
-            }
-            Self::Integrity { line, message } => {
-                write!(
-                    formatter,
-                    "audit integrity failure on line {line}: {message}"
-                )
-            }
+            Self::Decode { line, source } => write!(
+                formatter,
+                "audit entry on line {line} is invalid JSON: {source}"
+            ),
+            Self::Integrity { line, message } => write!(
+                formatter,
+                "audit integrity failure on line {line}: {message}"
+            ),
         }
     }
 }
@@ -85,6 +83,8 @@ impl From<std::io::Error> for AuditError {
 /// Each entry is chained to the SHA-256 digest of the previous entry. The chain detects
 /// accidental corruption and post-write edits, but it is not an authenticity mechanism: an
 /// attacker with unrestricted write access could rewrite the entire file and recompute hashes.
+/// Mutating operations additionally serialize cooperating processes through an advisory sibling
+/// lock file so audit sequence allocation and approval-nonce consumption are atomic.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AuditLog {
     path: PathBuf,
@@ -103,39 +103,53 @@ impl AuditLog {
         &self.path
     }
 
+    /// Return the sibling advisory lock-file path used for cross-process writer exclusion.
+    #[must_use]
+    pub fn lock_path(&self) -> PathBuf {
+        let mut path = OsString::from(self.path.as_os_str());
+        path.push(".lock");
+        PathBuf::from(path)
+    }
+
     /// Append one verified decision record and flush it to durable storage.
     ///
-    /// Existing entries are fully verified before the append. Corrupt or malformed logs fail
-    /// closed and are never extended.
+    /// Existing entries are fully verified while holding the writer lock before the append.
+    /// Corrupt or malformed logs fail closed and are never extended.
     ///
     /// # Errors
-    /// Returns [`AuditError`] if the existing log cannot be read or verified, if serialization
-    /// fails, or if the append cannot be flushed to storage.
+    /// Returns [`AuditError`] if the writer lock cannot be acquired/released, the existing log
+    /// cannot be read or verified, serialization fails, or the append cannot be flushed.
     pub fn append(&self, record: DecisionRecord) -> Result<AuditEntry, AuditError> {
-        let entries = self.load_verified()?;
-        let sequence = u64::try_from(entries.len()).map_err(|_| AuditError::Integrity {
-            line: entries.len().saturating_add(1),
-            message: "audit sequence exceeds u64 capacity".to_owned(),
-        })?;
-        let previous_hash = entries.last().map(|entry| entry.hash.clone());
-        let hash = compute_hash(sequence, previous_hash.as_deref(), &record)?;
-        let entry = AuditEntry {
-            sequence,
-            previous_hash,
-            record,
-            hash,
-        };
+        self.with_writer_lock(|| {
+            let entries = self.load_verified()?;
+            self.append_after_verified(record, &entries)
+        })
+    }
 
-        let encoded = serde_json::to_string(&entry).map_err(AuditError::Encode)?;
-        let mut file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&self.path)?;
-        file.write_all(encoded.as_bytes())?;
-        file.write_all(b"\n")?;
-        file.sync_data()?;
-
-        Ok(entry)
+    /// Atomically append an approved decision only when `nonce` has not already been consumed.
+    ///
+    /// The nonce lookup and append occur under the same cross-process writer lock. `Ok(None)`
+    /// means another verified entry already consumed the nonce. This method does not itself verify
+    /// an approval proof; callers must supply a record containing previously verified evidence.
+    ///
+    /// # Errors
+    /// Returns [`AuditError`] if the writer lock, audit integrity check, encoding, or durable append
+    /// fails.
+    pub fn append_if_approval_nonce_unused(
+        &self,
+        record: DecisionRecord,
+        nonce: &str,
+    ) -> Result<Option<AuditEntry>, AuditError> {
+        self.with_writer_lock(|| {
+            let entries = self.load_verified()?;
+            if entries
+                .iter()
+                .any(|entry| approval_nonce(entry) == Some(nonce))
+            {
+                return Ok(None);
+            }
+            self.append_after_verified(record, &entries).map(Some)
+        })
     }
 
     /// Return whether a verified prior entry already consumed an approval nonce.
@@ -143,13 +157,10 @@ impl AuditLog {
     /// # Errors
     /// Returns [`AuditError`] if the log cannot be read or fails integrity verification.
     pub fn contains_approval_nonce(&self, nonce: &str) -> Result<bool, AuditError> {
-        Ok(self.load_verified()?.iter().any(|entry| {
-            entry
-                .record
-                .approval
-                .as_ref()
-                .is_some_and(|approval| approval.nonce == nonce)
-        }))
+        Ok(self
+            .load_verified()?
+            .iter()
+            .any(|entry| approval_nonce(entry) == Some(nonce)))
     }
 
     /// Load and verify every audit entry in order.
@@ -225,6 +236,65 @@ impl AuditLog {
 
         Ok(entries)
     }
+
+    fn with_writer_lock<T>(
+        &self,
+        operation: impl FnOnce() -> Result<T, AuditError>,
+    ) -> Result<T, AuditError> {
+        let lock_file = OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .read(true)
+            .write(true)
+            .open(self.lock_path())?;
+        lock_file.lock_exclusive()?;
+        let result = operation();
+        let unlock = FileExt::unlock(&lock_file).map_err(AuditError::Io);
+        match result {
+            Err(error) => Err(error),
+            Ok(value) => {
+                unlock?;
+                Ok(value)
+            }
+        }
+    }
+
+    fn append_after_verified(
+        &self,
+        record: DecisionRecord,
+        entries: &[AuditEntry],
+    ) -> Result<AuditEntry, AuditError> {
+        let sequence = u64::try_from(entries.len()).map_err(|_| AuditError::Integrity {
+            line: entries.len().saturating_add(1),
+            message: "audit sequence exceeds u64 capacity".to_owned(),
+        })?;
+        let previous_hash = entries.last().map(|entry| entry.hash.clone());
+        let hash = compute_hash(sequence, previous_hash.as_deref(), &record)?;
+        let entry = AuditEntry {
+            sequence,
+            previous_hash,
+            record,
+            hash,
+        };
+
+        let encoded = serde_json::to_string(&entry).map_err(AuditError::Encode)?;
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&self.path)?;
+        file.write_all(encoded.as_bytes())?;
+        file.write_all(b"\n")?;
+        file.sync_data()?;
+        Ok(entry)
+    }
+}
+
+fn approval_nonce(entry: &AuditEntry) -> Option<&str> {
+    entry
+        .record
+        .approval
+        .as_ref()
+        .map(|approval| approval.nonce.as_str())
 }
 
 fn compute_hash(

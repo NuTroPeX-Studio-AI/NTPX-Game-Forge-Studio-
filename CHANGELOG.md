@@ -2,6 +2,19 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.4 — Phase 03 — Build B000009
+
+### Verified cross-process audit writer exclusion increment
+- Added OS-backed exclusive advisory locking on a deterministic sibling audit lock file for all audit mutations.
+- Moved full-chain verification, next-sequence allocation, hash construction, append, and durable flush inside the same writer critical section.
+- Added atomic approval-nonce consumption so nonce lookup and approved-record append cannot race across cooperating processes.
+- Preserved fail-closed audit-chain integrity checks and the existing tamper-evident SHA-256 hash chain.
+- Added a multi-process integration test with four independent writer processes appending eight records each to one shared log and verifying one valid 32-entry sequence/hash chain.
+- Added ADR 0007 documenting the advisory-lock guarantee and its bypass boundary.
+- Safely repaired CI findings from rustfmt and strict Clippy without suppressing checks; lock-file open mode is explicitly non-truncating.
+- Verified Rust formatting, strict Clippy, workspace tests, frontend typecheck, and frontend production build in GitHub CI run `32180449557` for the implementation candidate.
+- Phase 03 remains in progress; transactional governed writes, rollback snapshots, and runtime enforcement remain pending.
+
 ## 0.3.0-dev.3 — Phase 03 — Build B000008
 
 ### Verified request-bound approval proof increment

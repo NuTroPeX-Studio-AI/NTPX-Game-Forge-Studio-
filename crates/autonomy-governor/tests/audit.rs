@@ -1,9 +1,17 @@
-use std::{fs, path::PathBuf, process, time::SystemTime};
+use std::{
+    fs,
+    path::PathBuf,
+    process::{self, Command},
+    time::SystemTime,
+};
 
 use autonomy_governor::{
     AuditError, AuditLog, Decision, Permission, Policy, Principal, PrincipalId, Request, RiskLevel,
     Scope, ScopeKind,
 };
+
+const SUBPROCESS_ENV: &str = "GAMEFORGE_AUDIT_SUBPROCESS_PATH";
+const SUBPROCESS_WRITES: usize = 8;
 
 fn unique_path(label: &str) -> PathBuf {
     let nanos = SystemTime::now()
@@ -37,6 +45,16 @@ fn record(resource: &str) -> autonomy_governor::DecisionRecord {
     })
 }
 
+fn cleanup(log: &AuditLog) {
+    if log.path().exists() {
+        fs::remove_file(log.path()).expect("temporary audit file removed");
+    }
+    let lock_path = log.lock_path();
+    if lock_path.exists() {
+        fs::remove_file(lock_path).expect("temporary lock file removed");
+    }
+}
+
 #[test]
 fn append_and_load_round_trip_preserves_chain() {
     let path = unique_path("roundtrip");
@@ -55,8 +73,9 @@ fn append_and_load_round_trip_preserves_chain() {
     assert_eq!(second.sequence, 1);
     assert_eq!(second.previous_hash.as_deref(), Some(first.hash.as_str()));
     assert_eq!(loaded, vec![first, second]);
+    assert!(log.lock_path().exists());
 
-    fs::remove_file(path).expect("temporary audit file removed");
+    cleanup(&log);
 }
 
 #[test]
@@ -76,7 +95,7 @@ fn tampering_is_detected_and_fails_closed() {
         Err(AuditError::Integrity { .. })
     ));
 
-    fs::remove_file(path).expect("temporary audit file removed");
+    cleanup(&log);
 }
 
 #[test]
@@ -90,7 +109,7 @@ fn malformed_entry_is_rejected() {
         Err(AuditError::Decode { line: 1, .. })
     ));
 
-    fs::remove_file(path).expect("temporary audit file removed");
+    cleanup(&log);
 }
 
 #[test]
@@ -108,7 +127,7 @@ fn existing_corruption_prevents_append() {
     let result = log.append(record("workspace/tests"));
     assert!(matches!(result, Err(AuditError::Integrity { .. })));
 
-    fs::remove_file(path).expect("temporary audit file removed");
+    cleanup(&log);
 }
 
 #[test]
@@ -121,6 +140,7 @@ fn missing_file_is_an_empty_verified_log() {
         .expect("missing log is empty")
         .is_empty());
     assert!(!path.exists());
+    assert!(!log.lock_path().exists());
 }
 
 #[test]
@@ -135,5 +155,54 @@ fn stored_decision_is_not_reinterpreted() {
 
     assert_eq!(loaded[0].record, denied);
 
-    fs::remove_file(path).expect("temporary audit file removed");
+    cleanup(&log);
+}
+
+#[test]
+fn concurrent_process_writers_preserve_a_single_valid_chain() {
+    let path = unique_path("process-lock");
+    let log = AuditLog::new(&path);
+    let executable = std::env::current_exe().expect("test executable path available");
+    let mut children = Vec::new();
+
+    for _ in 0..4 {
+        children.push(
+            Command::new(&executable)
+                .arg("--exact")
+                .arg("subprocess_writer_helper")
+                .arg("--nocapture")
+                .env(SUBPROCESS_ENV, &path)
+                .spawn()
+                .expect("writer subprocess starts"),
+        );
+    }
+
+    for mut child in children {
+        assert!(child.wait().expect("writer subprocess exits").success());
+    }
+
+    let entries = log
+        .load_verified()
+        .expect("concurrent audit chain verifies");
+    assert_eq!(entries.len(), 4 * SUBPROCESS_WRITES);
+    for (index, entry) in entries.iter().enumerate() {
+        assert_eq!(
+            entry.sequence,
+            u64::try_from(index).expect("index fits u64")
+        );
+    }
+
+    cleanup(&log);
+}
+
+#[test]
+fn subprocess_writer_helper() {
+    let Ok(path) = std::env::var(SUBPROCESS_ENV) else {
+        return;
+    };
+    let log = AuditLog::new(path);
+    for index in 0..SUBPROCESS_WRITES {
+        log.append(record(&format!("subprocess/{index}")))
+            .expect("subprocess append succeeds");
+    }
 }
