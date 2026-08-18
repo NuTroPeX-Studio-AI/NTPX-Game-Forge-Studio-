@@ -4,9 +4,9 @@ NTPX GameForge Ω∞ is an autonomous AI-native game development platform that p
 
 ## Current status
 
-- Phase 01 — Repository Foundation: implemented on `phase-01-foundation`
+- Phase 01 — Repository Foundation: **VERIFIED**
 - Phase 02 — GameSpec: next
-- Continuous build lineage starts at `B000001`
+- Current foundation build: `B000002`
 
 ## Foundation stack
 

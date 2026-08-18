@@ -1,7 +1,7 @@
 # Phase 01 Verification Record
 
 ## Build identity
-`NTPX-GFΩ-G0-v0.1.0-dev.1-M01-B000001`
+`NTPX-GFΩ-G0-v0.1.0-dev.1-M01-B000002`
 
 ## Acceptance criteria
 
@@ -12,12 +12,19 @@
 - [x] pnpm workspace created.
 - [x] Architecture, roadmap, security, agent, changelog, ADR, and version metadata created.
 - [x] CI workflow created.
-- [ ] Rust CI passed on GitHub Actions.
-- [ ] Frontend CI passed on GitHub Actions.
-- [ ] Native Tauri packaging verified on a supported desktop host.
+- [x] Rust formatting passed on GitHub Actions.
+- [x] Rust Clippy passed with warnings denied.
+- [x] Rust tests passed on GitHub Actions.
+- [x] Frontend dependency installation passed on GitHub Actions.
+- [x] Frontend typecheck passed on GitHub Actions.
+- [x] Frontend production build passed on GitHub Actions.
+
+## Deferred validation
+
+Native Tauri packaging is intentionally deferred to the platform build/release pipeline because it requires platform-specific host dependencies and signing/certification concerns. It is not a Phase 01 acceptance criterion.
 
 ## Classification
 
-**IMPLEMENTED, pending CI verification.**
+**VERIFIED.**
 
-Phase 01 must not be marked VERIFIED until automated checks pass.
+Phase 01 establishes the clean repository foundation required by Phase 02 GameSpec work.

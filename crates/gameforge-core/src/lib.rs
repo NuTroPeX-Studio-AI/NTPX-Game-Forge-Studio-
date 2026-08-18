@@ -1,10 +1,10 @@
 #![forbid(unsafe_code)]
 
 /// Stable identity for the current `GameForge` foundation build.
-pub const BUILD_ID: &str = "NTPX-GFΩ-G0-v0.1.0-dev.1-M01-B000001";
+pub const BUILD_ID: &str = "NTPX-GFΩ-G0-v0.1.0-dev.1-M01-B000002";
 pub const VERSION: &str = "0.1.0-dev.1";
 pub const MILESTONE: &str = "M01";
-pub const BUILD_NUMBER: u64 = 1;
+pub const BUILD_NUMBER: u64 = 2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BuildIdentity {
@@ -37,7 +37,7 @@ mod tests {
         let identity = BuildIdentity::current();
         assert_eq!(identity.version, VERSION);
         assert_eq!(identity.milestone, "M01");
-        assert_eq!(identity.build_number, 1);
+        assert_eq!(identity.build_number, 2);
         assert_eq!(identity.build_id, BUILD_ID);
     }
 }

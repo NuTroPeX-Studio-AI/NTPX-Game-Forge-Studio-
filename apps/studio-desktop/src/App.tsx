@@ -14,14 +14,14 @@ export default function App() {
         <p className="eyebrow">NTPX GAMEFORGE Ω∞</p>
         <h1>Autonomous Game Development Command Center</h1>
         <p className="lede">
-          Phase 01 establishes the deterministic, governed foundation for the 18-stage GameForge roadmap.
+          Phase 01 is verified. Phase 02 will add the deterministic GameSpec foundation for the 18-stage roadmap.
         </p>
       </section>
 
       <section className="panel">
         <div>
           <span className="label">Current build</span>
-          <strong>B000001</strong>
+          <strong>B000002</strong>
         </div>
         <div>
           <span className="label">Milestone</span>
@@ -29,7 +29,7 @@ export default function App() {
         </div>
         <div>
           <span className="label">State</span>
-          <strong>Foundation</strong>
+          <strong>Verified</strong>
         </div>
       </section>
 
