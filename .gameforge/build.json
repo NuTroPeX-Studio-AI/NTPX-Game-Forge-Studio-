@@ -1,10 +1,10 @@
 {
   "product": "NTPX GameForge Ω∞",
   "generation": 0,
-  "version": "0.3.0-dev.1",
+  "version": "0.3.0-dev.2",
   "milestone": "M03",
-  "build": 6,
-  "buildId": "NTPX-GFΩ-G0-v0.3.0-dev.1-M03-B000006",
+  "build": 7,
+  "buildId": "NTPX-GFΩ-G0-v0.3.0-dev.2-M03-B000007",
   "status": "verified",
   "phaseStatus": "in-progress",
   "release": false
