@@ -1,0 +1,28 @@
+# Rust
+/target/
+**/target/
+
+# Node
+node_modules/
+**/node_modules/
+**/dist/
+.pnpm-store/
+
+# Tauri
+apps/studio-desktop/src-tauri/target/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets / local state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.local/
