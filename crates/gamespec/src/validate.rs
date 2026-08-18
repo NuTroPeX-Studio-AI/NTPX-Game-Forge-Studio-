@@ -126,12 +126,7 @@ fn collect_ids(spec: &GameSpec, errors: &mut Vec<ValidationError>) -> IdSets {
         errors,
     );
     for (index, npc) in spec.npcs.iter().enumerate() {
-        collect(
-            &npc.id,
-            &format!("npcs[{index}].id"),
-            &mut sets.all,
-            errors,
-        );
+        collect(&npc.id, &format!("npcs[{index}].id"), &mut sets.all, errors);
         sets.npcs.insert(npc.id.clone());
     }
     collect_slice(
@@ -195,12 +190,7 @@ fn collect_slice<T, F>(
     }
 }
 
-fn collect(
-    id: &SpecId,
-    path: &str,
-    all: &mut BTreeSet<SpecId>,
-    errors: &mut Vec<ValidationError>,
-) {
+fn collect(id: &SpecId, path: &str, all: &mut BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
     if !id.is_valid() {
         push_error(
             errors,
@@ -312,11 +302,7 @@ fn validate_npcs(
     }
 }
 
-fn validate_dialogues(
-    spec: &GameSpec,
-    npcs: &BTreeSet<SpecId>,
-    errors: &mut Vec<ValidationError>,
-) {
+fn validate_dialogues(spec: &GameSpec, npcs: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
     for (dialogue_index, dialogue) in spec.dialogues.iter().enumerate() {
         let mut nodes = BTreeSet::new();
         for (node_index, node) in dialogue.nodes.iter().enumerate() {
@@ -346,9 +332,7 @@ fn validate_dialogues(
                 require_reference(
                     next,
                     &nodes,
-                    &format!(
-                        "dialogues[{dialogue_index}].nodes[{node_index}].next[{next_index}]"
-                    ),
+                    &format!("dialogues[{dialogue_index}].nodes[{node_index}].next[{next_index}]"),
                     errors,
                 );
             }
@@ -382,12 +366,7 @@ fn validate_quests(spec: &GameSpec, all: &BTreeSet<SpecId>, errors: &mut Vec<Val
 
 fn validate_tests(spec: &GameSpec, all: &BTreeSet<SpecId>, errors: &mut Vec<ValidationError>) {
     for (index, test) in spec.tests.iter().enumerate() {
-        require_reference(
-            &test.target,
-            all,
-            &format!("tests[{index}].target"),
-            errors,
-        );
+        require_reference(&test.target, all, &format!("tests[{index}].target"), errors);
     }
 }
 

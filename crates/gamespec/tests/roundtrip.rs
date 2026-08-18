@@ -1,6 +1,4 @@
-use gamespec::{
-    from_json, migrate_json, to_pretty_json, DependencyGraph, GameSpec, GameSpecError,
-};
+use gamespec::{from_json, migrate_json, to_pretty_json, DependencyGraph, GameSpec, GameSpecError};
 
 const SAMPLE: &str = include_str!("../../../examples/signal-born-first-thought/game.spec.json");
 const LEGACY: &str =
