@@ -42,7 +42,9 @@ fn append_and_load_round_trip_preserves_chain() {
     let path = unique_path("roundtrip");
     let log = AuditLog::new(&path);
 
-    let first = log.append(record("workspace/src")).expect("first append succeeds");
+    let first = log
+        .append(record("workspace/src"))
+        .expect("first append succeeds");
     let second = log
         .append(record("workspace/tests"))
         .expect("second append succeeds");
@@ -94,7 +96,9 @@ fn malformed_entry_is_rejected() {
 fn existing_corruption_prevents_append() {
     let path = unique_path("append-corrupt");
     let log = AuditLog::new(&path);
-    let entry = log.append(record("workspace/src")).expect("append succeeds");
+    let entry = log
+        .append(record("workspace/src"))
+        .expect("append succeeds");
 
     let contents = fs::read_to_string(&path).expect("audit file readable");
     let tampered = contents.replace(&entry.hash, &"0".repeat(64));
@@ -111,7 +115,10 @@ fn missing_file_is_an_empty_verified_log() {
     let path = unique_path("missing");
     let log = AuditLog::new(&path);
 
-    assert!(log.load_verified().expect("missing log is empty").is_empty());
+    assert!(log
+        .load_verified()
+        .expect("missing log is empty")
+        .is_empty());
     assert!(!path.exists());
 }
 
