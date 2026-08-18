@@ -51,7 +51,7 @@ fn dependency_cycles_are_rejected() {
     let error = from_json(&invalid).expect_err("cycle must fail");
     match error {
         GameSpecError::Validation(errors) => {
-            assert!(errors.iter().any(|error| error.code == "dependency_cycle"))
+            assert!(errors.iter().any(|error| error.code == "dependency_cycle"));
         }
         other => panic!("expected validation error, got {other}"),
     }
