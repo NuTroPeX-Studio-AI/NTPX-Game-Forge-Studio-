@@ -48,10 +48,16 @@ impl fmt::Display for AuditError {
             Self::Io(error) => write!(formatter, "audit I/O failed: {error}"),
             Self::Encode(error) => write!(formatter, "audit encoding failed: {error}"),
             Self::Decode { line, source } => {
-                write!(formatter, "audit entry on line {line} is invalid JSON: {source}")
+                write!(
+                    formatter,
+                    "audit entry on line {line} is invalid JSON: {source}"
+                )
             }
             Self::Integrity { line, message } => {
-                write!(formatter, "audit integrity failure on line {line}: {message}")
+                write!(
+                    formatter,
+                    "audit integrity failure on line {line}: {message}"
+                )
             }
         }
     }
@@ -160,12 +166,11 @@ impl AuditLog {
                 });
             }
 
-            let entry: AuditEntry = serde_json::from_str(&line).map_err(|source| {
-                AuditError::Decode {
+            let entry: AuditEntry =
+                serde_json::from_str(&line).map_err(|source| AuditError::Decode {
                     line: line_number,
                     source,
-                }
-            })?;
+                })?;
             let expected_sequence = u64::try_from(index).map_err(|_| AuditError::Integrity {
                 line: line_number,
                 message: "audit sequence exceeds u64 capacity".to_owned(),
@@ -188,8 +193,7 @@ impl AuditLog {
                 });
             }
 
-            let expected_hash =
-                compute_hash(entry.sequence, &entry.previous_hash, &entry.record)?;
+            let expected_hash = compute_hash(entry.sequence, &entry.previous_hash, &entry.record)?;
             if entry.hash != expected_hash {
                 return Err(AuditError::Integrity {
                     line: line_number,
