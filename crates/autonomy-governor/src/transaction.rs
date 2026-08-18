@@ -2,7 +2,7 @@ use std::{
     error::Error,
     ffi::OsStr,
     fmt,
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
 };
@@ -24,6 +24,14 @@ pub struct TransactionReceipt {
     pub target: PathBuf,
     pub snapshot_path: PathBuf,
     pub audit_entry: AuditEntry,
+}
+
+/// Verification inputs for one request-bound human-approved transaction.
+#[derive(Debug, Clone, Copy)]
+pub struct ApprovalContext<'a> {
+    pub proof: &'a ApprovalProof,
+    pub verifier: &'a ApprovalVerifier,
+    pub now_unix: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -193,18 +201,16 @@ impl GovernedFileTransaction {
     ///
     /// # Errors
     /// Returns [`TransactionError`] when the request does not require human approval, the proof is
-    /// missing/invalid/expired, the nonce was already consumed, filesystem work fails, audit
-    /// persistence fails, or automatic rollback fails.
+    /// invalid/expired, the nonce was already consumed, filesystem work fails, audit persistence
+    /// fails, or automatic rollback fails.
     pub fn commit_with_approval(
         policy: &Policy,
         request: Request,
         target: impl Into<PathBuf>,
         contents: &[u8],
         transaction_id: &str,
-        proof: &ApprovalProof,
-        verifier: &ApprovalVerifier,
+        approval: ApprovalContext<'_>,
         audit_log: &AuditLog,
-        now_unix: u64,
     ) -> Result<TransactionReceipt, TransactionError> {
         validate_transaction_id(transaction_id)?;
         let target = target.into();
@@ -224,7 +230,9 @@ impl GovernedFileTransaction {
             });
         }
 
-        let evidence = verifier.verify(&request, proof, now_unix)?;
+        let evidence = approval
+            .verifier
+            .verify(&request, approval.proof, approval.now_unix)?;
         let nonce = evidence.nonce.clone();
         let approved = DecisionRecord {
             request,
