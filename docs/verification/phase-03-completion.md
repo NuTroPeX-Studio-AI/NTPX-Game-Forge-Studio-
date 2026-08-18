@@ -1,8 +1,8 @@
 # Phase 03 completion verification
 
-Status: CANDIDATE — final exact-head CI required before merge.
+Status: VERIFIED
 
-Candidate build: `NTPX-GFΩ-G0-v0.3.0-dev.7-M03-B000012`
+Final build: `NTPX-GFΩ-G0-v0.3.0-dev.7-M03-B000012`
 
 ## Acceptance gate
 
@@ -34,7 +34,8 @@ Candidate build: `NTPX-GFΩ-G0-v0.3.0-dev.7-M03-B000012`
 
 - CI run `32195029000` verified the combined runtime, canonical path, batch, recovery, shared replacement, Ubuntu Rust, and frontend behavior before Windows was made a required job.
 - CI run `32195245157` verified the Windows alias repair and passed all three jobs: Ubuntu Rust foundation, Desktop frontend, and Autonomy Governor Windows.
-- The final B000012 documentation/build/UI stamp must pass the same CI gate on the exact branch head before this record changes from CANDIDATE to VERIFIED and before PR #11 is merged.
+- CI run `32195625548` verified the exact stamped B000012 candidate containing the final code, Windows job, UI, roadmap, architecture/security boundary, build metadata, changelog, ADR, and candidate verification record. All three jobs passed.
+- This VERIFIED evidence-record commit must pass the same CI gate before PR #11 is merged; no code or acceptance criteria changed in this final evidence-only edit.
 
 ## Explicit residual limits
 
