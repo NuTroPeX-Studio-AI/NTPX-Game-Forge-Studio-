@@ -216,8 +216,7 @@ impl ApprovalVerifier {
             proof.issued_at_unix,
             proof.expires_at_unix,
         )?;
-        let mut mac = HmacSha256::new_from_slice(&self.key)
-            .expect("validated HMAC-SHA256 keys accept arbitrary non-empty lengths");
+        let mut mac = new_mac(&self.key)?;
         mac.update(&payload);
         mac.verify_slice(&decoded_tag)
             .map_err(|_| ApprovalError::InvalidTag)?;
@@ -238,6 +237,11 @@ fn validate_key(key: &[u8]) -> Result<(), ApprovalError> {
     } else {
         Ok(())
     }
+}
+
+fn new_mac(key: &[u8]) -> Result<HmacSha256, ApprovalError> {
+    validate_key(key)?;
+    HmacSha256::new_from_slice(key).map_err(|_| ApprovalError::WeakKey { actual: key.len() })
 }
 
 fn validate_metadata(
@@ -278,8 +282,7 @@ fn compute_tag(
         issued_at_unix,
         expires_at_unix,
     )?;
-    let mut mac = HmacSha256::new_from_slice(key)
-        .expect("validated HMAC-SHA256 keys accept arbitrary non-empty lengths");
+    let mut mac = new_mac(key)?;
     mac.update(&payload);
     Ok(to_lower_hex(&mac.finalize().into_bytes()))
 }
@@ -302,7 +305,7 @@ fn payload_bytes(
 }
 
 fn decode_hex(input: &str) -> Option<Vec<u8>> {
-    if !input.len().is_multiple_of(2) {
+    if input.len() & 1 == 1 {
         return None;
     }
     input
