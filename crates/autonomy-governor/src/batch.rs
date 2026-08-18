@@ -1,9 +1,4 @@
-use std::{
-    collections::BTreeSet,
-    error::Error,
-    fmt,
-    path::{Path, PathBuf},
-};
+use std::{collections::BTreeSet, error::Error, fmt, path::PathBuf};
 
 use crate::{
     resolve_filesystem_target, ApprovalContext, GovernanceRuntime, GovernedFileTransaction, Request,
@@ -126,12 +121,12 @@ impl GovernedFileBatch {
             match result {
                 Ok(receipt) => receipts.push(receipt),
                 Err(source) => {
-                    rollback_receipts(&receipts).map_err(|rollback| {
-                        BatchTransactionError::Rollback {
+                    if let Err(rollback) = rollback_receipts(&receipts) {
+                        return Err(BatchTransactionError::Rollback {
                             source: Box::new(source),
                             rollback: Box::new(rollback),
-                        }
-                    })?;
+                        });
+                    }
                     return Err(BatchTransactionError::Runtime(source));
                 }
             }
@@ -183,6 +178,3 @@ fn rollback_receipts(receipts: &[TransactionReceipt]) -> Result<(), TransactionE
     }
     Ok(())
 }
-
-#[allow(dead_code)]
-fn _path_type_check(_: &Path) {}
