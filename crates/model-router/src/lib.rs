@@ -1,4 +1,4 @@
-//! Provider-neutral deterministic model routing for NTPX GameForge Ω∞.
+//! Provider-neutral deterministic model routing for NTPX `GameForge` Ω∞.
 //!
 //! The router selects among declared model capabilities and constraints. It does not perform
 //! network calls, hold credentials, invoke a model, or grant execution authority. Any later
