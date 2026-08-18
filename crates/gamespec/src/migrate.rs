@@ -68,12 +68,12 @@ pub fn migrate_json(input: &str) -> Result<String, GameSpecError> {
             "legacy version mismatch".to_owned(),
         ));
     }
-    let spec = migrate_legacy(legacy)?;
+    let spec = migrate_legacy(legacy);
     validate(&spec)?;
     serde_json::to_string_pretty(&spec).map_err(GameSpecError::Encode)
 }
 
-fn migrate_legacy(legacy: LegacyProject) -> Result<GameSpec, GameSpecError> {
+fn migrate_legacy(legacy: LegacyProject) -> GameSpec {
     let project_id = canonical_or_generated("project", &legacy.project_id);
     let mut modules = Vec::new();
     let mut features = Vec::new();
@@ -125,7 +125,7 @@ fn migrate_legacy(legacy: LegacyProject) -> Result<GameSpec, GameSpecError> {
         })
         .collect();
 
-    Ok(GameSpec {
+    GameSpec {
         schema_version: CURRENT_SCHEMA_VERSION.to_owned(),
         project: ProjectMetadata {
             id: project_id,
@@ -148,7 +148,7 @@ fn migrate_legacy(legacy: LegacyProject) -> Result<GameSpec, GameSpecError> {
         assets: Vec::new(),
         tests: Vec::new(),
         builds: Vec::new(),
-    })
+    }
 }
 
 fn canonical_or_generated(namespace: &str, value: &str) -> SpecId {
