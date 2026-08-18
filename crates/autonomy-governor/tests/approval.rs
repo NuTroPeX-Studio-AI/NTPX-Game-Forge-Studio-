@@ -1,8 +1,8 @@
 use std::{fs, path::PathBuf, process, time::SystemTime};
 
 use autonomy_governor::{
-    ApprovalError, ApprovalRequirement, ApprovalSigner, ApprovalVerifier, AuditLog, Decision, Grant,
-    GovernanceError, Permission, Policy, Principal, PrincipalId, Request, RiskLevel, Scope,
+    ApprovalError, ApprovalRequirement, ApprovalSigner, ApprovalVerifier, AuditLog, Decision,
+    GovernanceError, Grant, Permission, Policy, Principal, PrincipalId, Request, RiskLevel, Scope,
     ScopeKind,
 };
 
@@ -151,7 +151,10 @@ fn proof_is_bound_to_the_exact_request() {
             ApprovalError::RequestDigestMismatch
         ))
     ));
-    assert!(!path.exists(), "invalid proof must not create an audit file");
+    assert!(
+        !path.exists(),
+        "invalid proof must not create an audit file"
+    );
 }
 
 #[test]
@@ -204,7 +207,13 @@ fn proof_cannot_override_policy_denial() {
         .expect("proof is issued");
 
     let entry = denied_policy
-        .evaluate_and_audit_with_approval(request, Some(&proof), &verifier, &AuditLog::new(&path), 6_050)
+        .evaluate_and_audit_with_approval(
+            request,
+            Some(&proof),
+            &verifier,
+            &AuditLog::new(&path),
+            6_050,
+        )
         .expect("policy denial itself is auditable");
     assert!(matches!(entry.record.decision, Decision::Deny { .. }));
     assert!(entry.record.approval.is_none());
