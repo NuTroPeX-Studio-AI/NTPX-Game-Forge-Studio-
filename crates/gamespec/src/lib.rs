@@ -1,35 +1,40 @@
-//! Deterministic, engine-neutral `GameSpec` data model and validation.
+//! Deterministic, engine-neutral `GameSpec` model, migration, validation, and compilation metadata.
 
+mod graph;
+mod id;
+mod migrate;
 mod model;
+mod schema;
 mod validate;
 
 use std::{error::Error, fmt};
 
-pub use model::{EntitySpec, FeatureSpec, ModuleSpec, ProjectSpec};
+pub use graph::{DependencyEdge, DependencyEdgeKind, DependencyGraph};
+pub use id::{deterministic_id, SpecId, SpecIdError};
+pub use migrate::migrate_json;
+pub use model::{
+    AbilitySpec, ArchitectureSpec, AssetKind, AssetLicense, AssetOrigin, AssetProvenance,
+    AssetSpec, BuildProfile, BuildSpec, ComponentSpec, DialogueNode, DialogueSpec, EngineTarget,
+    EntitySpec, FeatureSpec, GameSpec, InputSpec, InputValueType, ModuleKind, ModuleSpec, NpcSpec,
+    PlatformTarget, ProjectMetadata, QuestSpec, QuestStep, TestKind, TestSpec, WorldRegion,
+    WorldSpec,
+};
+pub use schema::{json_schema, schema_json};
+pub use validate::{ValidationError, ValidationReport};
 
-/// Structured semantic validation failure.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ValidationError {
-    pub path: String,
-    pub message: String,
-}
+/// Compatibility alias retained for the Phase 02 core API.
+pub type ProjectSpec = GameSpec;
 
-impl ValidationError {
-    #[must_use]
-    pub fn new(path: impl Into<String>, message: impl Into<String>) -> Self {
-        Self {
-            path: path.into(),
-            message: message.into(),
-        }
-    }
-}
+/// Current supported `GameSpec` schema version.
+pub const CURRENT_SCHEMA_VERSION: &str = "0.1.0";
 
-/// Errors produced while decoding, validating, or encoding a `GameSpec`.
+/// Errors produced while decoding, validating, migrating, or encoding a `GameSpec`.
 #[derive(Debug)]
 pub enum GameSpecError {
     Decode(serde_json::Error),
     Encode(serde_json::Error),
     Validation(Vec<ValidationError>),
+    Migration(String),
 }
 
 impl fmt::Display for GameSpecError {
@@ -42,6 +47,7 @@ impl fmt::Display for GameSpecError {
                 "GameSpec validation failed with {} error(s)",
                 errors.len()
             ),
+            Self::Migration(message) => write!(formatter, "GameSpec migration failed: {message}"),
         }
     }
 }
@@ -50,7 +56,7 @@ impl Error for GameSpecError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Decode(error) | Self::Encode(error) => Some(error),
-            Self::Validation(_) => None,
+            Self::Validation(_) | Self::Migration(_) => None,
         }
     }
 }
@@ -59,8 +65,8 @@ impl Error for GameSpecError {
 ///
 /// # Errors
 /// Returns [`GameSpecError::Decode`] for malformed JSON and
-/// [`GameSpecError::Validation`] when the decoded specification violates semantic rules.
-pub fn from_json(input: &str) -> Result<ProjectSpec, GameSpecError> {
+/// [`GameSpecError::Validation`] for semantic failures.
+pub fn from_json(input: &str) -> Result<GameSpec, GameSpecError> {
     let spec = serde_json::from_str(input).map_err(GameSpecError::Decode)?;
     validate(&spec)?;
     Ok(spec)
@@ -69,9 +75,9 @@ pub fn from_json(input: &str) -> Result<ProjectSpec, GameSpecError> {
 /// Validate and serialize a specification using stable pretty JSON formatting.
 ///
 /// # Errors
-/// Returns [`GameSpecError::Validation`] for an invalid specification and
-/// [`GameSpecError::Encode`] if JSON serialization fails.
-pub fn to_pretty_json(spec: &ProjectSpec) -> Result<String, GameSpecError> {
+/// Returns [`GameSpecError::Validation`] for invalid input and
+/// [`GameSpecError::Encode`] if serialization fails.
+pub fn to_pretty_json(spec: &GameSpec) -> Result<String, GameSpecError> {
     validate(spec)?;
     serde_json::to_string_pretty(spec).map_err(GameSpecError::Encode)
 }
@@ -79,12 +85,12 @@ pub fn to_pretty_json(spec: &ProjectSpec) -> Result<String, GameSpecError> {
 /// Run semantic validation independent of serialization.
 ///
 /// # Errors
-/// Returns [`GameSpecError::Validation`] with all discovered semantic validation failures.
-pub fn validate(spec: &ProjectSpec) -> Result<(), GameSpecError> {
-    let errors = validate::validate(spec);
-    if errors.is_empty() {
+/// Returns [`GameSpecError::Validation`] containing all findings.
+pub fn validate(spec: &GameSpec) -> Result<(), GameSpecError> {
+    let report = spec.validation_report();
+    if report.is_valid() {
         Ok(())
     } else {
-        Err(GameSpecError::Validation(errors))
+        Err(GameSpecError::Validation(report.into_errors()))
     }
 }

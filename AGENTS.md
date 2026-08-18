@@ -13,6 +13,7 @@
 11. Record architectural decisions in `docs/adr/`.
 12. Keep deterministic state separate from renderer/editor state.
 13. Do not hard-code a model provider or game engine into shared core modules.
-14. Treat GameSpec as the future machine-readable source of truth once Phase 02 lands.
-15. Report status as VERIFIED, FAILED, INFERRED, BLOCKED, or UNKNOWN.
-16. Signal Born: First Thought is the primary reference implementation.
+14. Treat versioned GameSpec as the canonical machine-readable source of truth for reproducible game intent and project state.
+15. GameSpec validity never grants tool, filesystem, network, credential, merge, or release authority.
+16. Report status as VERIFIED, FAILED, INFERRED, BLOCKED, or UNKNOWN.
+17. Signal Born: First Thought is the primary reference implementation.
