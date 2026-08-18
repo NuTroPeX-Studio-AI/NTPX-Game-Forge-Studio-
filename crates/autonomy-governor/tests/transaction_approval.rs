@@ -5,9 +5,9 @@ use std::{
 };
 
 use autonomy_governor::{
-    ApprovalRequirement, ApprovalSigner, ApprovalVerifier, AuditLog, GovernedFileTransaction,
-    Grant, Permission, Policy, Principal, PrincipalId, Request, RiskLevel, Scope, ScopeKind,
-    TransactionError,
+    ApprovalContext, ApprovalRequirement, ApprovalSigner, ApprovalVerifier, AuditLog,
+    GovernedFileTransaction, Grant, Permission, Policy, Principal, PrincipalId, Request, RiskLevel,
+    Scope, ScopeKind, TransactionError,
 };
 
 const KEY: &[u8; 32] = b"0123456789abcdef0123456789abcdef";
@@ -52,6 +52,18 @@ fn approval_policy(target: &Path) -> (Policy, Request) {
     (policy, request)
 }
 
+fn approval_context<'a>(
+    proof: &'a autonomy_governor::ApprovalProof,
+    verifier: &'a ApprovalVerifier,
+    now_unix: u64,
+) -> ApprovalContext<'a> {
+    ApprovalContext {
+        proof,
+        verifier,
+        now_unix,
+    }
+}
+
 #[test]
 fn valid_human_approval_commits_and_persists_evidence() {
     let dir = temp_dir("valid");
@@ -71,10 +83,8 @@ fn valid_human_approval_commits_and_persists_evidence() {
         &target,
         b"after",
         "tx-approved",
-        &proof,
-        &verifier,
+        approval_context(&proof, &verifier, 150),
         &audit,
-        150,
     )
     .expect("approved transaction should commit");
 
@@ -113,10 +123,8 @@ fn replayed_approval_fails_closed_and_restores_winner_state() {
         &target,
         b"winner",
         "tx-winner",
-        &proof,
-        &verifier,
+        approval_context(&proof, &verifier, 150),
         &audit,
-        150,
     )
     .expect("first approved transaction should commit");
 
@@ -126,10 +134,8 @@ fn replayed_approval_fails_closed_and_restores_winner_state() {
         &target,
         b"replay",
         "tx-replay",
-        &proof,
-        &verifier,
+        approval_context(&proof, &verifier, 150),
         &audit,
-        150,
     )
     .expect_err("replayed proof must fail");
 
@@ -163,10 +169,8 @@ fn mismatched_or_expired_proof_never_mutates_target() {
         &target,
         b"blocked",
         "tx-mismatch",
-        &mismatched,
-        &verifier,
+        approval_context(&mismatched, &verifier, 150),
         &audit,
-        150,
     )
     .expect_err("mismatched proof must fail");
     assert!(matches!(mismatch, TransactionError::Approval(_)));
@@ -181,10 +185,8 @@ fn mismatched_or_expired_proof_never_mutates_target() {
         &target,
         b"blocked",
         "tx-expired",
-        &expired,
-        &verifier,
+        approval_context(&expired, &verifier, 120),
         &audit,
-        120,
     )
     .expect_err("expired proof must fail");
     assert!(matches!(expired_error, TransactionError::Approval(_)));
@@ -215,10 +217,8 @@ fn approval_api_cannot_create_authority_for_direct_allow_or_denial() {
         &target,
         b"blocked",
         "tx-direct-allow",
-        &proof,
-        &verifier,
+        approval_context(&proof, &verifier, 150),
         &audit,
-        150,
     )
     .expect_err("approval API should require a real approval gate");
     assert!(matches!(
@@ -232,10 +232,8 @@ fn approval_api_cannot_create_authority_for_direct_allow_or_denial() {
         &target,
         b"blocked",
         "tx-denied",
-        &proof,
-        &verifier,
+        approval_context(&proof, &verifier, 150),
         &audit,
-        150,
     )
     .expect_err("approval proof must not override policy denial");
     assert!(matches!(
