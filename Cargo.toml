@@ -3,6 +3,7 @@ members = [
   "crates/gameforge-core",
   "crates/gamespec",
   "crates/gamespec-compiler",
+  "crates/autonomy-governor",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
