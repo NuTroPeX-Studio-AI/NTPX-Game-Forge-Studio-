@@ -163,5 +163,8 @@ fn is_protected(request: &Request) -> bool {
                 | Permission::Publish
                 | Permission::Destructive
         )
-        || matches!(request.scope.kind, ScopeKind::Credential | ScopeKind::Release)
+        || matches!(
+            request.scope.kind,
+            ScopeKind::Credential | ScopeKind::Release
+        )
 }

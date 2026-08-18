@@ -66,11 +66,7 @@ fn exact_low_risk_grant_is_allowed() {
         }],
     };
 
-    let record = policy.evaluate(request(
-        Permission::Execute,
-        allowed_scope,
-        RiskLevel::Low,
-    ));
+    let record = policy.evaluate(request(Permission::Execute, allowed_scope, RiskLevel::Low));
 
     assert!(matches!(record.decision, Decision::Allow { .. }));
 }
@@ -134,11 +130,7 @@ fn protected_capability_requires_human_even_when_grant_says_none() {
         }],
     };
 
-    let record = policy.evaluate(request(
-        Permission::Publish,
-        release_scope,
-        RiskLevel::Low,
-    ));
+    let record = policy.evaluate(request(Permission::Publish, release_scope, RiskLevel::Low));
 
     assert!(matches!(
         record.decision,
