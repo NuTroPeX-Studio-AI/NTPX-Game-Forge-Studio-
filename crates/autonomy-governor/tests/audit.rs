@@ -181,10 +181,15 @@ fn concurrent_process_writers_preserve_a_single_valid_chain() {
         assert!(child.wait().expect("writer subprocess exits").success());
     }
 
-    let entries = log.load_verified().expect("concurrent audit chain verifies");
+    let entries = log
+        .load_verified()
+        .expect("concurrent audit chain verifies");
     assert_eq!(entries.len(), 4 * SUBPROCESS_WRITES);
     for (index, entry) in entries.iter().enumerate() {
-        assert_eq!(entry.sequence, u64::try_from(index).expect("index fits u64"));
+        assert_eq!(
+            entry.sequence,
+            u64::try_from(index).expect("index fits u64")
+        );
     }
 
     cleanup(&log);
