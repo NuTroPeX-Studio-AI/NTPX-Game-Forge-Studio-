@@ -2,6 +2,20 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.3 — Phase 03 — Build B000008
+
+### Verified request-bound approval proof increment
+- Added HMAC-SHA256 human approval proofs bound to the exact request digest, authority identifier, one-time nonce, issue time, and expiry time.
+- Added a 32-byte minimum approval-key policy with signer/verifier secret redaction from `Debug` output.
+- Added fail-closed proof verification for mismatched requests, future/expired proofs, malformed tags, and authentication failures.
+- Added an audited approval path that can satisfy only an existing `RequireHumanApproval` result; approval proofs cannot override a denial or create a grant.
+- Added approval evidence to durable authorization audit records while preserving compatibility for records without approval evidence.
+- Added verified-audit nonce lookup and durable replay rejection for serialized writers.
+- Added tests for exact approval, persisted evidence, replay after reload, request binding, expiry/future proofs, tag tampering, denial preservation, missing proofs, and weak keys.
+- Added ADR 0006 documenting the human-approval and secret-management boundary.
+- Verified Rust formatting, strict Clippy, workspace tests, frontend typecheck, and frontend production build for the implementation candidate.
+- Phase 03 remains in progress; cross-process writer exclusion, transactional governed writes, rollback snapshots, and runtime enforcement remain pending.
+
 ## 0.3.0-dev.2 — Phase 03 — Build B000007
 
 ### Verified durable audit log increment

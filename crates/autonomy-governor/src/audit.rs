@@ -138,6 +138,20 @@ impl AuditLog {
         Ok(entry)
     }
 
+    /// Return whether a verified prior entry already consumed an approval nonce.
+    ///
+    /// # Errors
+    /// Returns [`AuditError`] if the log cannot be read or fails integrity verification.
+    pub fn contains_approval_nonce(&self, nonce: &str) -> Result<bool, AuditError> {
+        Ok(self.load_verified()?.iter().any(|entry| {
+            entry
+                .record
+                .approval
+                .as_ref()
+                .is_some_and(|approval| approval.nonce == nonce)
+        }))
+    }
+
     /// Load and verify every audit entry in order.
     ///
     /// Empty files and missing files are treated as empty logs. Any malformed line, sequence gap,
