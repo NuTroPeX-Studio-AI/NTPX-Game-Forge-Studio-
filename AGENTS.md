@@ -17,3 +17,6 @@
 15. GameSpec validity never grants tool, filesystem, network, credential, merge, or release authority.
 16. Report status as VERIFIED, FAILED, INFERRED, BLOCKED, or UNKNOWN.
 17. Signal Born: First Thought is the primary reference implementation.
+18. Model, agent, tool, network, repository, engine, and release adapters must consume the verified Autonomy Governor boundary for governed actions; they must not create parallel permission paths.
+19. Protected actions remain human-gated even when a later model or agent recommends execution.
+20. Do not represent advisory locking, reversible Windows replacement, all-or-reverted batches, or canonical path revalidation as stronger guarantees than documented in `ARCHITECTURE.md` and `SECURITY.md`.

@@ -2,8 +2,8 @@
 
 1. 🟦 Repository Foundation — VERIFIED
 2. 🟪 GameSpec — VERIFIED
-3. ⬛ Autonomy Governor — IN PROGRESS
-4. 🧠 Model Router
+3. ⬛ Autonomy Governor — VERIFIED
+4. 🧠 Model Router — NEXT
 5. 🧠 Agent Orchestrator
 6. 🟥 Code Intelligence
 7. 0️⃣ Agent Zero Execution
@@ -27,7 +27,16 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 - Phase 01 established the repository, Rust workspace, desktop shell, CI, documentation, and build lineage.
 - Phase 02 established the canonical engine-neutral GameSpec 0.1.0 contract, deterministic IDs, schema, validation, dependency graph/cycle detection, migration, compiler manifest, CLI, and Signal Born reference fixtures.
+- Phase 03 established the verified Autonomy Governor: deny-by-default identities/permissions/scopes, protected-action human gates, request-bound HMAC approval proofs, durable replay-safe audit evidence, cross-process cooperative locking, reversible approved/direct file transactions, canonical path/runtime enforcement, all-or-reverted multi-file coordination for ordinary failures, conservative crash-recovery discovery/restoration, and tested Windows replacement fallback behavior.
 
 ## Current target
 
-Phase 03: Autonomy Governor — identities, permissions, tool/filesystem/network scopes, approval gates/proofs, audit records, transactional writes, rollback policy, and runtime enforcement. Verified increments now include the deterministic deny-by-default policy core, durable tamper-evident audit persistence, exact request-bound HMAC approval proofs with expiry, cross-process advisory audit writer exclusion, exact-path governed local file transactions with durable rollback snapshots, and human-approved file transactions that verify proofs before mutation, atomically consume approval nonces through the audit append, serialize cooperating same-target writers, and restore pre-write state when replay or audit failure is detected after replacement. Canonical path containment and parent-directory race hardening, crash-recovery scanning, multi-file transactions, stronger platform-specific replacement semantics, and runtime enforcement remain pending.
+Phase 04: Model Router — introduce provider-neutral model capability descriptors, routing policies, local/cloud provider adapters, privacy/cost/latency constraints, deterministic routing evidence, fallback/abstention behavior, and tests. Model selection must not grant execution authority; later model adapters consume the verified Autonomy Governor boundary for any governed action.
+
+## Phase 03 residual boundaries carried forward
+
+- Path canonicalization and parent identity revalidation harden against aliases/symlinks/directory replacement but do not pin a directory handle across the complete mutation sequence; hostile TOCTOU elimination is not claimed.
+- Windows replacement fallback is reversible/failure-safe but not kernel-atomic across its two renames.
+- Multi-file batches are all-or-reverted for ordinary failures, not kernel-level atomic across crashes.
+- Recovery remains explicit and conservative rather than automatic because retained rollback snapshots are intentionally ambiguous evidence of successful reversible or interrupted work.
+- No production credentials, network, repository merge, engine execution, publishing, or release authority is granted by Phase 03.

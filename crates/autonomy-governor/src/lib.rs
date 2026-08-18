@@ -2,12 +2,17 @@
 //!
 //! This crate decides whether a requested capability is allowed, denied, or requires
 //! explicit human approval. It deliberately performs no arbitrary tool, network, credential,
-//! repository, or release action itself. The audit module may persist authorization decision
-//! records, and the transaction module may perform narrowly governed local file writes with
-//! durable rollback snapshots, but neither grants capability beyond an evaluated policy decision.
+//! repository, or release action itself. The audit module persists authorization evidence, the
+//! transaction and batch modules provide narrowly governed reversible local-file mutations, the
+//! recovery module discovers and explicitly restores verified rollback artifacts, and the runtime
+//! module enforces audited authorization before in-process operations and canonicalized mutations.
 
 mod approval;
 mod audit;
+mod batch;
+mod recovery;
+mod replace;
+mod runtime;
 mod transaction;
 
 use std::{error::Error, fmt};
@@ -18,6 +23,14 @@ pub use approval::{
     ApprovalError, ApprovalEvidence, ApprovalProof, ApprovalSigner, ApprovalVerifier,
 };
 pub use audit::{AuditEntry, AuditError, AuditLog};
+pub use batch::{
+    BatchFileWrite, BatchTransactionError, BatchTransactionReceipt, GovernedFileBatch,
+};
+pub use recovery::{RecoveryCandidate, RecoveryError, RecoveryIntegrity, RecoveryScanner};
+pub use runtime::{
+    canonical_filesystem_resource, resolve_filesystem_target, AuthorizationPermit,
+    GovernanceRuntime, ResolvedFilesystemTarget, RuntimeError,
+};
 pub use transaction::{
     ApprovalContext, GovernedFileTransaction, TransactionError, TransactionReceipt,
 };

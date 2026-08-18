@@ -24,6 +24,17 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
+  governor-windows:
+    name: Autonomy Governor Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Check governor
+        run: cargo check -p autonomy-governor --all-targets
+      - name: Test governor
+        run: cargo test -p autonomy-governor
+
   frontend:
     name: Desktop frontend
     runs-on: ubuntu-latest

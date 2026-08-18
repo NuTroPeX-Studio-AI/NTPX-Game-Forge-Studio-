@@ -2,14 +2,14 @@
 
 ## Current boundary
 
-Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy, evidence, and narrowly governed local-mutation boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, rejects replayed approval nonces atomically across cooperating processes, and supports exact-path local file transactions with durable pre-write rollback snapshots. Human-approved file transactions now bridge those verified approval and mutation primitives without bypassing policy: proofs are verified before mutation, approval evidence and nonce consumption are bound to the durable audit append, and replay/audit failures after replacement restore the pre-write state. It still does not provide general tool, network, repository, credential, engine, or release execution authority.
+Phases 01–03 are verified foundations. GameSpec 0.1.0 is the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is now the verified authorization, evidence, approval, reversible-mutation, recovery, and in-process runtime-enforcement boundary. It still does not grant general model-provider, network, repository, credential, engine, publishing, or release authority. Phase 04 Model Router is the next construction target.
 
 ## Layers
 
 1. **Studio UI** — Tauri + React desktop shell.
 2. **Core services** — Rust workspace crates with explicit interfaces.
 3. **Specifications** — verified GameSpec types, versioned schema, validation, dependency graph, migrations, deterministic compiler metadata, and CLI.
-4. **Governance** — deny-by-default identities, permissions, exact scopes, risk classification, approval proofs/gates, durable audit evidence, governed file transactions, and rollback (Phase 03).
+4. **Governance** — verified deny-by-default identities, permissions, exact scopes, risk classification, approval proofs/gates, durable audit evidence, canonical runtime permits, governed transactions, batch rollback, recovery, and rollback (Phase 03).
 5. **Intelligence** — model routing, orchestration, code intelligence, project world model, and evaluation council (Phases 04–13).
 6. **Execution** — Agent Zero, engine/tool adapters, build/test/repair (Phases 07–11).
 7. **Production** — assets, narrative/audio/NPCs, controlled improvement, game build, and release (Phases 14–18).
@@ -26,28 +26,57 @@ Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpe
 
 ## Autonomy Governor boundary
 
+### Policy and approval
+
 - Policy evaluation is deny-by-default.
-- Principal, permission, and resource scope matching is exact in the initial increments.
+- Principal, permission, and resource scope matching is exact.
 - Protected credential, merge, publish, destructive, and release capabilities always require explicit human approval.
 - Human approval proofs use HMAC-SHA256 and bind an authority identifier, the exact serialized request digest, a one-time nonce, issue time, and expiry time.
 - Approval secrets are external inputs, require at least 32 bytes, and are not serialized or exposed through `Debug`.
-- A proof can satisfy only an existing `RequireHumanApproval` policy result; it cannot override a denial or create a grant.
-- Successful approval evidence is persisted in the authorization audit record.
-- Audit mutations acquire an exclusive advisory lock on a deterministic sibling `<audit-path>.lock` file. Full-chain verification, next-sequence allocation, hash construction, append, and durable flush occur while the writer lock is held.
-- Approval nonce lookup and append execute as one locked operation, providing durable replay prevention across cooperating processes sharing the same audit log.
-- Decision records are deterministic and can be persisted as append-only JSONL audit entries.
+- A proof can satisfy only an existing `RequireHumanApproval` result; it cannot override a denial or create a grant.
+- Approval evidence is persisted and nonce consumption is durable/replay-safe across cooperating processes.
+
+### Durable evidence
+
+- Decision records are deterministic append-only JSONL audit entries.
 - Audit entries are SHA-256 hash-chained by sequence and previous hash; existing entries are fully verified before append and corruption fails closed.
-- The hash chain is tamper-evident, not authenticated: unrestricted rewrite access could recreate the full log and recompute hashes.
-- The audit writer lock is cooperative/advisory. A process that bypasses the Autonomy Governor API or ignores advisory locking is outside this guarantee.
-- Exact-path governed local file transactions re-evaluate policy internally and require `Permission::Write` on an exact lexical `Filesystem` scope matching the target.
-- Direct transactions execute only on a policy `Allow`. Human-approved transactions execute only when the same policy evaluation yields `RequireHumanApproval` and an exact request-bound proof verifies before mutation.
-- Human-approved transactions persist approval evidence and consume the proof nonce through the same atomic audit operation. A replay detected after replacement triggers restoration from the durable pre-write snapshot before returning failure.
-- Governed transactions use a deterministic sibling per-target advisory lock to serialize cooperating processes across snapshot capture, staging, replacement, audit/nonce consumption, failure restoration, and explicit rollback.
-- Governed file transactions reject symlink targets, persist a same-directory SHA-256-protected pre-write snapshot, durably flush staged bytes before rename, append the authorization record after replacement, and automatically restore the pre-write state if audit persistence fails.
-- Successful file commits retain their rollback snapshot and return a receipt for explicit restoration. Consumed snapshots are removed only after successful rollback.
-- Snapshot integrity is tamper-evident, not authenticated. Parent-directory symlink/race hardening, canonical path containment, crash recovery, multi-file atomicity, and platform-specific replacement semantics remain future Phase 03 work.
-- Audit/approval/transaction persistence does not grant general tool, network, repository, credential, engine, or release authority.
-- Runtime enforcement remains Phase 03 work.
+- Audit mutations acquire an exclusive advisory sibling lock. Full-chain verification, sequence allocation, hash construction, append, approval-nonce lookup/consumption, and durable flush occur under that writer lock.
+- The hash chain is tamper-evident, not authenticated against an actor able to rewrite the complete log and recompute hashes.
+- Locks are cooperative/advisory; a process that bypasses the governor API is outside the guarantee.
+
+### Canonical runtime enforcement
+
+- `GovernanceRuntime` is the in-process enforcement boundary: supplied operations execute only after policy evaluation and durable authorization evidence.
+- Denied runtime requests are durably audited and do not invoke the supplied operation.
+- Human-gated runtime operations require a valid request-bound one-time approval proof before invocation.
+- Governed filesystem targets must be absolute.
+- Existing parent ancestors are inspected without following symlinks; symlink ancestors and symlink targets are rejected.
+- The target parent is canonicalized, the canonical resource string must exactly match policy scope, parent identity is captured, and that identity is revalidated immediately before mutation.
+- On Unix, parent identity includes device/inode. On other platforms it includes the canonical parent path.
+
+### Reversible mutation
+
+- Governed local-file transactions re-evaluate policy internally and require exact `Filesystem` + `Write` scope matching.
+- Direct transactions execute only on policy `Allow`. Human-approved transactions execute only on `RequireHumanApproval` plus a valid exact proof verified before mutation.
+- Transactions use per-target advisory locks, durable SHA-256-protected pre-write snapshots, same-directory durable staging, platform-aware replacement, durable audit append, and automatic restoration when replay/audit persistence fails after replacement.
+- Successful commits retain rollback snapshots and return receipts for explicit restoration.
+- `GovernedFileBatch` rejects duplicate canonical targets before mutation and routes every member through `GovernanceRuntime`. If a later member fails, earlier members are rolled back in reverse order. This is all-or-reverted for ordinary failures, not kernel-level atomic multi-file replacement.
+
+### Recovery and platform semantics
+
+- `RecoveryScanner` discovers rollback artifacts read-only and never automatically restores them because a retained verified snapshot may represent either an intentionally reversible committed transaction or interrupted work.
+- Explicit recovery re-reads and verifies snapshot SHA-256 integrity and target binding, rejects symlink/non-file snapshot substitution, validates canonical target identity, and removes the snapshot only after successful restoration.
+- Existing snapshot identity is compared canonically so Windows short/long-path aliases do not create false mismatches.
+- Transaction restoration and recovery share the same replacement primitive.
+- Unix-like replacement uses same-filesystem rename semantics.
+- Windows first attempts rename replacement and otherwise uses a reversible target-backup fallback. The fallback is failure-safe but is not claimed to be kernel-atomic across both renames.
+- CI compiles/tests `autonomy-governor` on Windows in addition to the full Ubuntu workspace gate.
+
+### Residual limits
+
+- Canonicalization plus parent identity revalidation is path/race hardening, not a proof of hostile TOCTOU elimination: the implementation does not pin a directory handle across the complete mutation sequence.
+- Snapshot and audit hashes are tamper-evident, not secret-key authenticity proofs.
+- Phase 03 grants no production credential, network, repository merge, engine, publishing, or release authority. Later adapters must consume the governor boundary rather than bypass it.
 
 ## Non-negotiable boundaries
 
@@ -57,6 +86,7 @@ Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpe
 - Destructive, credentialed, financial, production, and public-release actions require human authorization.
 - Every automated write must ultimately be auditable and reversible.
 - GameSpec validation does not grant agents permission to execute tools or change repositories.
+- Later model, agent, tool, network, and engine adapters must obtain governor authorization rather than invent parallel permission paths.
 
 ## Repository layout
 
