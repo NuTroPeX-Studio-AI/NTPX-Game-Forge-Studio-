@@ -11,6 +11,7 @@ mod approval;
 mod audit;
 mod batch;
 mod recovery;
+mod replace;
 mod runtime;
 mod transaction;
 
