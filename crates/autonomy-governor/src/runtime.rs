@@ -228,12 +228,10 @@ impl<'a> GovernanceRuntime<'a> {
         approval: Option<ApprovalContext<'_>>,
     ) -> Result<AuthorizationPermit, RuntimeError> {
         let base = self.policy.evaluate(request.clone());
-        match &base.decision {
+        match base.decision.clone() {
             Decision::Deny { reason } => {
                 self.audit_log.append(base)?;
-                Err(RuntimeError::Denied {
-                    reason: reason.clone(),
-                })
+                Err(RuntimeError::Denied { reason })
             }
             Decision::Allow { .. } => {
                 let audit_entry = self.audit_log.append(base)?;
