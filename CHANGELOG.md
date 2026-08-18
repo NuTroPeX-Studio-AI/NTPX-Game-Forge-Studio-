@@ -2,6 +2,17 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.7 — Phase 03 — Build B000012
+
+### Verified symlink-ancestor hardening increment
+- Added fail-closed rejection for governed file writes when any existing ancestor directory is a symlink.
+- Added explicit `TransactionError::SymlinkAncestor` reporting while preserving existing exact lexical scope matching.
+- Applied the same ancestor validation to direct commits, human-approved commits, and rollback.
+- Added a Unix integration test proving a symlinked parent cannot redirect a governed mutation and that no audit entry is written on rejection.
+- Implementation candidate CI run `32195793642` passed Rust formatting, strict Clippy, all workspace tests, frontend typecheck, and frontend production build.
+- Added ADR 0010 and verification evidence for this bounded path-hardening increment.
+- Phase 03 remains in progress; canonical containment, full parent-directory TOCTOU hardening, crash recovery, multi-file transactions, stronger platform replacement semantics, and runtime enforcement remain pending.
+
 ## 0.3.0-dev.6 — Phase 03 — Build B000011
 
 ### Verified approved governed file-transaction increment
