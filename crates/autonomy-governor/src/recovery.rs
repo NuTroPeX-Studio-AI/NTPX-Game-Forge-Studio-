@@ -10,7 +10,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::{resolve_filesystem_target, RuntimeError};
+use crate::{replace::replace_file, resolve_filesystem_target, RuntimeError};
 
 const ROLLBACK_MARKER: &str = ".gameforge-rollback-";
 const JSON_SUFFIX: &str = ".json";
@@ -124,7 +124,7 @@ impl From<RuntimeError> for RecoveryError {
 pub struct RecoveryScanner;
 
 impl RecoveryScanner {
-    /// Recursively scan one absolute directory tree for GameForge rollback artifacts.
+    /// Recursively scan one absolute directory tree for `GameForge` rollback artifacts.
     ///
     /// # Errors
     /// Returns [`RecoveryError`] when the root is relative/invalid or directory traversal fails.
@@ -320,41 +320,6 @@ fn persist_new_file(path: &Path, contents: &[u8]) -> std::io::Result<()> {
     file.write_all(contents)?;
     file.sync_all()?;
     Ok(())
-}
-
-#[cfg(not(windows))]
-fn replace_file(stage: &Path, target: &Path) -> std::io::Result<()> {
-    fs::rename(stage, target)
-}
-
-#[cfg(windows)]
-fn replace_file(stage: &Path, target: &Path) -> std::io::Result<()> {
-    let first_error = match fs::rename(stage, target) {
-        Ok(()) => return Ok(()),
-        Err(error) => error,
-    };
-    if !target.exists() {
-        return Err(first_error);
-    }
-
-    let backup = stage.with_extension("backup");
-    if backup.exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::AlreadyExists,
-            "recovery replacement backup already exists",
-        ));
-    }
-    fs::rename(target, &backup)?;
-    match fs::rename(stage, target) {
-        Ok(()) => {
-            fs::remove_file(backup)?;
-            Ok(())
-        }
-        Err(error) => {
-            let _ = fs::rename(&backup, target);
-            Err(error)
-        }
-    }
 }
 
 fn to_lower_hex(bytes: &[u8]) -> String {
