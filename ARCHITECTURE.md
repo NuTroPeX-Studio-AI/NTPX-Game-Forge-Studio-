@@ -2,7 +2,7 @@
 
 ## Current boundary
 
-Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy, evidence, and narrowly governed local-mutation boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, rejects replayed approval nonces atomically across cooperating processes, and now supports exact-path local file transactions that preserve durable pre-write rollback snapshots. It still does not provide general tool, network, repository, credential, engine, or release execution authority.
+Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpec 0.1.0 remains the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is a policy, evidence, and narrowly governed local-mutation boundary: it classifies requests, verifies exact request-bound human approval proofs where required, durably records authorization evidence, rejects replayed approval nonces atomically across cooperating processes, and supports exact-path local file transactions with durable pre-write rollback snapshots. Human-approved file transactions now bridge those verified approval and mutation primitives without bypassing policy: proofs are verified before mutation, approval evidence and nonce consumption are bound to the durable audit append, and replay/audit failures after replacement restore the pre-write state. It still does not provide general tool, network, repository, credential, engine, or release execution authority.
 
 ## Layers
 
@@ -38,11 +38,14 @@ Phase 01 and Phase 02 are verified foundations. Phase 03 is in progress. GameSpe
 - Decision records are deterministic and can be persisted as append-only JSONL audit entries.
 - Audit entries are SHA-256 hash-chained by sequence and previous hash; existing entries are fully verified before append and corruption fails closed.
 - The hash chain is tamper-evident, not authenticated: unrestricted rewrite access could recreate the full log and recompute hashes.
-- The writer lock is cooperative/advisory. A process that bypasses the Autonomy Governor API or ignores advisory locking is outside this guarantee.
-- Exact-path governed local file transactions re-evaluate policy internally and require direct `Allow` for `Permission::Write` on an exact lexical `Filesystem` scope matching the target.
+- The audit writer lock is cooperative/advisory. A process that bypasses the Autonomy Governor API or ignores advisory locking is outside this guarantee.
+- Exact-path governed local file transactions re-evaluate policy internally and require `Permission::Write` on an exact lexical `Filesystem` scope matching the target.
+- Direct transactions execute only on a policy `Allow`. Human-approved transactions execute only when the same policy evaluation yields `RequireHumanApproval` and an exact request-bound proof verifies before mutation.
+- Human-approved transactions persist approval evidence and consume the proof nonce through the same atomic audit operation. A replay detected after replacement triggers restoration from the durable pre-write snapshot before returning failure.
+- Governed transactions use a deterministic sibling per-target advisory lock to serialize cooperating processes across snapshot capture, staging, replacement, audit/nonce consumption, failure restoration, and explicit rollback.
 - Governed file transactions reject symlink targets, persist a same-directory SHA-256-protected pre-write snapshot, durably flush staged bytes before rename, append the authorization record after replacement, and automatically restore the pre-write state if audit persistence fails.
 - Successful file commits retain their rollback snapshot and return a receipt for explicit restoration. Consumed snapshots are removed only after successful rollback.
-- Snapshot integrity is tamper-evident, not authenticated. Parent-directory symlink/race hardening, canonical path containment, crash recovery, approved-proof transaction execution, multi-file atomicity, and platform-specific replacement semantics remain future Phase 03 work.
+- Snapshot integrity is tamper-evident, not authenticated. Parent-directory symlink/race hardening, canonical path containment, crash recovery, multi-file atomicity, and platform-specific replacement semantics remain future Phase 03 work.
 - Audit/approval/transaction persistence does not grant general tool, network, repository, credential, engine, or release authority.
 - Runtime enforcement remains Phase 03 work.
 

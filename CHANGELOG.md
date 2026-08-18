@@ -2,6 +2,20 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.6 — Phase 03 — Build B000011
+
+### Verified approved governed file-transaction increment
+- Added `ApprovalContext` and `GovernedFileTransaction::commit_with_approval` to bind request-bound human approval proofs to governed local file mutations.
+- Require the underlying policy evaluation to already return `RequireHumanApproval`; approval proofs cannot override denial or manufacture authority for a direct-allow path.
+- Verify proof authenticity, exact request binding, and lifetime before any filesystem mutation.
+- Persist verified approval evidence and consume the one-time nonce through the same cross-process locked audit append used to record the successful transaction.
+- Added automatic restoration from the durable pre-write snapshot when replay or audit failure is detected after replacement.
+- Added a deterministic per-target advisory transaction lock so cooperating same-target writers serialize snapshot, staging, replacement, audit/nonce consumption, and rollback.
+- Added tests for successful approved commit/evidence, replay rollback preserving the prior winner, invalid/expired proof no-mutation, and denial/direct-allow no-escalation.
+- Safely repaired CI findings from rustfmt and strict Clippy by applying formatter output, removing an unused import, and replacing an over-wide public API with typed approval context; no checks were weakened.
+- Implementation candidate CI run `32191076927` passed Rust formatting, strict Clippy, all workspace tests, frontend typecheck, and frontend production build.
+- Phase 03 remains in progress; canonical path containment/parent-directory race hardening, crash recovery, multi-file transactions, stronger platform replacement semantics, and runtime enforcement remain pending.
+
 ## 0.3.0-dev.5 — Phase 03 — Build B000010
 
 ### Verified governed transactional file-write increment

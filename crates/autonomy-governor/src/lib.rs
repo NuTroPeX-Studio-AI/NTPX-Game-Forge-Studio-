@@ -18,7 +18,9 @@ pub use approval::{
     ApprovalError, ApprovalEvidence, ApprovalProof, ApprovalSigner, ApprovalVerifier,
 };
 pub use audit::{AuditEntry, AuditError, AuditLog};
-pub use transaction::{GovernedFileTransaction, TransactionError, TransactionReceipt};
+pub use transaction::{
+    ApprovalContext, GovernedFileTransaction, TransactionError, TransactionReceipt,
+};
 
 /// Stable identity for an agent or human principal.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
