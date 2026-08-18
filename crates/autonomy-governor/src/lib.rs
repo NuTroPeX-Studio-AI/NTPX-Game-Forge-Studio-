@@ -2,9 +2,14 @@
 //!
 //! This crate decides whether a requested capability is allowed, denied, or requires
 //! explicit human approval. It deliberately performs no tool, filesystem, network,
-//! credential, repository, or release action itself.
+//! credential, repository, or release action itself. The audit module may persist
+//! authorization decision records, but it never executes the requested capability.
+
+mod audit;
 
 use serde::{Deserialize, Serialize};
+
+pub use audit::{AuditEntry, AuditError, AuditLog};
 
 /// Stable identity for an agent or human principal.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
