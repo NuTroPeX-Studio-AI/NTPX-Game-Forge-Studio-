@@ -2,6 +2,19 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.3.0-dev.7 — Phase 03 — Build B000012
+
+### Verified Autonomy Governor completion
+- Added `GovernanceRuntime` as the audited in-process authorization boundary. Supplied operations execute only after durable allow evidence; denials are audited and human-gated operations require an exact one-time request-bound approval proof.
+- Added canonical governed filesystem resources: absolute-path enforcement, parent-ancestor symlink rejection, symlink-target rejection, parent canonicalization, exact canonical scope matching, parent identity capture, and immediate pre-mutation identity revalidation.
+- Added `GovernedFileBatch` for multi-file all-or-reverted behavior under ordinary failures, including duplicate canonical-target preflight and reverse-order rollback when a later member fails.
+- Added conservative `RecoveryScanner` discovery and explicit recovery with SHA-256 snapshot verification, target binding, non-symlink ordinary-file checks, and canonical snapshot identity comparison for Windows short/long-path aliases.
+- Centralized platform-aware replacement for commit and recovery. Unix-like targets use rename replacement; Windows uses direct rename when available and a reversible target-backup fallback otherwise. The fallback is failure-safe but is not claimed to be kernel-atomic across both renames.
+- Added Windows CI for `autonomy-governor` check/tests in addition to Ubuntu formatting, strict Clippy, workspace tests, and frontend validation.
+- Safely repaired CI findings from rustfmt, one Clippy documentation-markdown issue, and a Windows 8.3/long-path recovery identity mismatch without weakening security or tests.
+- Recorded the Phase 03 runtime/security boundary in ADR 0010, including explicit residual limits: cooperative advisory locks, tamper-evident rather than authenticated hash state, no directory-handle pinning across mutation, non-kernel-atomic Windows fallback, and non-kernel-atomic multi-file batches.
+- Phase 03 is VERIFIED. Phase 04 Model Router is next. No production credential, network, repository merge, engine execution, publishing, or release authority was introduced.
+
 ## 0.3.0-dev.6 — Phase 03 — Build B000011
 
 ### Verified approved governed file-transaction increment
