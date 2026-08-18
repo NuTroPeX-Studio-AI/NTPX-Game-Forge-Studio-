@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 
 use model_router::{
     AdapterError, CloudProviderAdapter, LocalProviderAdapter, ModelCapability, ModelDescriptor,
-    ModelRouter, PrivacyConstraint, ProviderAdapter, ProviderClass, RejectionReason,
-    RouterError, RoutingDimension, RoutingOutcome, RoutingPolicy, RoutingRequest,
+    ModelRouter, PrivacyConstraint, ProviderAdapter, ProviderClass, RejectionReason, RouterError,
+    RoutingDimension, RoutingOutcome, RoutingPolicy, RoutingRequest,
 };
 
 fn capabilities(values: &[ModelCapability]) -> BTreeSet<ModelCapability> {
@@ -100,29 +100,13 @@ fn adapters() -> (LocalProviderAdapter, CloudProviderAdapter) {
 
 #[test]
 fn adapter_contracts_reject_wrong_provider_and_class() {
-    let wrong_provider = descriptor(
-        "other",
-        "model",
-        ProviderClass::Local,
-        9_000,
-        100,
-        0,
-        0,
-    );
+    let wrong_provider = descriptor("other", "model", ProviderClass::Local, 9_000, 100, 0, 0);
     assert!(matches!(
         LocalProviderAdapter::new("local", vec![wrong_provider]),
         Err(AdapterError::ProviderMismatch { .. })
     ));
 
-    let wrong_class = descriptor(
-        "local",
-        "model",
-        ProviderClass::Cloud,
-        9_000,
-        100,
-        0,
-        0,
-    );
+    let wrong_class = descriptor("local", "model", ProviderClass::Cloud, 9_000, 100, 0, 0);
     assert!(matches!(
         LocalProviderAdapter::new("local", vec![wrong_class]),
         Err(AdapterError::ClassMismatch { .. })
@@ -208,12 +192,8 @@ fn cost_latency_and_reliability_constraints_fail_closed_to_abstention() {
     constrained.max_expected_latency_ms = Some(100);
     constrained.min_reliability_basis_points = Some(9_900);
 
-    let decision = ModelRouter::route(
-        &[&local, &cloud],
-        &constrained,
-        &RoutingPolicy::default(),
-    )
-    .expect("constraint evaluation should succeed");
+    let decision = ModelRouter::route(&[&local, &cloud], &constrained, &RoutingPolicy::default())
+        .expect("constraint evaluation should succeed");
 
     assert!(matches!(
         decision.evidence.outcome,
@@ -237,8 +217,8 @@ fn missing_capability_and_capacity_are_recorded_as_evidence() {
         output_cost_microusd_per_million_tokens: 0,
         reliability_basis_points: 10_000,
     };
-    let local = LocalProviderAdapter::new("local-runtime", vec![limited])
-        .expect("valid local adapter");
+    let local =
+        LocalProviderAdapter::new("local-runtime", vec![limited]).expect("valid local adapter");
     let decision = ModelRouter::route(
         &[&local],
         &request(PrivacyConstraint::LocalOnly),
@@ -280,15 +260,7 @@ fn decision_and_digest_are_independent_of_adapter_enumeration_order() {
 
 #[test]
 fn duplicate_identity_and_invalid_policy_are_rejected() {
-    let duplicate = descriptor(
-        "same",
-        "model",
-        ProviderClass::Cloud,
-        9_000,
-        100,
-        0,
-        0,
-    );
+    let duplicate = descriptor("same", "model", ProviderClass::Cloud, 9_000, 100, 0, 0);
     let first = CloudProviderAdapter::new("same", vec![duplicate.clone()]).expect("first");
     let second = CloudProviderAdapter::new("same", vec![duplicate]).expect("second");
 
