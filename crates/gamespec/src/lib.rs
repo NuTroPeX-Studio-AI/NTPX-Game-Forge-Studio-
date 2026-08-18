@@ -56,6 +56,10 @@ impl Error for GameSpecError {
 }
 
 /// Decode JSON and reject semantically invalid specifications.
+///
+/// # Errors
+/// Returns [`GameSpecError::Decode`] for malformed JSON and
+/// [`GameSpecError::Validation`] when the decoded specification violates semantic rules.
 pub fn from_json(input: &str) -> Result<ProjectSpec, GameSpecError> {
     let spec = serde_json::from_str(input).map_err(GameSpecError::Decode)?;
     validate(&spec)?;
@@ -63,12 +67,19 @@ pub fn from_json(input: &str) -> Result<ProjectSpec, GameSpecError> {
 }
 
 /// Validate and serialize a specification using stable pretty JSON formatting.
+///
+/// # Errors
+/// Returns [`GameSpecError::Validation`] for an invalid specification and
+/// [`GameSpecError::Encode`] if JSON serialization fails.
 pub fn to_pretty_json(spec: &ProjectSpec) -> Result<String, GameSpecError> {
     validate(spec)?;
     serde_json::to_string_pretty(spec).map_err(GameSpecError::Encode)
 }
 
 /// Run semantic validation independent of serialization.
+///
+/// # Errors
+/// Returns [`GameSpecError::Validation`] with all discovered semantic validation failures.
 pub fn validate(spec: &ProjectSpec) -> Result<(), GameSpecError> {
     let errors = validate::validate(spec);
     if errors.is_empty() {
