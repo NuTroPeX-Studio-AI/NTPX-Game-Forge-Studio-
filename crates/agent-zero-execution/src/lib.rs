@@ -1,4 +1,4 @@
-//! Governed Agent Zero execution contracts for NTPX GameForge Ω∞.
+//! Governed Agent Zero execution contracts for NTPX `GameForge` Ω∞.
 //!
 //! This phase boundary requires an Autonomy Governor `Allow` decision before an execution adapter
 //! can receive a dispatch permit. The crate itself does not spawn processes or access credentials.
@@ -43,6 +43,11 @@ pub struct ExecutionResult {
 /// Concrete runtime adapter contract. Implementations must receive a previously validated permit.
 pub trait ExecutionAdapter: Send + Sync {
     fn adapter_id(&self) -> &str;
+
+    /// Execute one previously authorized request.
+    ///
+    /// # Errors
+    /// Returns [`ExecutionError`] when the concrete adapter cannot validate or execute the permit.
     fn execute(&self, permit: &ExecutionPermit) -> Result<ExecutionResult, ExecutionError>;
 }
 
