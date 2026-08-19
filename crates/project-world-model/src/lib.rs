@@ -52,13 +52,17 @@ impl fmt::Display for WorldModelError {
         match self {
             Self::EmptyEntityId => formatter.write_str("world-model entity id must not be empty"),
             Self::EmptyKind => formatter.write_str("world-model entity kind must not be empty"),
-            Self::EmptyProvenance => formatter.write_str("world-model provenance must not be empty"),
+            Self::EmptyProvenance => {
+                formatter.write_str("world-model provenance must not be empty")
+            }
             Self::DuplicateEntity(id) => write!(formatter, "duplicate world-model entity '{id}'"),
             Self::UnknownRelationshipEndpoint(id) => {
                 write!(formatter, "relationship references unknown entity '{id}'")
             }
             Self::EmptyRelation => formatter.write_str("relationship type must not be empty"),
-            Self::InvalidObservationDigest => formatter.write_str("observation digest must be SHA-256 hex"),
+            Self::InvalidObservationDigest => {
+                formatter.write_str("observation digest must be SHA-256 hex")
+            }
             Self::UnknownObservationSubject(id) => {
                 write!(formatter, "observation references unknown entity '{id}'")
             }
@@ -87,7 +91,11 @@ impl ProjectWorldModel {
         if entity.provenance.trim().is_empty() {
             return Err(WorldModelError::EmptyProvenance);
         }
-        if self.entities.insert(entity.id.clone(), entity.clone()).is_some() {
+        if self
+            .entities
+            .insert(entity.id.clone(), entity.clone())
+            .is_some()
+        {
             return Err(WorldModelError::DuplicateEntity(entity.id));
         }
         Ok(())
@@ -103,7 +111,9 @@ impl ProjectWorldModel {
         }
         for endpoint in [&relationship.from, &relationship.to] {
             if !self.entities.contains_key(endpoint) {
-                return Err(WorldModelError::UnknownRelationshipEndpoint(endpoint.clone()));
+                return Err(WorldModelError::UnknownRelationshipEndpoint(
+                    endpoint.clone(),
+                ));
             }
         }
         self.relationships.push(relationship);
@@ -119,15 +129,20 @@ impl ProjectWorldModel {
     /// Returns [`WorldModelError`] for unknown subjects or malformed digests.
     pub fn observe(&mut self, observation: Observation) -> Result<(), WorldModelError> {
         if !self.entities.contains_key(&observation.subject_id) {
-            return Err(WorldModelError::UnknownObservationSubject(observation.subject_id));
+            return Err(WorldModelError::UnknownObservationSubject(
+                observation.subject_id,
+            ));
         }
         if !valid_digest(&observation.state_digest_sha256) {
             return Err(WorldModelError::InvalidObservationDigest);
         }
         self.observations.push(observation);
         self.observations.sort_by(|left, right| {
-            (&left.subject_id, left.observed_unix, &left.source)
-                .cmp(&(&right.subject_id, right.observed_unix, &right.source))
+            (&left.subject_id, left.observed_unix, &left.source).cmp(&(
+                &right.subject_id,
+                right.observed_unix,
+                &right.source,
+            ))
         });
         Ok(())
     }
@@ -161,6 +176,9 @@ mod tests {
                 to: "weapon".to_owned(),
             })
             .expect_err("unknown endpoint must fail");
-        assert!(matches!(error, WorldModelError::UnknownRelationshipEndpoint(_)));
+        assert!(matches!(
+            error,
+            WorldModelError::UnknownRelationshipEndpoint(_)
+        ));
     }
 }
