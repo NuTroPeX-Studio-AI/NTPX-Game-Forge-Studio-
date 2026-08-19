@@ -5,6 +5,12 @@
 //! It performs no source mutation, model invocation, tool execution, network access, credential
 //! use, repository write, engine action, publishing, signing, or release action.
 
+mod rust_adapter;
+
+pub use rust_adapter::{
+    RustItem, RustItemKind, RustParseDocument, RustParserAdapter, RustParserError,
+};
+
 use std::{error::Error, fmt, fmt::Write};
 
 use code_intelligence::{Language, SourceFile};
