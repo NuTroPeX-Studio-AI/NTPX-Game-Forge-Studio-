@@ -258,7 +258,7 @@ mod tests {
 
     use autonomy_governor::{
         canonical_filesystem_resource, ApprovalRequirement, ApprovalSigner, ApprovalVerifier,
-        AuditLog, Grant, GovernedFileTransaction, Permission, Policy, Principal, PrincipalId,
+        AuditLog, GovernedFileTransaction, Grant, Permission, Policy, Principal, PrincipalId,
         RiskLevel, Scope, ScopeKind,
     };
     use code_intelligence::{build_repository_index, Language, LexicalLanguageDriver};
@@ -295,10 +295,7 @@ mod tests {
         build_repository_index(std::slice::from_ref(source), &[&rust]).expect("valid index")
     }
 
-    fn policy_request(
-        target: &Path,
-        approval: ApprovalRequirement,
-    ) -> (Policy, Request) {
+    fn policy_request(target: &Path, approval: ApprovalRequirement) -> (Policy, Request) {
         let principal = PrincipalId("code-intelligence-writer".to_owned());
         let scope = Scope {
             kind: ScopeKind::Filesystem,
@@ -332,12 +329,8 @@ mod tests {
         let current = source("fn player() {}\n");
         fs::write(&target, &current.content).expect("seed source should write");
         let index = index_for(&current);
-        let plan = plan_exact_file_replacement(
-            &index,
-            &current,
-            "fn player() { tick(); }\n",
-        )
-        .expect("valid plan");
+        let plan = plan_exact_file_replacement(&index, &current, "fn player() { tick(); }\n")
+            .expect("valid plan");
         let (policy, request) = policy_request(&target, ApprovalRequirement::None);
         let audit = AuditLog::new(root.join("audit.jsonl"));
         let runtime = GovernanceRuntime::new(&policy, &audit);
@@ -355,10 +348,7 @@ mod tests {
             fs::read_to_string(&target).expect("source should read"),
             plan.replacement_content
         );
-        assert_eq!(
-            applied.plan_evidence_sha256,
-            plan.evidence_sha256
-        );
+        assert_eq!(applied.plan_evidence_sha256, plan.evidence_sha256);
         assert_eq!(audit.load_verified().expect("audit should verify").len(), 1);
 
         GovernedFileTransaction::rollback(&applied.receipt)
@@ -377,12 +367,8 @@ mod tests {
         let current = source("fn player() {}\n");
         fs::write(&target, &current.content).expect("seed source should write");
         let index = index_for(&current);
-        let plan = plan_exact_file_replacement(
-            &index,
-            &current,
-            "fn player() { tick(); }\n",
-        )
-        .expect("valid plan");
+        let plan = plan_exact_file_replacement(&index, &current, "fn player() { tick(); }\n")
+            .expect("valid plan");
         fs::write(&target, "fn player() { changed_elsewhere(); }\n")
             .expect("external change should write");
         let (policy, request) = policy_request(&target, ApprovalRequirement::None);
@@ -420,12 +406,8 @@ mod tests {
         let current = source("fn player() {}\n");
         fs::write(&target, &current.content).expect("seed source should write");
         let index = index_for(&current);
-        let mut plan = plan_exact_file_replacement(
-            &index,
-            &current,
-            "fn player() { tick(); }\n",
-        )
-        .expect("valid plan");
+        let mut plan = plan_exact_file_replacement(&index, &current, "fn player() { tick(); }\n")
+            .expect("valid plan");
         plan.replacement_content = "fn player() { injected(); }\n".to_owned();
         let (policy, request) = policy_request(&target, ApprovalRequirement::None);
         let audit = AuditLog::new(root.join("audit.jsonl"));
@@ -458,12 +440,8 @@ mod tests {
         let current = source("fn player() {}\n");
         fs::write(&target, &current.content).expect("seed source should write");
         let index = index_for(&current);
-        let mut plan = plan_exact_file_replacement(
-            &index,
-            &current,
-            "fn player() { tick(); }\n",
-        )
-        .expect("valid plan");
+        let mut plan = plan_exact_file_replacement(&index, &current, "fn player() { tick(); }\n")
+            .expect("valid plan");
         plan.path = "../outside.rs".to_owned();
         plan.evidence_sha256 = plan_evidence_sha256(&plan);
         let (policy, request) = policy_request(&target, ApprovalRequirement::None);
@@ -490,12 +468,8 @@ mod tests {
         let current = source("fn player() {}\n");
         fs::write(&target, &current.content).expect("seed source should write");
         let index = index_for(&current);
-        let plan = plan_exact_file_replacement(
-            &index,
-            &current,
-            "fn player() { tick(); }\n",
-        )
-        .expect("valid plan");
+        let plan = plan_exact_file_replacement(&index, &current, "fn player() { tick(); }\n")
+            .expect("valid plan");
         let (policy, request) = policy_request(&target, ApprovalRequirement::Human);
         let audit = AuditLog::new(root.join("audit.jsonl"));
         let runtime = GovernanceRuntime::new(&policy, &audit);
