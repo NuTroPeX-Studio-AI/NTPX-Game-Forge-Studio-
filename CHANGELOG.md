@@ -2,6 +2,20 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.6.0-dev.4 — Phase 06 — Build B000018
+
+### Verified deterministic incremental index reuse increment
+- Added deterministic incremental repository indexing on top of the verified B000015–B000017 Code Intelligence evidence layers.
+- Unchanged file evidence is reused only when path, language, generated-file state, and current source-content SHA-256 match exactly.
+- Recomputed and verified the prior repository evidence digest before any cached file record is trusted; mismatched/tampered prior evidence fails closed with explicit `PriorEvidenceMismatch`.
+- Kept exact language-driver availability mandatory even for reusable files so cache reuse cannot silently bypass the configured language boundary.
+- Content changes and generated-state changes invalidate reuse; removed files are excluded and reuse/reindex/removal counts remain explicit.
+- Added tests proving unchanged-cache reuse without driver execution, changed-content equivalence to a clean rebuild, generated-state invalidation, removed-file handling, tampered-evidence rejection, and source-order determinism.
+- Initial candidate CI `32221871332` found rustfmt-only drift; exact formatter-equivalent output was applied without weakening validation, linting, tests, or security controls.
+- Repaired implementation candidate CI `32221974551` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0016, B000018 build history, Phase 06 verification evidence, roadmap state, and continuous build metadata.
+- Phase 06 remains IN PROGRESS. AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, diagnostics, semantic search, refactor planning/application, persistent cache policy, and governance-bound source mutation remain pending.
+
 ## 0.6.0-dev.3 — Phase 06 — Build B000017
 
 ### Deterministic advisory lexical dependency graph candidate
@@ -75,7 +89,7 @@ All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 - Added deterministic lexicographic routing policies with stable provider/model identity as the final tie-breaker, making equivalent decisions independent of adapter enumeration order.
 - Added ordered bounded fallback candidates and explicit fail-closed abstention when no model satisfies all hard constraints.
 - Added deterministic rejection evidence for missing capabilities, insufficient capacity, privacy violations, cost/latency ceilings, and reliability floors.
-- Added fail-closed validation for duplicate model identities, adapter provider/class mismatches, invalid reliability values, and repeated/empty ranking policies.
+- Added fail-closed validation for duplicate model identities, adapter provider/class inconsistencies, invalid reliability values, and repeated/empty ranking policies.
 - Added SHA-256 routing evidence covering request, policy, eligible/rejected candidates, and outcome.
 - Added acceptance tests for adapter interchangeability, local-only privacy, deterministic ordering/digest, policy precedence, fallbacks, abstention, rejection evidence, duplicate identities, and invalid policy.
 - Safely repaired CI findings from rustfmt and one strict Clippy documentation-markdown issue without weakening routing behavior or tests.
