@@ -54,7 +54,9 @@ impl fmt::Display for IntegrationError {
                 "routing request assignment '{}/{}' does not match scheduler assignment '{}/{}'",
                 expected_task.0, expected_agent.0, actual_task.0, actual_agent.0
             ),
-            Self::EmptyRoutingRequestId => formatter.write_str("routing request id must not be empty"),
+            Self::EmptyRoutingRequestId => {
+                formatter.write_str("routing request id must not be empty")
+            }
             Self::Router(error) => write!(formatter, "model routing failed: {error}"),
         }
     }
@@ -214,7 +216,9 @@ mod tests {
     fn preserves_router_abstention_as_safe_outcome() {
         let assignment = assignment();
         let mut routing = routing_request();
-        routing.required_capabilities.insert(ModelCapability::Vision);
+        routing
+            .required_capabilities
+            .insert(ModelCapability::Vision);
         let request = AssignmentRoutingRequest {
             task_id: assignment.task_id.clone(),
             agent_id: assignment.agent_id.clone(),
