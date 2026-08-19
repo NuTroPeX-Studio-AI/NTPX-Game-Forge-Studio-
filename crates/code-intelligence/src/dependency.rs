@@ -6,7 +6,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{build_reference_graph, sha256_hex, CodeIntelligenceError, ReferenceResolution, RepositoryIndex};
+use crate::{
+    build_reference_graph, sha256_hex, CodeIntelligenceError, ReferenceResolution, RepositoryIndex,
+};
 
 /// One deterministic resolved dependency edge from an indexed lexical reference to a symbol.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -81,7 +83,11 @@ pub fn build_dependency_graph(
             ))
     });
 
-    let evidence_payload = (&edges, ambiguous_reference_count, unresolved_reference_count);
+    let evidence_payload = (
+        &edges,
+        ambiguous_reference_count,
+        unresolved_reference_count,
+    );
     let encoded = serde_json::to_vec(&evidence_payload).map_err(CodeIntelligenceError::Encode)?;
     let evidence_sha256 = sha256_hex(&encoded);
 
