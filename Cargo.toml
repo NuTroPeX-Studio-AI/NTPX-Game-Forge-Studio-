@@ -15,6 +15,15 @@ members = [
   "crates/agent-zero-execution",
   "crates/unreal-engine-bridge",
   "crates/build-test-repair",
+  "crates/hermes-memory-skills",
+  "crates/openclaw-remote-gateway",
+  "crates/project-world-model",
+  "crates/evaluation-council",
+  "crates/asset-production",
+  "crates/narrative-audio-npc",
+  "crates/controlled-self-improvement",
+  "crates/signal-born-slice",
+  "crates/release-pipeline",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
