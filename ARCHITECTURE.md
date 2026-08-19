@@ -2,7 +2,7 @@
 
 ## Current boundary
 
-Phases 01–04 are verified foundations. GameSpec 0.1.0 is the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is the verified authorization, evidence, approval, reversible-mutation, recovery, and in-process runtime-enforcement boundary. The Model Router is the verified provider-neutral selection boundary: it filters and deterministically ranks declared local/cloud model capabilities under privacy, cost, latency, capacity, and reliability constraints, emits bounded fallbacks or abstention, and produces reproducible routing evidence. Model selection does not grant model-provider, network, credential, tool, repository, engine, publishing, or release authority. Phase 05 Agent Orchestrator is the next construction target.
+Phases 01–04 are verified foundations and Phase 05 Agent Orchestrator is the M05/B000014 verification candidate. GameSpec 0.1.0 is the canonical, engine-neutral, AI-provider-neutral machine-readable contract for reproducible game intent and project state. The Autonomy Governor is the verified authorization, evidence, approval, reversible-mutation, recovery, and in-process runtime-enforcement boundary. The Model Router is the verified provider-neutral selection boundary. The Agent Orchestrator adds deterministic workflow contracts, dependency scheduling, retry/escalation, evidence, and Governor authorization handoff without adding model invocation or external execution authority. Phase 06 Code Intelligence remains gated until the exact Phase 05 candidate is verified.
 
 ## Layers
 
@@ -10,7 +10,7 @@ Phases 01–04 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 2. **Core services** — Rust workspace crates with explicit interfaces.
 3. **Specifications** — verified GameSpec types, versioned schema, validation, dependency graph, migrations, deterministic compiler metadata, and CLI.
 4. **Governance** — verified deny-by-default identities, permissions, exact scopes, risk classification, approval proofs/gates, durable audit evidence, canonical runtime permits, governed transactions, batch rollback, recovery, and rollback (Phase 03).
-5. **Intelligence** — verified model routing plus orchestration, code intelligence, project world model, and evaluation council (Phases 04–13).
+5. **Intelligence** — verified Model Router, Phase 05 Agent Orchestrator candidate, then code intelligence, project world model, and evaluation council (Phases 04–13).
 6. **Execution** — Agent Zero, engine/tool adapters, build/test/repair (Phases 07–11).
 7. **Production** — assets, narrative/audio/NPCs, controlled improvement, game build, and release (Phases 14–18).
 
@@ -76,7 +76,7 @@ Phases 01–04 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 
 - Canonicalization plus parent identity revalidation is path/race hardening, not a proof of hostile TOCTOU elimination: the implementation does not pin a directory handle across the complete mutation sequence.
 - Snapshot and audit hashes are tamper-evident, not secret-key authenticity proofs.
-- Phase 03 grants no production credential, network, repository merge, engine, publishing, or release authority. Later adapters must consume the governor boundary rather than bypass it.
+- The Governor grants no implicit production credential, network, repository merge, engine, publishing, or release authority. Later adapters must consume the Governor boundary rather than bypass it.
 
 ## Model Router boundary
 
@@ -107,6 +107,46 @@ Phases 01–04 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 - Future provider invocation adapters must use the Autonomy Governor for governed capabilities and must preserve human approval gates for protected actions.
 - Catalog cost/latency/reliability/capability data is input metadata. Phase 04 validates structure and consistency but does not independently prove that provider-declared values are current or empirically correct.
 
+## Agent Orchestrator boundary
+
+### Immutable workflow contracts
+
+- `AgentContract` binds a stable orchestrator agent identifier to the same Autonomy Governor `PrincipalId`, a role, declared skills, and an explicit parallel-task ceiling.
+- `TaskContract` declares one immutable unit of work: objective, dependencies, required skills, assigned agent, Model Router request/policy, bounded attempts, and exact governed requests that may later be submitted for authorization.
+- Agent/task identifiers are unique and nonblank; routing request identity must equal the task identity.
+- Required skills must be declared by the assigned agent.
+- Every governed request in a task must already name the assigned agent principal. Principal drift fails validation.
+- Dependency references must resolve and self-dependency/cycles fail closed.
+- Canonical ordered contracts produce a SHA-256 plan digest independent of input enumeration order.
+
+### Deterministic scheduling and state transitions
+
+- Ready work requires every dependency to be `Succeeded`.
+- Ready task identifiers are ordered deterministically by stable task identity.
+- Per-agent `max_parallel_tasks` prevents dispatch beyond the declared concurrency ceiling.
+- `dispatch_next` asks the verified `ModelRouter` for a model decision and records that routing digest in task evidence; it does not invoke the selected model.
+- Routing abstention moves the task to `Escalated` without consuming an execution attempt.
+- Attempt outcomes are explicit: success, permanent failure, or retryable failure.
+- Retryable failures move to `RetryScheduled` only while the attempt count remains below immutable `max_attempts`; exhaustion escalates rather than silently widening the retry budget.
+- Failed, escalated, or blocked prerequisites cause dependent pending/retry work to become `Blocked`.
+
+### Governor handoff and authority separation
+
+- A governed capability may be submitted only for a task currently in `Running` state.
+- The exact request must already exist in the immutable task contract. Undeclared capability requests fail before reaching the Governor.
+- `authorize_governed_request` delegates the exact request to `GovernanceRuntime::authorize`. Governor denial, missing approval, replay failure, and audit failure remain authoritative.
+- A successful `AuthorizationPermit` is recorded as workflow evidence but is not interpreted as proof that an external model/tool/repository/engine action executed.
+- Agent Orchestrator scheduling never grants network, credential, tool, filesystem, repository, engine, publishing, or release authority.
+- Later execution adapters must consume the orchestration context and Governor permit without creating a parallel permission path.
+
+### Phase 05 residual limits
+
+- Orchestrator state and workflow evidence are serializable in-memory structures in Phase 05; there is no crash-safe scheduler journal yet.
+- Phase 05 has no distributed queue, worker leases, heartbeats, cancellation propagation, work stealing, resource-aware global optimization, or remote execution.
+- `dispatch_next` selects one next eligible task per call. Parallelism is represented/enforced by state and per-agent limits, not by spawning workers.
+- Workflow evidence is not a cryptographically authenticated authorization log; governed authorization evidence remains in the Autonomy Governor audit log.
+- Phase 05 implements no live model inference or external task executor.
+
 ## Non-negotiable boundaries
 
 - Shared core crates must not depend on a specific game engine.
@@ -116,13 +156,14 @@ Phases 01–04 are verified foundations. GameSpec 0.1.0 is the canonical, engine
 - Every automated write must ultimately be auditable and reversible.
 - GameSpec validation does not grant agents permission to execute tools or change repositories.
 - Model selection is not execution authority.
-- Later model, agent, tool, network, and engine adapters must obtain governor authorization rather than invent parallel permission paths.
+- Orchestration/scheduling is not authorization authority.
+- Later model, agent, tool, network, repository, and engine adapters must obtain Governor authorization rather than invent parallel permission paths.
 
 ## Repository layout
 
 ```text
 apps/                  User-facing applications
-crates/                Shared Rust core services, governance, GameSpec compiler, and Model Router
+crates/                Shared Rust core services, governance, GameSpec, Model Router, and Agent Orchestrator
 schemas/               Versioned GameSpec JSON Schema contracts
 examples/              Reference and migration fixtures
 docs/                  ADRs and verification evidence
