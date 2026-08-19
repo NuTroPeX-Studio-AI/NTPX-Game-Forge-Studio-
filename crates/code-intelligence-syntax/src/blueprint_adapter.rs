@@ -99,12 +99,9 @@ impl BlueprintMetadataParserAdapter {
                     value,
                     line,
                 ),
-                "Asset" => push_reference(
-                    &mut references,
-                    BlueprintReferenceKind::Asset,
-                    value,
-                    line,
-                ),
+                "Asset" => {
+                    push_reference(&mut references, BlueprintReferenceKind::Asset, value, line)
+                }
                 _ => {
                     return Err(BlueprintParserError::UnknownRecord {
                         line,
@@ -159,11 +156,7 @@ fn push_reference(
     });
 }
 
-fn parse_digest(
-    path: &str,
-    items: &[BlueprintItem],
-    references: &[BlueprintReference],
-) -> String {
+fn parse_digest(path: &str, items: &[BlueprintItem], references: &[BlueprintReference]) -> String {
     let mut canonical = format!("{path}\nBlueprintMetadata\n");
     for item in items {
         writeln!(
