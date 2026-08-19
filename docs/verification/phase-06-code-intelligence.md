@@ -34,7 +34,8 @@ Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — determin
 - [x] unit coverage exercises resolved, ambiguous, unresolved, and order-determinism behavior;
 - [x] no compiler/LSP-grade semantic claim is introduced;
 - [x] no mutation, execution, network, credential, engine, publish, signing, or release authority is introduced;
-- [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32214521151`.
+- [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32214521151`;
+- [x] exact stamped B000016 head passed the same complete repository gate in CI `32214681258`.
 
 ## Evidence lineage
 
@@ -50,8 +51,8 @@ Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — determin
 - CI `32214476226` failed only on rustfmt drift in `crates/code-intelligence/src/resolution.rs`; frontend validation continued successfully and the Rust job stopped before Clippy/tests.
 - Formatter output was applied exactly. No lint, validation, test, or security control was weakened.
 - Repaired implementation candidate CI `32214521151` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
-- ADR 0014 and build-history evidence record the deterministic lexical-resolution boundary.
-- The exact stamped B000016 documentation/build-metadata head must pass the same CI gate before the final B000016 classification is VERIFIED.
+- Exact stamped B000016 head CI `32214681258` passed the same complete repository gate with build metadata, roadmap, ADR 0014, verification evidence, and changelog records present.
+- B000016 is VERIFIED.
 
 ## Explicit boundaries
 
