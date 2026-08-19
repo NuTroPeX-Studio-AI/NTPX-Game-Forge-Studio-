@@ -10,6 +10,7 @@ members = [
   "crates/agent-orchestrator-router",
   "crates/agent-orchestrator-governance",
   "crates/agent-orchestrator-escalation",
+  "crates/roadmap-contract",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
