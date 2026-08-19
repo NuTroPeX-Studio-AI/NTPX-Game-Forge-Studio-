@@ -221,9 +221,8 @@ fn is_supported_binding_name(name: &str) -> bool {
         return false;
     };
     (first == '_' || first == '$' || first.is_alphabetic())
-        && characters.all(|character| {
-            character == '_' || character == '$' || character.is_alphanumeric()
-        })
+        && characters
+            .all(|character| character == '_' || character == '$' || character.is_alphanumeric())
 }
 
 fn push_item(items: &mut Vec<TypeScriptItem>, kind: TypeScriptItemKind, name: &str, line: u32) {
@@ -286,7 +285,10 @@ impl fmt::Display for TypeScriptParserError {
                 "source '{path}' language {actual:?} does not match TypeScript parser adapter"
             ),
             Self::ParserInitialization(reason) => {
-                write!(formatter, "TypeScript parser initialization failed: {reason}")
+                write!(
+                    formatter,
+                    "TypeScript parser initialization failed: {reason}"
+                )
             }
             Self::ParserUnavailable => {
                 formatter.write_str("TypeScript parser returned no syntax tree")
@@ -381,7 +383,11 @@ mod tests {
         ))
         .expect("valid variable declarations");
 
-        let names: Vec<_> = document.items.iter().map(|item| item.name.as_str()).collect();
+        let names: Vec<_> = document
+            .items
+            .iter()
+            .map(|item| item.name.as_str())
+            .collect();
         assert_eq!(names, vec!["FIRST", "SECOND", "THIRD", "FOURTH"]);
         assert_eq!(document.items[0].kind, TypeScriptItemKind::Const);
         assert_eq!(document.items[2].kind, TypeScriptItemKind::Let);
