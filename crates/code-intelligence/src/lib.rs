@@ -1,4 +1,4 @@
-//! Deterministic, provider-neutral code intelligence substrate for NTPX GameForge Ω∞.
+//! Deterministic, provider-neutral code intelligence substrate for NTPX `GameForge` Ω∞.
 //!
 //! This crate indexes repository source through explicit language drivers and emits stable symbols,
 //! references, change-impact evidence, and a reproducible repository digest. It performs no code
