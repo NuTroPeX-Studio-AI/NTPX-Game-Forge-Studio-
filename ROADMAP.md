@@ -4,7 +4,7 @@
 2. 🟪 GameSpec — VERIFIED
 3. ⬛ Autonomy Governor — VERIFIED
 4. 🧠 Model Router — VERIFIED
-5. 🧠 Agent Orchestrator — NEXT
+5. 🧠 Agent Orchestrator — IN PROGRESS
 6. 🟥 Code Intelligence
 7. 0️⃣ Agent Zero Execution
 8. 🟧 Unreal Engine Bridge
@@ -32,11 +32,12 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 05: Agent Orchestrator — introduce typed agent/task contracts, dependency-aware task graphs, scheduling, delegation, bounded retries, evidence collection, state transitions, escalation, and integration with the verified Model Router for model selection and the Autonomy Governor for governed actions. Orchestration must not create a parallel permission path.
+Phase 05: Agent Orchestrator — IN PROGRESS. The first implementation increment introduces typed agent/task/state contracts, fail-closed dependency-graph validation, deterministic topological ordering, and capacity/capability-aware advisory scheduling. Its executable CI evidence is still pending, so no Phase 05 completion claim or continuous build increment is made yet. Remaining Phase 05 work includes bounded retry/state-transition semantics, delegation, evidence collection, escalation, Model Router integration for selection, and Autonomy Governor integration for governed actions.
 
 ## Boundaries carried forward
 
 - A Model Router decision selects a candidate model; it does not authorize network access, credential use, model invocation, tool execution, repository mutation, engine execution, publishing, or release.
+- Agent scheduling/delegation decisions are advisory and must not become a parallel permission path.
 - Catalog capability, cost, latency, and reliability values are routing inputs and require explicit provenance/versioning before future telemetry can update them.
 - Model routing evidence is deterministic SHA-256 correlation evidence, not an authorization token or secret-key authenticity proof.
 - Protected actions remain human-gated regardless of which model or future agent recommends them.
