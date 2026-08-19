@@ -66,7 +66,9 @@ impl StructuralSyntaxService {
 
     const fn declaration_prefixes(self) -> &'static [&'static str] {
         match self.language {
-            Language::Rust => &["fn ", "struct ", "enum ", "trait ", "mod ", "impl ", "const "],
+            Language::Rust => &[
+                "fn ", "struct ", "enum ", "trait ", "mod ", "impl ", "const ",
+            ],
             Language::TypeScript => &[
                 "function ",
                 "class ",
@@ -192,7 +194,10 @@ impl fmt::Display for SyntaxServiceError {
                 "source '{path}' language {actual:?} does not match syntax service {expected:?}"
             ),
             Self::UnbalancedBlock { path, line } => {
-                write!(formatter, "source '{path}' has unbalanced block structure at line {line}")
+                write!(
+                    formatter,
+                    "source '{path}' has unbalanced block structure at line {line}"
+                )
             }
         }
     }
