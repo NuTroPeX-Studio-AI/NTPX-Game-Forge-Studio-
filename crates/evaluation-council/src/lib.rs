@@ -55,7 +55,9 @@ impl fmt::Display for EvaluationError {
             Self::EmptyEvaluator => formatter.write_str("evaluator id must not be empty"),
             Self::EmptyCriteriaVersion => formatter.write_str("criteria version must not be empty"),
             Self::EmptyRationale => formatter.write_str("evaluation rationale must not be empty"),
-            Self::InvalidScore => formatter.write_str("evaluation score must be <= 10000 basis points"),
+            Self::InvalidScore => {
+                formatter.write_str("evaluation score must be <= 10000 basis points")
+            }
             Self::InvalidPolicy => formatter.write_str("evaluation council policy is invalid"),
             Self::DuplicateEvaluator(id) => write!(formatter, "duplicate evaluator '{id}'"),
         }
@@ -94,7 +96,9 @@ pub fn evaluate_council(
             return Err(EvaluationError::InvalidScore);
         }
         if !evaluators.insert(review.evaluator_id.clone()) {
-            return Err(EvaluationError::DuplicateEvaluator(review.evaluator_id.clone()));
+            return Err(EvaluationError::DuplicateEvaluator(
+                review.evaluator_id.clone(),
+            ));
         }
         seen_kinds.insert(review.kind);
     }
@@ -105,14 +109,18 @@ pub fn evaluate_council(
     }
     let approvals = reviews
         .iter()
-        .filter(|review| review.approve && review.score_basis_points >= policy.min_score_basis_points)
+        .filter(|review| {
+            review.approve && review.score_basis_points >= policy.min_score_basis_points
+        })
         .count();
     if approvals >= policy.min_approvals {
         return Ok(CouncilOutcome::Approved);
     }
     let mut dissent: Vec<_> = reviews
         .iter()
-        .filter(|review| !review.approve || review.score_basis_points < policy.min_score_basis_points)
+        .filter(|review| {
+            !review.approve || review.score_basis_points < policy.min_score_basis_points
+        })
         .map(|review| format!("{}: {}", review.evaluator_id, review.rationale))
         .collect();
     dissent.sort();
