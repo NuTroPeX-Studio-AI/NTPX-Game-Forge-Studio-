@@ -2,9 +2,7 @@
 
 Phase status: IN PROGRESS
 
-Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — deterministic lexical reference resolution
-
-Current candidate: `NTPX-GFΩ-G0-v0.6.0-dev.3-M06-B000017` — deterministic advisory lexical dependency graph
+Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.3-M06-B000017` — deterministic advisory lexical dependency graph
 
 ## B000015 acceptance gate — deterministic index foundation
 
@@ -53,7 +51,7 @@ Current candidate: `NTPX-GFΩ-G0-v0.6.0-dev.3-M06-B000017` — deterministic adv
 - [x] no AST/compiler/LSP semantic or call-graph claim is introduced;
 - [x] no mutation, execution, network, credential, engine, publish, signing, or release authority is introduced;
 - [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32217787844`;
-- [ ] exact stamped B000017 head passes the same complete repository gate.
+- [x] exact stamped B000017 candidate head passed the same complete repository gate in CI `32218018982`.
 
 ## Evidence lineage
 
@@ -78,7 +76,8 @@ Current candidate: `NTPX-GFΩ-G0-v0.6.0-dev.3-M06-B000017` — deterministic adv
 - Exact formatter output was applied. No lint, validation, test, or security control was weakened.
 - Repaired implementation candidate CI `32217787844` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
 - ADR 0015 records the deterministic advisory dependency-graph boundary.
-- Final B000017 VERIFIED classification requires the exact stamped documentation/build-metadata head to pass the same complete repository gate.
+- Exact stamped B000017 candidate head CI `32218018982` passed the same complete repository gate with build metadata, roadmap, ADR 0015, verification evidence, build history, and changelog records present.
+- B000017 is VERIFIED. The final synchronized verification-status head is subject to the same repository CI gate before this evidence record is considered fully synchronized.
 
 ## Explicit boundaries
 
