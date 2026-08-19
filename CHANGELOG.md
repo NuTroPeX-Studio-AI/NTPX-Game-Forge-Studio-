@@ -2,6 +2,21 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.5.0-dev.2 — Phase 05 — Build B000015
+
+### Verified bounded retry/state-transition increment
+- Added explicit `TaskEvent` start/succeed/fail/escalate inputs and retained `RetryPending { attempts }` state to make retry budgets enforceable.
+- Added deterministic attempt progression: first start is attempt 1, retry starts advance by one, failures remain retryable only while budget remains, and failure at exactly `max_attempts` becomes terminal `Failed`.
+- Added fail-closed validation for externally supplied retry/running/failed attempt counters that disagree with the task specification.
+- Updated advisory scheduling so valid retry-pending work can be reassigned without relaxing dependency, capability, stable-ordering, or concurrency constraints.
+- Added explicit escalation with a required non-empty reason; escalation is terminal orchestration state, not authorization or human approval.
+- Added unit tests for retry exhaustion, retry rescheduling, malformed attempt counters, success, escalation, and terminal restart refusal.
+- Initial candidate CI run `32203477072` failed only `cargo fmt --check`; frontend and Windows Governor jobs were green. Exact formatter output was applied without changing semantics or weakening tests.
+- Repaired implementation candidate CI run `32203642042` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0013 and build-specific Phase 05 verification evidence.
+- Phase 05 remains IN PROGRESS. Delegation, deterministic orchestration evidence collection, Model Router selection integration, Autonomy Governor-governed execution, and broader escalation routing/policy remain unfinished.
+- This increment introduces no model/tool invocation, credentials, network access, runtime filesystem/repository mutation, engine execution, merge, publishing, signing, or release authority.
+
 ## 0.5.0-dev.1 — Phase 05 — Build B000014
 
 ### Verified Agent Orchestrator substrate
