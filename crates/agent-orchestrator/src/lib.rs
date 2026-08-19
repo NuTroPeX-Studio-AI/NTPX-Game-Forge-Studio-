@@ -294,7 +294,6 @@ impl TaskGraph {
     }
 
     /// Return validated tasks in stable identifier order.
-    #[must_use]
     pub fn tasks(&self) -> impl Iterator<Item = &TaskContract> {
         self.tasks.values()
     }
@@ -406,7 +405,8 @@ impl AgentOrchestrator {
     /// If routing abstains, the task escalates without consuming an execution attempt.
     ///
     /// # Errors
-    /// Returns [`OrchestratorError`] if routing fails structurally.
+    /// Returns [`OrchestratorError`] if routing fails structurally or the selected task cannot be
+    /// resolved from the validated graph.
     pub fn dispatch_next(
         &mut self,
         adapters: &[&dyn ProviderAdapter],
@@ -419,7 +419,7 @@ impl AgentOrchestrator {
             .graph
             .tasks
             .get(&task_id)
-            .expect("ready task identifier must exist in validated graph")
+            .ok_or_else(|| OrchestratorError::UnknownTask(task_id.clone()))?
             .clone();
         let routing = ModelRouter::route(adapters, &task.routing_request, &task.routing_policy)?;
         match &routing.evidence.outcome {
