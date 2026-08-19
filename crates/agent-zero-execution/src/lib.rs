@@ -109,7 +109,9 @@ impl fmt::Display for ExecutionError {
             Self::EmptyRequestId => formatter.write_str("execution request id must not be empty"),
             Self::EmptyPrincipal => formatter.write_str("execution principal must not be empty"),
             Self::EmptyToolId => formatter.write_str("execution tool id must not be empty"),
-            Self::EmptyWorkingDirectory => formatter.write_str("working directory must not be empty"),
+            Self::EmptyWorkingDirectory => {
+                formatter.write_str("working directory must not be empty")
+            }
             Self::ZeroTimeout => formatter.write_str("execution timeout must be positive"),
             Self::ZeroMemoryLimit => formatter.write_str("execution memory limit must be positive"),
             Self::ZeroOutputLimit => formatter.write_str("execution output limit must be positive"),
