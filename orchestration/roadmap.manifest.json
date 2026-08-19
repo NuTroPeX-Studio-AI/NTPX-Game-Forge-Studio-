@@ -2,123 +2,35 @@
   "schemaVersion": 1,
   "product": "NTPX GameForge Ω∞",
   "rules": {
-    "engineNeutralCore": true,
-    "providerNeutralCore": true,
-    "offlineFirst": true,
-    "denyByDefault": true,
-    "protectedActionsHumanGated": true,
-    "auditableWrites": true,
-    "reversibleAutomatedWrites": true,
-    "verificationRequiredForPhaseCompletion": true
+    "required": [
+      "engineNeutralCore",
+      "providerNeutralCore",
+      "offlineFirst",
+      "denyByDefault",
+      "protectedActionsHumanGated",
+      "auditableWrites",
+      "reversibleAutomatedWrites",
+      "verificationRequiredForPhaseCompletion"
+    ]
   },
   "phases": [
-    {
-      "id": 1,
-      "name": "Repository Foundation",
-      "status": "verified",
-      "components": ["rust-workspace", "desktop-shell", "ci", "docs", "build-lineage", "security-policy", "agent-rules"]
-    },
-    {
-      "id": 2,
-      "name": "GameSpec",
-      "status": "verified",
-      "components": ["typed-contract", "json-schema", "validation", "stable-ids", "dependency-graph", "cycle-detection", "migration", "compiler-manifest", "cli", "reference-fixtures", "asset-provenance"]
-    },
-    {
-      "id": 3,
-      "name": "Autonomy Governor",
-      "status": "verified",
-      "components": ["principals", "permissions", "exact-scopes", "risk-levels", "human-approval-proofs", "replay-protection", "audit-chain", "runtime-permits", "canonical-path-enforcement", "symlink-defense", "transactional-writes", "multi-file-rollback", "crash-recovery", "windows-replacement-driver"]
-    },
-    {
-      "id": 4,
-      "name": "Model Router",
-      "status": "verified",
-      "components": ["provider-adapter-contract", "local-catalog-driver", "cloud-catalog-driver", "capability-filtering", "privacy-constraints", "cost-constraints", "latency-constraints", "reliability-constraints", "deterministic-ranking", "fallbacks", "abstention", "routing-evidence"]
-    },
-    {
-      "id": 5,
-      "name": "Agent Orchestrator",
-      "status": "in_progress",
-      "components": ["agent-contracts", "task-contracts", "dependency-dag", "deterministic-scheduler", "concurrency-limits", "bounded-retries", "state-machine", "delegation", "orchestration-evidence", "model-router-binding", "governor-binding", "escalation-routing", "human-escalation-target", "supervisor-escalation-target", "safety-review-target"]
-    },
-    {
-      "id": 6,
-      "name": "Code Intelligence",
-      "status": "planned",
-      "components": ["repository-index", "language-adapter-contract", "rust-language-driver", "typescript-language-driver", "cpp-language-driver", "blueprint-metadata-driver", "symbol-index", "reference-index", "dependency-index", "diagnostic-model", "semantic-search-contract", "incremental-cache", "change-impact-analysis", "patch-plan", "code-evidence", "generated-file-detection"]
-    },
-    {
-      "id": 7,
-      "name": "Agent Zero Execution",
-      "status": "planned",
-      "components": ["execution-adapter-contract", "sandbox-runner", "process-driver", "tool-registry", "command-envelope", "workspace-mount-policy", "environment-scrubber", "stdin-stdout-driver", "timeout", "cancellation", "resource-limits", "governor-preflight", "governor-runtime-enforcement", "execution-evidence", "exit-classification", "artifact-capture"]
-    },
-    {
-      "id": 8,
-      "name": "Unreal Engine Bridge",
-      "status": "planned",
-      "components": ["engine-adapter-contract", "unreal-install-discovery", "uproject-driver", "ubt-driver", "uat-driver", "editor-commandlet-driver", "engine-process-driver", "module-generation", "plugin-generation", "asset-import", "asset-reimport", "world-sync", "level-sync", "blueprint-metadata", "c-plus-plus-generation", "config-sync", "packaging-driver", "windows-unreal-driver", "linux-unreal-driver", "engine-evidence"]
-    },
-    {
-      "id": 9,
-      "name": "Build / Test / Repair",
-      "status": "planned",
-      "components": ["build-graph", "build-runner", "test-runner", "smoke-test-driver", "unit-test-driver", "integration-test-driver", "log-parser", "diagnostic-classifier", "failure-fingerprint", "repair-planner", "repair-budget", "regression-gate", "artifact-manifest", "build-evidence", "test-evidence", "repair-evidence"]
-    },
-    {
-      "id": 10,
-      "name": "Hermes Memory + Skills",
-      "status": "planned",
-      "components": ["memory-adapter-contract", "local-memory-store", "episodic-memory", "semantic-memory", "working-memory", "skill-registry", "skill-versioning", "skill-dependencies", "retrieval-policy", "retention-policy", "provenance", "privacy-labels", "memory-compaction", "export-import", "memory-evidence"]
-    },
-    {
-      "id": 11,
-      "name": "OpenClaw Remote Gateway",
-      "status": "planned",
-      "components": ["gateway-adapter-contract", "authenticated-session", "session-key-boundary", "network-scope-governance", "request-envelope", "response-envelope", "heartbeat", "reconnect-policy", "rate-limit", "backpressure", "offline-queue", "idempotency", "remote-cancellation", "gateway-audit", "tls-config-boundary", "remote-evidence"]
-    },
-    {
-      "id": 12,
-      "name": "AGI Project World Model",
-      "status": "planned",
-      "components": ["world-model-contract", "project-entity-graph", "relationship-graph", "observation-record", "state-snapshot", "gamespec-sync", "code-index-sync", "asset-index-sync", "build-state-sync", "consistency-checks", "conflict-detection", "versioning", "provenance", "query-api", "world-model-evidence"]
-    },
-    {
-      "id": 13,
-      "name": "ASI-Like Evaluation Council",
-      "status": "planned",
-      "components": ["evaluator-contract", "evaluator-registry", "independent-review", "adversarial-review", "security-review", "quality-review", "performance-review", "gameplay-review", "criteria-versioning", "scorecard", "dissent-record", "consensus-policy", "abstention", "escalation", "evaluation-evidence"]
-    },
-    {
-      "id": 14,
-      "name": "Asset Production Agents",
-      "status": "planned",
-      "components": ["asset-job-contract", "image-adapter-contract", "texture-adapter-contract", "material-adapter-contract", "mesh-adapter-contract", "animation-adapter-contract", "local-generator-driver", "remote-generator-driver", "import-pipeline", "format-normalization", "lod-pipeline", "collision-metadata", "thumbnail-generation", "deduplication", "license-metadata", "provenance-metadata", "quality-gate", "asset-evidence"]
-    },
-    {
-      "id": 15,
-      "name": "Narrative / Audio / NPC Agents",
-      "status": "planned",
-      "components": ["narrative-graph", "quest-graph", "dialogue-graph", "character-bible", "npc-persona", "npc-memory-contract", "conversation-state", "voice-adapter-contract", "tts-driver", "speech-recognition-driver", "audio-generation-adapter", "music-adapter", "sfx-adapter", "mix-metadata", "lip-sync-metadata", "localization", "content-validation", "narrative-evidence"]
-    },
-    {
-      "id": 16,
-      "name": "Controlled Self-Improvement",
-      "status": "planned",
-      "components": ["improvement-proposal", "baseline-benchmark", "candidate-benchmark", "sandboxed-change", "diff-evidence", "evaluation-gate", "security-gate", "performance-gate", "regression-gate", "canary-policy", "rollback-plan", "human-policy-change-approval", "promotion-policy", "improvement-history"]
-    },
-    {
-      "id": 17,
-      "name": "Signal Born Vertical Slice",
-      "status": "planned",
-      "components": ["reference-gamespec", "player-controller", "walk", "sprint", "crouch", "jump", "vault", "aim", "shoot", "interact", "first-person-camera", "third-person-camera", "camera-switch", "input-remap", "keyboard-mouse-driver", "gamepad-driver", "vr-input-adapter", "combat-loop", "enemy-ai", "npc-interaction", "open-mic-conversation-adapter", "objective-system", "quest-objective", "level", "world-streaming", "hud", "menus", "game-state", "save-load", "checkpoint", "animation-system", "audio-system", "physics-adapter", "render-adapter", "networking-adapter", "accessibility-settings", "performance-budgets", "playtest-evidence"]
-    },
-    {
-      "id": 18,
-      "name": "Release Pipeline",
-      "status": "planned",
-      "components": ["release-manifest", "versioning", "changelog", "sbom", "dependency-audit", "artifact-hashing", "provenance-attestation", "windows-package-driver", "linux-package-driver", "macos-package-driver", "android-package-driver", "ios-package-driver", "steamdeck-package-driver", "console-adapter-contract", "signing-boundary", "notarization-boundary", "store-upload-adapter", "steam-upload-adapter", "staging-channel", "canary-channel", "production-channel", "human-release-approval", "rollback-release", "crash-symbols", "telemetry-config", "release-evidence"]
-    }
+    {"id":1,"name":"Repository Foundation","status":"verified","components":["rust-workspace","desktop-shell","ci","docs","build-lineage","security-policy","agent-rules"]},
+    {"id":2,"name":"GameSpec","status":"verified","components":["typed-contract","json-schema","validation","stable-ids","dependency-graph","cycle-detection","migration","compiler-manifest","cli","reference-fixtures","asset-provenance"]},
+    {"id":3,"name":"Autonomy Governor","status":"verified","components":["principals","permissions","exact-scopes","risk-levels","human-approval-proofs","replay-protection","audit-chain","runtime-permits","canonical-path-enforcement","symlink-defense","transactional-writes","multi-file-rollback","crash-recovery","windows-replacement-driver"]},
+    {"id":4,"name":"Model Router","status":"verified","components":["provider-adapter-contract","local-catalog-driver","cloud-catalog-driver","capability-filtering","privacy-constraints","cost-constraints","latency-constraints","reliability-constraints","deterministic-ranking","fallbacks","abstention","routing-evidence"]},
+    {"id":5,"name":"Agent Orchestrator","status":"in_progress","components":["agent-contracts","task-contracts","dependency-dag","deterministic-scheduler","concurrency-limits","bounded-retries","state-machine","delegation","orchestration-evidence","model-router-binding","governor-binding","escalation-routing","human-escalation-target","supervisor-escalation-target","safety-review-target"]},
+    {"id":6,"name":"Code Intelligence","status":"planned","components":["repository-index","language-adapter-contract","rust-language-driver","typescript-language-driver","cpp-language-driver","blueprint-metadata-driver","symbol-index","reference-index","dependency-index","diagnostic-model","semantic-search-contract","incremental-cache","change-impact-analysis","patch-plan","code-evidence","generated-file-detection"]},
+    {"id":7,"name":"Agent Zero Execution","status":"planned","components":["execution-adapter-contract","sandbox-runner","process-driver","tool-registry","command-envelope","workspace-mount-policy","environment-scrubber","stdin-stdout-driver","timeout","cancellation","resource-limits","governor-preflight","governor-runtime-enforcement","execution-evidence","exit-classification","artifact-capture"]},
+    {"id":8,"name":"Unreal Engine Bridge","status":"planned","components":["engine-adapter-contract","unreal-install-discovery","uproject-driver","ubt-driver","uat-driver","editor-commandlet-driver","engine-process-driver","module-generation","plugin-generation","asset-import","asset-reimport","world-sync","level-sync","blueprint-metadata","c-plus-plus-generation","config-sync","packaging-driver","windows-unreal-driver","linux-unreal-driver","engine-evidence"]},
+    {"id":9,"name":"Build / Test / Repair","status":"planned","components":["build-graph","build-runner","test-runner","smoke-test-driver","unit-test-driver","integration-test-driver","log-parser","diagnostic-classifier","failure-fingerprint","repair-planner","repair-budget","regression-gate","artifact-manifest","build-evidence","test-evidence","repair-evidence"]},
+    {"id":10,"name":"Hermes Memory + Skills","status":"planned","components":["memory-adapter-contract","local-memory-store","episodic-memory","semantic-memory","working-memory","skill-registry","skill-versioning","skill-dependencies","retrieval-policy","retention-policy","provenance","privacy-labels","memory-compaction","export-import","memory-evidence"]},
+    {"id":11,"name":"OpenClaw Remote Gateway","status":"planned","components":["gateway-adapter-contract","authenticated-session","session-key-boundary","network-scope-governance","request-envelope","response-envelope","heartbeat","reconnect-policy","rate-limit","backpressure","offline-queue","idempotency","remote-cancellation","gateway-audit","tls-config-boundary","remote-evidence"]},
+    {"id":12,"name":"AGI Project World Model","status":"planned","components":["world-model-contract","project-entity-graph","relationship-graph","observation-record","state-snapshot","gamespec-sync","code-index-sync","asset-index-sync","build-state-sync","consistency-checks","conflict-detection","versioning","provenance","query-api","world-model-evidence"]},
+    {"id":13,"name":"ASI-Like Evaluation Council","status":"planned","components":["evaluator-contract","evaluator-registry","independent-review","adversarial-review","security-review","quality-review","performance-review","gameplay-review","criteria-versioning","scorecard","dissent-record","consensus-policy","abstention","escalation","evaluation-evidence"]},
+    {"id":14,"name":"Asset Production Agents","status":"planned","components":["asset-job-contract","image-adapter-contract","texture-adapter-contract","material-adapter-contract","mesh-adapter-contract","animation-adapter-contract","local-generator-driver","remote-generator-driver","import-pipeline","format-normalization","lod-pipeline","collision-metadata","thumbnail-generation","deduplication","license-metadata","provenance-metadata","quality-gate","asset-evidence"]},
+    {"id":15,"name":"Narrative / Audio / NPC Agents","status":"planned","components":["narrative-graph","quest-graph","dialogue-graph","character-bible","npc-persona","npc-memory-contract","conversation-state","voice-adapter-contract","tts-driver","speech-recognition-driver","audio-generation-adapter","music-adapter","sfx-adapter","mix-metadata","lip-sync-metadata","localization","content-validation","narrative-evidence"]},
+    {"id":16,"name":"Controlled Self-Improvement","status":"planned","components":["improvement-proposal","baseline-benchmark","candidate-benchmark","sandboxed-change","diff-evidence","evaluation-gate","security-gate","performance-gate","regression-gate","canary-policy","rollback-plan","human-policy-change-approval","promotion-policy","improvement-history"]},
+    {"id":17,"name":"Signal Born Vertical Slice","status":"planned","components":["reference-gamespec","player-controller","walk","sprint","crouch","jump","vault","aim","shoot","interact","first-person-camera","third-person-camera","camera-switch","input-remap","keyboard-mouse-driver","gamepad-driver","vr-input-adapter","combat-loop","enemy-ai","npc-interaction","open-mic-conversation-adapter","objective-system","quest-objective","level","world-streaming","hud","menus","game-state","save-load","checkpoint","animation-system","audio-system","physics-adapter","render-adapter","networking-adapter","accessibility-settings","performance-budgets","playtest-evidence"]},
+    {"id":18,"name":"Release Pipeline","status":"planned","components":["release-manifest","versioning","changelog","sbom","dependency-audit","artifact-hashing","provenance-attestation","windows-package-driver","linux-package-driver","macos-package-driver","android-package-driver","ios-package-driver","steamdeck-package-driver","console-adapter-contract","signing-boundary","notarization-boundary","store-upload-adapter","steam-upload-adapter","staging-channel","canary-channel","production-channel","human-release-approval","rollback-release","crash-symbols","telemetry-config","release-evidence"]}
   ]
 }
