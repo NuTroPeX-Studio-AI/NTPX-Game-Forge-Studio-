@@ -37,7 +37,7 @@ Phase 06: Code Intelligence — IN PROGRESS. B000015 established the provider-ne
 
 B000016 adds deterministic repository-level lexical reference resolution. Unique exact target/name matches resolve to stable symbol evidence; ambiguous matches remain explicit with deterministic candidate ordering and no arbitrary winner; missing matches remain explicit `Unresolved` evidence. The reference graph carries deterministic SHA-256 correlation evidence and remains advisory/read-only.
 
-B000017 adds a deterministic advisory lexical dependency graph derived from B000016 evidence. Only uniquely resolved references become file-to-symbol dependency edges; ambiguous and unresolved references never become guessed edges and remain explicitly counted. Canonical edge ordering and SHA-256 correlation evidence preserve reproducibility. B000017 remains subject to exact stamped-head CI before final VERIFIED classification.
+B000017 adds a VERIFIED deterministic advisory lexical dependency graph derived from B000016 evidence. Only uniquely resolved references become file-to-symbol dependency edges; ambiguous and unresolved references never become guessed edges and remain explicitly counted. Canonical edge ordering and SHA-256 correlation evidence preserve reproducibility. The exact stamped B000017 candidate head passed the complete repository gate in CI `32218018982`.
 
 Remaining Phase 06 work includes AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound write execution.
 
