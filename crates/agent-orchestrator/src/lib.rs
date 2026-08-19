@@ -46,10 +46,22 @@ pub struct TaskSpec {
 #[serde(tag = "state", rename_all = "snake_case")]
 pub enum TaskState {
     Pending,
+    RetryPending { attempts: u16 },
     Running { agent_id: AgentId, attempt: u16 },
     Succeeded,
     Failed { attempts: u16 },
     Escalated { reason: String },
+}
+
+/// Explicit state-machine input. These events record orchestration intent/outcome only; they do not
+/// execute an agent, model, tool, or governed action.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "event", rename_all = "snake_case")]
+pub enum TaskEvent {
+    Start { agent_id: AgentId },
+    Succeed,
+    Fail,
+    Escalate { reason: String },
 }
 
 /// Advisory assignment emitted by the scheduler.
@@ -111,6 +123,7 @@ impl Error for GraphError {}
 pub enum ScheduleError {
     UnknownTaskState(TaskId),
     InvalidAgent(AgentId),
+    InvalidTaskState(TaskId),
 }
 
 impl fmt::Display for ScheduleError {
@@ -122,11 +135,51 @@ impl fmt::Display for ScheduleError {
                 "agent '{}' must have a non-empty id and positive concurrency",
                 id.0
             ),
+            Self::InvalidTaskState(id) => {
+                write!(f, "task '{}' has state inconsistent with its retry budget", id.0)
+            }
         }
     }
 }
 
 impl Error for ScheduleError {}
+
+/// Fail-closed task state-transition failure.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TransitionError {
+    UnknownTask(TaskId),
+    InvalidAgent(AgentId),
+    InvalidEscalationReason,
+    InvalidState {
+        task_id: TaskId,
+        state: TaskState,
+    },
+    InvalidTransition {
+        task_id: TaskId,
+        state: TaskState,
+        event: TaskEvent,
+    },
+}
+
+impl fmt::Display for TransitionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownTask(id) => write!(f, "unknown task '{}'", id.0),
+            Self::InvalidAgent(id) => write!(f, "agent id must not be empty: '{}'", id.0),
+            Self::InvalidEscalationReason => f.write_str("escalation reason must not be empty"),
+            Self::InvalidState { task_id, .. } => write!(
+                f,
+                "task '{}' has state inconsistent with its retry budget",
+                task_id.0
+            ),
+            Self::InvalidTransition { task_id, .. } => {
+                write!(f, "invalid state transition for task '{}'", task_id.0)
+            }
+        }
+    }
+}
+
+impl Error for TransitionError {}
 
 impl TaskGraph {
     /// Validate task identities/dependencies and compute a deterministic topological order.
@@ -222,21 +275,106 @@ impl TaskGraph {
             .collect()
     }
 
+    fn state_within_budget(task: &TaskSpec, state: &TaskState) -> bool {
+        match state {
+            TaskState::Pending | TaskState::Succeeded | TaskState::Escalated { .. } => true,
+            TaskState::RetryPending { attempts } => *attempts > 0 && *attempts < task.max_attempts,
+            TaskState::Running { attempt, .. } => *attempt > 0 && *attempt <= task.max_attempts,
+            TaskState::Failed { attempts } => *attempts == task.max_attempts,
+        }
+    }
+
+    /// Apply one explicit, deterministic orchestration state transition.
+    ///
+    /// A failed attempt becomes [`TaskState::RetryPending`] while budget remains and becomes
+    /// [`TaskState::Failed`] exactly when the declared `max_attempts` budget is exhausted. Terminal
+    /// states cannot be restarted. Escalation is explicit and requires a non-empty reason.
+    ///
+    /// # Errors
+    /// Returns [`TransitionError`] for unknown tasks, malformed state, empty agent/reason values, or
+    /// transitions that are not allowed by the state machine.
+    pub fn transition(
+        &self,
+        task_id: &TaskId,
+        state: &TaskState,
+        event: TaskEvent,
+    ) -> Result<TaskState, TransitionError> {
+        let Some(task) = self.tasks.get(task_id) else {
+            return Err(TransitionError::UnknownTask(task_id.clone()));
+        };
+        if !Self::state_within_budget(task, state) {
+            return Err(TransitionError::InvalidState {
+                task_id: task_id.clone(),
+                state: state.clone(),
+            });
+        }
+        if let TaskEvent::Start { agent_id } = &event {
+            if agent_id.0.is_empty() {
+                return Err(TransitionError::InvalidAgent(agent_id.clone()));
+            }
+        }
+        if let TaskEvent::Escalate { reason } = &event {
+            if reason.trim().is_empty() {
+                return Err(TransitionError::InvalidEscalationReason);
+            }
+        }
+
+        let next = match (state, &event) {
+            (TaskState::Pending, TaskEvent::Start { agent_id }) => TaskState::Running {
+                agent_id: agent_id.clone(),
+                attempt: 1,
+            },
+            (TaskState::RetryPending { attempts }, TaskEvent::Start { agent_id }) => {
+                TaskState::Running {
+                    agent_id: agent_id.clone(),
+                    attempt: attempts + 1,
+                }
+            }
+            (TaskState::Running { .. }, TaskEvent::Succeed) => TaskState::Succeeded,
+            (TaskState::Running { attempt, .. }, TaskEvent::Fail) if *attempt < task.max_attempts => {
+                TaskState::RetryPending { attempts: *attempt }
+            }
+            (TaskState::Running { attempt, .. }, TaskEvent::Fail) => {
+                TaskState::Failed { attempts: *attempt }
+            }
+            (
+                TaskState::Pending | TaskState::RetryPending { .. } | TaskState::Running { .. },
+                TaskEvent::Escalate { reason },
+            ) => TaskState::Escalated {
+                reason: reason.clone(),
+            },
+            _ => {
+                return Err(TransitionError::InvalidTransition {
+                    task_id: task_id.clone(),
+                    state: state.clone(),
+                    event,
+                });
+            }
+        };
+        Ok(next)
+    }
+
     /// Produce deterministic advisory assignments for dependency-ready pending tasks.
     ///
     /// Running work consumes declared agent capacity. Tasks and agents are considered in stable ID
-    /// order. Unassignable ready tasks remain pending; no hard constraint is silently relaxed.
+    /// order. Retry-pending tasks are schedulable only while their retained attempt count is within
+    /// the validated task budget. Unassignable ready tasks remain pending; no hard constraint is
+    /// silently relaxed.
     ///
     /// # Errors
-    /// Returns [`ScheduleError`] for states referencing unknown tasks or invalid agent descriptors.
+    /// Returns [`ScheduleError`] for states referencing unknown tasks, states inconsistent with retry
+    /// budgets, or invalid agent descriptors.
     pub fn plan_assignments(
         &self,
         states: &BTreeMap<TaskId, TaskState>,
         agents: &[AgentDescriptor],
     ) -> Result<Vec<Assignment>, ScheduleError> {
-        for id in states.keys() {
-            if !self.tasks.contains_key(id) {
+        for (id, state) in states {
+            let Some(task) = self.tasks.get(id) else {
                 return Err(ScheduleError::UnknownTaskState(id.clone()));
+            };
+            if !Self::state_within_budget(task, state) {
+                return Err(ScheduleError::InvalidTaskState(id.clone()));
             }
         }
         let mut sorted_agents = agents.to_vec();
@@ -258,10 +396,8 @@ impl TaskGraph {
         let mut assignments = Vec::new();
         for task_id in &self.topological_order {
             let task = &self.tasks[task_id];
-            if !matches!(
-                states.get(task_id).unwrap_or(&TaskState::Pending),
-                TaskState::Pending
-            ) {
+            let state = states.get(task_id).unwrap_or(&TaskState::Pending);
+            if !matches!(state, TaskState::Pending | TaskState::RetryPending { .. }) {
                 continue;
             }
             if !task
@@ -297,6 +433,14 @@ mod tests {
     }
     fn capability(value: &str) -> TaskCapability {
         TaskCapability(value.to_owned())
+    }
+    fn task(value: &str, max_attempts: u16) -> TaskSpec {
+        TaskSpec {
+            id: id(value),
+            dependencies: BTreeSet::new(),
+            required_capabilities: BTreeSet::new(),
+            max_attempts,
+        }
     }
 
     #[test]
@@ -395,5 +539,126 @@ mod tests {
             .expect("schedule should validate");
         assert_eq!(assignments.len(), 1);
         assert_eq!(assignments[0].task_id, id("one"));
+    }
+
+    #[test]
+    fn bounds_retries_and_exhausts_exactly_at_max_attempts() {
+        let graph = TaskGraph::new(vec![task("build", 2)]).expect("graph should validate");
+        let task_id = id("build");
+        let agent_id = AgentId("worker".into());
+
+        let running_one = graph
+            .transition(
+                &task_id,
+                &TaskState::Pending,
+                TaskEvent::Start {
+                    agent_id: agent_id.clone(),
+                },
+            )
+            .expect("first attempt should start");
+        assert_eq!(
+            running_one,
+            TaskState::Running {
+                agent_id: agent_id.clone(),
+                attempt: 1
+            }
+        );
+
+        let retry = graph
+            .transition(&task_id, &running_one, TaskEvent::Fail)
+            .expect("first failure should retain retry budget state");
+        assert_eq!(retry, TaskState::RetryPending { attempts: 1 });
+
+        let running_two = graph
+            .transition(
+                &task_id,
+                &retry,
+                TaskEvent::Start {
+                    agent_id: agent_id.clone(),
+                },
+            )
+            .expect("second attempt should start");
+        assert_eq!(
+            running_two,
+            TaskState::Running {
+                agent_id,
+                attempt: 2
+            }
+        );
+
+        let failed = graph
+            .transition(&task_id, &running_two, TaskEvent::Fail)
+            .expect("second failure should exhaust the budget");
+        assert_eq!(failed, TaskState::Failed { attempts: 2 });
+        assert!(matches!(
+            graph.transition(
+                &task_id,
+                &failed,
+                TaskEvent::Start {
+                    agent_id: AgentId("worker".into())
+                }
+            ),
+            Err(TransitionError::InvalidTransition { .. })
+        ));
+    }
+
+    #[test]
+    fn retry_pending_work_is_schedulable_and_malformed_attempt_counts_fail_closed() {
+        let graph = TaskGraph::new(vec![task("review", 3)]).expect("graph should validate");
+        let agents = vec![AgentDescriptor {
+            id: AgentId("agent".into()),
+            capabilities: BTreeSet::new(),
+            max_concurrent_tasks: 1,
+        }];
+        let mut states = graph.initial_states();
+        states.insert(id("review"), TaskState::RetryPending { attempts: 1 });
+        let assignments = graph
+            .plan_assignments(&states, &agents)
+            .expect("valid retry state should schedule");
+        assert_eq!(assignments.len(), 1);
+
+        states.insert(id("review"), TaskState::RetryPending { attempts: 3 });
+        assert!(matches!(
+            graph.plan_assignments(&states, &agents),
+            Err(ScheduleError::InvalidTaskState(task_id)) if task_id == id("review")
+        ));
+    }
+
+    #[test]
+    fn success_and_escalation_are_explicit_terminal_transitions() {
+        let graph = TaskGraph::new(vec![task("analyze", 2)]).expect("graph should validate");
+        let task_id = id("analyze");
+        let running = TaskState::Running {
+            agent_id: AgentId("agent".into()),
+            attempt: 1,
+        };
+        assert_eq!(
+            graph
+                .transition(&task_id, &running, TaskEvent::Succeed)
+                .expect("running task should succeed"),
+            TaskState::Succeeded
+        );
+        assert_eq!(
+            graph
+                .transition(
+                    &task_id,
+                    &TaskState::RetryPending { attempts: 1 },
+                    TaskEvent::Escalate {
+                        reason: "human review required".into()
+                    }
+                )
+                .expect("active task should escalate"),
+            TaskState::Escalated {
+                reason: "human review required".into()
+            }
+        );
+        assert!(matches!(
+            graph.transition(
+                &task_id,
+                &TaskState::Pending,
+                TaskEvent::Escalate { reason: "  ".into() }
+            ),
+            Err(TransitionError::InvalidEscalationReason)
+        ));
     }
 }
