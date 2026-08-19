@@ -8,6 +8,7 @@ members = [
   "crates/agent-orchestrator",
   "crates/code-intelligence",
   "crates/code-intelligence-diagnostics",
+  "crates/code-intelligence-search",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
