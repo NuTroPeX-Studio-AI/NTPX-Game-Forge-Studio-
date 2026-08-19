@@ -123,6 +123,33 @@ pub fn collect_evidence(
     assignments: &[Assignment],
     delegations: &[DelegationDirective],
 ) -> Result<OrchestrationEvidence, EvidenceError> {
+    let (known_tasks, canonical_states) = canonicalize_task_states(task_order, states)?;
+    let (canonical_assignments, assignment_by_task) =
+        canonicalize_assignments(&known_tasks, assignments)?;
+    let canonical_delegations =
+        canonicalize_delegations(&known_tasks, &assignment_by_task, delegations)?;
+
+    let payload = OrchestrationEvidencePayload {
+        schema_version: "1".to_owned(),
+        task_order: task_order.to_vec(),
+        states: canonical_states,
+        assignments: canonical_assignments,
+        delegations: canonical_delegations,
+    };
+    let encoded = serde_json::to_vec(&payload)
+        .map_err(|error| EvidenceError::Serialization(error.to_string()))?;
+    let digest_sha256 = encode_hex(&Sha256::digest(encoded));
+
+    Ok(OrchestrationEvidence {
+        payload,
+        digest_sha256,
+    })
+}
+
+fn canonicalize_task_states(
+    task_order: &[TaskId],
+    states: &BTreeMap<TaskId, TaskState>,
+) -> Result<(BTreeSet<TaskId>, Vec<TaskStateEvidence>), EvidenceError> {
     let mut known_tasks = BTreeSet::new();
     for task_id in task_order {
         if task_id.0.is_empty() {
@@ -149,7 +176,13 @@ pub fn collect_evidence(
             state: state.clone(),
         });
     }
+    Ok((known_tasks, canonical_states))
+}
 
+fn canonicalize_assignments(
+    known_tasks: &BTreeSet<TaskId>,
+    assignments: &[Assignment],
+) -> Result<(Vec<Assignment>, BTreeMap<TaskId, AgentId>), EvidenceError> {
     let mut canonical_assignments = assignments.to_vec();
     canonical_assignments.sort_by(|left, right| {
         left.task_id
@@ -178,7 +211,14 @@ pub fn collect_evidence(
             ));
         }
     }
+    Ok((canonical_assignments, assignment_by_task))
+}
 
+fn canonicalize_delegations(
+    known_tasks: &BTreeSet<TaskId>,
+    assignment_by_task: &BTreeMap<TaskId, AgentId>,
+    delegations: &[DelegationDirective],
+) -> Result<Vec<DelegationDirective>, EvidenceError> {
     let mut canonical_delegations = delegations.to_vec();
     canonical_delegations.sort_by(|left, right| {
         left.task_id
@@ -216,23 +256,7 @@ pub fn collect_evidence(
             return Err(EvidenceError::UnboundDelegation(delegation.task_id.clone()));
         }
     }
-
-    let payload = OrchestrationEvidencePayload {
-        schema_version: "1".to_owned(),
-        task_order: task_order.to_vec(),
-        states: canonical_states,
-        assignments: canonical_assignments,
-        delegations: canonical_delegations,
-    };
-    let encoded = serde_json::to_vec(&payload)
-        .map_err(|error| EvidenceError::Serialization(error.to_string()))?;
-    let digest = Sha256::digest(encoded);
-    let digest_sha256 = encode_hex(&digest);
-
-    Ok(OrchestrationEvidence {
-        payload,
-        digest_sha256,
-    })
+    Ok(canonical_delegations)
 }
 
 fn encode_hex(bytes: &[u8]) -> String {
