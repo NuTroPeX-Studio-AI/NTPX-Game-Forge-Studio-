@@ -39,7 +39,9 @@ B000016 adds deterministic repository-level lexical reference resolution. Unique
 
 B000017 adds a VERIFIED deterministic advisory lexical dependency graph derived from B000016 evidence. Only uniquely resolved references become file-to-symbol dependency edges; ambiguous and unresolved references never become guessed edges and remain explicitly counted. Canonical edge ordering and SHA-256 correlation evidence preserve reproducibility. The exact stamped B000017 candidate head passed the complete repository gate in CI `32218018982`.
 
-Remaining Phase 06 work includes AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound write execution.
+B000018 adds VERIFIED deterministic incremental repository indexing. Unchanged file evidence is reused only when path, language, generated-file state, and current source-content SHA-256 match exactly. Prior repository evidence is recomputed before reuse and fails closed on mismatch; removed files are excluded and reuse/reindex/removal counts remain explicit. Repaired implementation candidate CI `32221974551` passed the complete repository gate.
+
+Remaining Phase 06 work includes AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, diagnostics, semantic search, refactor planning/application, persistent cache policy, and governance-bound write execution.
 
 ## Boundaries carried forward
 
@@ -47,8 +49,9 @@ Remaining Phase 06 work includes AST-native parsing/language services, compiler/
 - Agent Orchestrator scheduling does not grant tool, network, credential, repository, engine, publishing, or release authority.
 - A task may request only exact governed capabilities declared in its validated task contract; undeclared capability expansion fails before Governor submission.
 - `GovernanceRuntime` remains the sole verified authorization boundary for governed requests and preserves human approval for protected actions.
-- Code Intelligence analysis/index/reference/dependency-graph evidence does not authorize source mutation, repository writes, tool execution, model invocation, or engine actions.
-- The Phase 06 lexical drivers, B000016 resolver, and B000017 dependency graph are not represented as AST-complete or compiler/LSP-grade semantic resolution; B000017 is not a call graph.
+- Code Intelligence analysis/index/reference/dependency/incremental-index evidence does not authorize source mutation, repository writes, tool execution, model invocation, or engine actions.
+- The Phase 06 lexical drivers, B000016 resolver, B000017 dependency graph, and B000018 incremental reuse are not represented as AST-complete or compiler/LSP-grade semantic resolution; B000017 is not a call graph and B000018 is not a semantic dependency invalidator or persistent cache.
+- Incremental reuse requires verified prior repository evidence plus exact path/language/generated-state/content-digest matching; corrupted prior evidence fails closed.
 - Ambiguous lexical matches remain explicit and are never resolved or promoted into dependency edges by input or enumeration order.
 - Phase 05 workflow state/evidence is serializable in-memory state, not yet a crash-safe durable distributed scheduler journal.
 - Phase 03 path/locking/replacement/recovery residual limits remain as documented in `ARCHITECTURE.md` and `SECURITY.md`.
