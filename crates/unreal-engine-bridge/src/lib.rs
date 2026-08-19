@@ -88,7 +88,9 @@ impl UnrealHostDriver for WindowsUnrealDriver {
     ) -> Result<String, UnrealBridgeError> {
         ensure_host(installation, self.host())?;
         let relative = match kind {
-            UnrealCommandKind::UnrealBuildTool => "Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.exe",
+            UnrealCommandKind::UnrealBuildTool => {
+                "Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.exe"
+            }
             UnrealCommandKind::AutomationTool => "Engine/Build/BatchFiles/RunUAT.bat",
             UnrealCommandKind::EditorCommandlet | UnrealCommandKind::Editor => {
                 "Engine/Binaries/Win64/UnrealEditor.exe"
@@ -110,7 +112,9 @@ impl UnrealHostDriver for LinuxUnrealDriver {
     ) -> Result<String, UnrealBridgeError> {
         ensure_host(installation, self.host())?;
         let relative = match kind {
-            UnrealCommandKind::UnrealBuildTool => "Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool",
+            UnrealCommandKind::UnrealBuildTool => {
+                "Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool"
+            }
             UnrealCommandKind::AutomationTool => "Engine/Build/BatchFiles/RunUAT.sh",
             UnrealCommandKind::EditorCommandlet | UnrealCommandKind::Editor => {
                 "Engine/Binaries/Linux/UnrealEditor"
@@ -161,15 +165,24 @@ pub enum UnrealBridgeError {
 impl fmt::Display for UnrealBridgeError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EmptyInstallationRoot => formatter.write_str("Unreal installation root must not be empty"),
+            Self::EmptyInstallationRoot => {
+                formatter.write_str("Unreal installation root must not be empty")
+            }
             Self::EmptyVersion => formatter.write_str("Unreal version must not be empty"),
             Self::HostMismatch { expected, actual } => {
-                write!(formatter, "Unreal host mismatch: expected {expected:?}, found {actual:?}")
+                write!(
+                    formatter,
+                    "Unreal host mismatch: expected {expected:?}, found {actual:?}"
+                )
             }
             Self::EmptyProjectPath => formatter.write_str("uproject path must not be empty"),
-            Self::EmptyCommandArgument => formatter.write_str("Unreal command arguments must not be empty strings"),
+            Self::EmptyCommandArgument => {
+                formatter.write_str("Unreal command arguments must not be empty strings")
+            }
             Self::EmptyAssetPath => formatter.write_str("asset import paths must not be empty"),
-            Self::EmptyPackageField => formatter.write_str("package request fields must not be empty"),
+            Self::EmptyPackageField => {
+                formatter.write_str("package request fields must not be empty")
+            }
         }
     }
 }
