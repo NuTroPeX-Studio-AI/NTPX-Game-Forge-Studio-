@@ -71,13 +71,20 @@ impl fmt::Display for BuildRepairError {
             Self::EmptyStepId => formatter.write_str("build step id must not be empty"),
             Self::DuplicateStep(id) => write!(formatter, "duplicate build step '{id}'"),
             Self::UnknownDependency { step, dependency } => {
-                write!(formatter, "step '{step}' depends on unknown step '{dependency}'")
+                write!(
+                    formatter,
+                    "step '{step}' depends on unknown step '{dependency}'"
+                )
             }
             Self::SelfDependency(id) => write!(formatter, "step '{id}' cannot depend on itself"),
-            Self::EmptyCommandId(id) => write!(formatter, "step '{id}' command id must not be empty"),
+            Self::EmptyCommandId(id) => {
+                write!(formatter, "step '{id}' command id must not be empty")
+            }
             Self::ZeroRepairBudget => formatter.write_str("repair budget must be positive"),
             Self::RepairBudgetExhausted => formatter.write_str("repair budget exhausted"),
-            Self::EmptyRepairPaths => formatter.write_str("repair plan must target at least one path"),
+            Self::EmptyRepairPaths => {
+                formatter.write_str("repair plan must target at least one path")
+            }
             Self::EmptyRepairRationale => formatter.write_str("repair rationale must not be empty"),
         }
     }
