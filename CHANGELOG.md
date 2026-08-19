@@ -2,6 +2,25 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.5.0-dev.1 — Phase 05 — Build B000014
+
+### Agent Orchestrator verification candidate
+- Added the provider-neutral `agent-orchestrator` Rust workspace crate on top of the verified Model Router and Autonomy Governor boundaries.
+- Added immutable typed `AgentContract` and `TaskContract` inputs with stable identities, assigned Governor principals, declared skills, dependencies, Model Router requests/policies, bounded retry budgets, and exact predeclared governed requests.
+- Added deterministic task-graph validation with duplicate/blank identity rejection, assigned-agent checks, required-skill validation, dangling/self dependency rejection, dependency-cycle detection, and governed-principal binding.
+- Added a canonical SHA-256 plan digest whose result is independent of agent/task input enumeration order.
+- Added deterministic ready-task scheduling and per-agent `max_parallel_tasks` concurrency limits.
+- Integrated `dispatch_next` with the verified Model Router for selection evidence only; it performs no model invocation. Routing abstention escalates without consuming an execution attempt.
+- Added explicit task states and bounded retry behavior: retryable failures reschedule only below immutable `max_attempts`; retry exhaustion escalates; permanent failure fails; failed/escalated/blocked prerequisites block downstream pending work.
+- Added task evidence for dispatch, routing abstention, success, retry, failure, escalation, dependency blocking, and successful Governor authorization handoff.
+- Added exact predeclared governed-request enforcement. A running task can submit only an immutable declared request, and authorization is delegated to `GovernanceRuntime::authorize`; orchestration cannot manufacture permits, widen scopes, override denial, or bypass human approval.
+- Added acceptance tests for deterministic plan/ready ordering, DAG validation, skill mismatch, Model Router dispatch, per-agent concurrency, retry exhaustion, routing abstention, dependency blocking, and Autonomy Governor authorization boundaries.
+- Safely repaired CI findings from rustfmt and strict Clippy: applied formatter output, removed a redundant double-`must_use`, and replaced an internal dispatch `.expect()` panic path with a typed `OrchestratorError`. No lint/test/security gate was weakened.
+- Implementation candidate CI run `32209679408` passed Rust formatting, strict Clippy, full workspace tests including Agent Orchestrator acceptance tests, desktop frontend typecheck/build, and Windows Autonomy Governor regressions.
+- Recorded ADR 0012 and Phase 05 security/agent rules. Selection, scheduling, authorization, and execution remain distinct boundaries.
+- Residual limits are explicit: Phase 05 workflow state/evidence is serializable in-memory state, not a crash-safe distributed scheduler journal, and Phase 05 adds no external execution adapter.
+- B000014 remains CANDIDATE until the exact stamped documentation/build/UI head passes CI. Phase 06 Code Intelligence remains gated until then.
+
 ## 0.4.0-dev.1 — Phase 04 — Build B000013
 
 ### Verified Model Router
