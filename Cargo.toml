@@ -12,6 +12,7 @@ members = [
   "crates/code-intelligence-syntax",
   "crates/code-intelligence-edits",
   "crates/code-intelligence-apply",
+  "crates/agent-zero-execution",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
