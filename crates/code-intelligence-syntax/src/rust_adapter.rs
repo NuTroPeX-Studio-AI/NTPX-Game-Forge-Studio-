@@ -62,11 +62,12 @@ impl RustParserAdapter {
             });
         }
 
-        let file = syn::parse_file(&source.content).map_err(|error| RustParserError::ParseFailure {
-            path: source.path.clone(),
-            line: span_line(error.span()),
-            message: error.to_string(),
-        })?;
+        let file =
+            syn::parse_file(&source.content).map_err(|error| RustParserError::ParseFailure {
+                path: source.path.clone(),
+                line: span_line(error.span()),
+                message: error.to_string(),
+            })?;
 
         let items = file
             .items
