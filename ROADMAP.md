@@ -5,8 +5,8 @@
 3. ⬛ Autonomy Governor — VERIFIED
 4. 🧠 Model Router — VERIFIED
 5. 🧠 Agent Orchestrator — VERIFIED
-6. 🟥 Code Intelligence — CANDIDATE (B000028)
-7. 0️⃣ Agent Zero Execution — GATED
+6. 🟥 Code Intelligence — VERIFIED
+7. 0️⃣ Agent Zero Execution — NEXT
 8. 🟧 Unreal Engine Bridge
 9. ⬜ Build / Test / Repair
 10. ☤ Hermes Memory + Skills
@@ -21,7 +21,7 @@
 
 ## Phase progression rule
 
-A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. A candidate is not a verified phase. Phase 07 remains gated until the exact B000028 candidate and final verification-evidence head both pass the repository CI and NTPX Fortress gates and PR #17 is merged to `main`.
+A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. B000028 has passed its exact stamped candidate CI and NTPX Fortress gates. This VERIFIED evidence/status head must pass the same gates before PR #17 is merged to `main`.
 
 ## Verified foundation
 
@@ -30,6 +30,7 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 - Phase 03: deny-by-default Autonomy Governor with exact scopes, human approval proofs, durable audit, runtime enforcement, reversible transactions, rollback/recovery, and Windows regression coverage.
 - Phase 04: provider-neutral deterministic Model Router with hard constraints, ordered fallbacks/abstention, and routing evidence; selection is never execution authority.
 - Phase 05: deterministic Agent Orchestrator with immutable agent/task contracts, dependency scheduling, concurrency bounds, retry/escalation, evidence, and exact Governor authorization handoff.
+- Phase 06: deterministic multi-language repository/syntax/reference/dependency/search/diagnostic evidence, evidence-bound exact whole-file edit planning, stale-source/repository rejection, and Autonomy-Governor-bound reversible exact edit application with preserved human approval.
 
 ## Phase 06 lineage
 
@@ -44,19 +45,21 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 - **B000024/B000025** — TypeScript parser foundation upgraded to Tree-sitter full-file AST syntax parsing.
 - **B000026** — Tree-sitter C++ top-level syntax parsing plus deterministic textual Blueprint metadata parsing.
 - **B000027** — deterministic exact whole-file edit planning bound to repository/source/replacement evidence, with generated/no-op/stale-plan rejection.
-- **B000028 candidate** — `code-intelligence-apply` rechecks plan integrity, canonical repository-relative targeting, and current on-disk source freshness, then routes mutation exclusively through the verified Autonomy Governor rollback-capable file transaction path. Direct policy and human-approval paths remain distinct and fail closed.
+- **B000028** — `code-intelligence-apply` rechecks plan/replacement integrity, canonical repository-relative targeting, and current on-disk source freshness, then routes mutation exclusively through the verified Autonomy Governor rollback-capable file transaction path. Direct policy and human-approval paths remain distinct and fail closed.
 
-## B000028 implementation evidence
+## B000028 verification evidence
 
 Initial closure CI `32260168938` exposed rustfmt-only drift in the new governed application crate. Exact formatter-equivalent changes were applied without weakening behavior or tests.
 
-Repaired implementation head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed mutation/rollback/stale/tamper/traversal/approval coverage, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32260654100` also passed.
+Repaired implementation head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete CI `32260654093` and Fortress `32260654100`.
 
-The full B000028 documentation/build/UI stamp is now the verification candidate and must pass both gates again before Phase 06 becomes VERIFIED.
+The exact stamped B000028 candidate head passed complete CI `32261483993`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed mutation/rollback/stale/tamper/traversal/approval coverage, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32261483663` also passed.
+
+The current verification-status head must pass both gates before merge; no Phase 06 implementation behavior changed in the verification flip.
 
 ## Revised Phase 06 completion threshold
 
-Phase 06 is intentionally completed against the minimum safe-edit substrate needed for the M06→M09 vertical loop:
+Phase 06 is completed against the minimum safe-edit substrate needed for the M06→M09 vertical loop:
 
 - deterministic multi-language repository/syntax evidence;
 - deterministic reference/dependency/impact/search/diagnostic evidence;
@@ -83,3 +86,7 @@ The following remain deferred and are **not** represented as completed Phase 06 
 - B000028 whole-file application cannot override Governor denial or a human approval gate.
 - Phase 03 cooperative locking, path-race, Windows replacement, rollback, and multi-file atomicity limitations remain authoritative; Phase 06 does not claim hostile compare-and-swap/TOCTOU elimination.
 - NTPX Fortress bootstrap protection on `main` is a required carried-forward gate.
+
+## Current target
+
+Phase 07: Agent Zero Execution — introduce isolated execution workers, explicit process/tool contracts, lifecycle/cancellation/resource limits, evidence capture, and governed tool/process execution without bypassing the verified Autonomy Governor, Agent Orchestrator, Code Intelligence, or Fortress boundaries.
