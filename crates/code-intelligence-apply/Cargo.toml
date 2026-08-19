@@ -1,0 +1,16 @@
+[package]
+name = "code-intelligence-apply"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+autonomy-governor = { path = "../autonomy-governor" }
+code-intelligence = { path = "../code-intelligence" }
+code-intelligence-edits = { path = "../code-intelligence-edits" }
+sha2.workspace = true
+
+[lints]
+workspace = true
