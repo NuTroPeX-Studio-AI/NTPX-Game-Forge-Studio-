@@ -153,7 +153,6 @@ fn item_name(kind: RustItemKind, remainder: &str) -> Option<String> {
         let candidate = remainder
             .split(['{', '<'])
             .next()?
-            .trim()
             .split_whitespace()
             .last()?;
         return valid_identifier(candidate).then(|| candidate.to_owned());
