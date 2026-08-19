@@ -2,7 +2,7 @@
 
 ## Current boundary
 
-Phases 01–05 are verified foundations. Phase 06 Code Intelligence is the M06/B000028 verification candidate. GameSpec remains the canonical engine-neutral project contract; the Model Router selects candidates; the Agent Orchestrator schedules work; the Autonomy Governor remains the sole verified authorization and reversible-mutation boundary. Code Intelligence now supplies deterministic repository/syntax/reference/dependency/search/diagnostic/edit-plan evidence and a narrow governed whole-file application bridge. A plan or analysis result is never permission.
+Phases 01–06 are verified foundations. Phase 07 Agent Zero Execution is the next construction target. GameSpec remains the canonical engine-neutral project contract; the Model Router selects candidates; the Agent Orchestrator schedules work; Code Intelligence supplies deterministic repository/syntax/reference/dependency/search/diagnostic/edit-plan evidence; and the Autonomy Governor remains the sole verified authorization and reversible-mutation boundary. A plan or analysis result is never permission.
 
 NTPX Fortress bootstrap protection on `main` is an additional repository gate and is carried forward by Phase 06.
 
@@ -12,7 +12,7 @@ NTPX Fortress bootstrap protection on `main` is an additional repository gate an
 2. **Core services** — Rust workspace crates with explicit provider/engine-neutral interfaces.
 3. **Specifications** — GameSpec schema, validation, dependency graph, migrations, compiler metadata, and CLI.
 4. **Governance** — deny-by-default identities/permissions/scopes, approval proofs, durable audit, canonical runtime enforcement, reversible transactions, rollback, and recovery.
-5. **Intelligence** — Model Router, Agent Orchestrator, Code Intelligence, later Project World Model and Evaluation Council.
+5. **Intelligence** — verified Model Router, Agent Orchestrator, and Code Intelligence; later Project World Model and Evaluation Council.
 6. **Execution** — Agent Zero, engine/tool adapters, and build/test/repair.
 7. **Production** — asset/narrative/audio/NPC production, controlled improvement, game build, and release.
 
