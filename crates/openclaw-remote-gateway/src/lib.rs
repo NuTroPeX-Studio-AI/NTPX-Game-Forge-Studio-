@@ -33,7 +33,10 @@ pub enum GatewayContractError {
 
 impl fmt::Display for GatewayContractError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "remote gateway contract validation failed: {self:?}")
+        write!(
+            formatter,
+            "remote gateway contract validation failed: {self:?}"
+        )
     }
 }
 
