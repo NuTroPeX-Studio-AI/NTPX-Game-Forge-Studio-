@@ -3,8 +3,9 @@ use std::{error::Error, fmt, fmt::Write};
 use code_intelligence::{Language, SourceFile};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use tree_sitter::{Node, Parser};
 
-/// TypeScript declaration kinds recognized by the parser-adapter foundation.
+/// TypeScript declaration kinds recognized by the AST parser adapter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TypeScriptItemKind {
@@ -36,56 +37,45 @@ pub struct TypeScriptParseDocument {
     pub evidence_sha256: String,
 }
 
-/// Deterministic TypeScript-specific parser-adapter foundation.
+/// Deterministic TypeScript AST parser adapter.
 ///
-/// This adapter establishes a language-specific boundary above the generic structural syntax
-/// service. It recognizes supported top-level declarations while lexically shielding braces inside
-/// comments and quoted/template strings. It is intentionally not represented as a TypeScript
-/// compiler AST, language service, type checker, semantic resolver, or refactoring engine.
+/// The adapter uses the upstream Tree-sitter TypeScript grammar to parse the complete source file,
+/// then derives supported top-level declaration evidence from parser nodes. It intentionally does
+/// not claim TypeScript compiler binding, module resolution, type checking, control/data-flow
+/// analysis, language-server semantics, or refactor execution.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct TypeScriptParserAdapter;
 
 impl TypeScriptParserAdapter {
-    /// Parse TypeScript source into deterministic top-level declaration evidence.
+    /// Parse TypeScript source into deterministic AST-derived top-level declaration evidence.
     ///
     /// # Errors
-    /// Returns [`TypeScriptParserError`] for an empty path, non-TypeScript input, malformed
-    /// recognized declarations, or unbalanced structure outside comments and strings.
+    /// Returns [`TypeScriptParserError`] for an empty path, non-TypeScript input, parser setup
+    /// failure, malformed TypeScript syntax, or a supported declaration whose required name is
+    /// absent from the parsed syntax tree.
     pub fn parse(source: &SourceFile) -> Result<TypeScriptParseDocument, TypeScriptParserError> {
-        if source.path.trim().is_empty() {
-            return Err(TypeScriptParserError::EmptyPath);
-        }
-        if source.language != Language::TypeScript {
-            return Err(TypeScriptParserError::LanguageMismatch {
+        validate_source(source)?;
+
+        let mut parser = Parser::new();
+        let language = tree_sitter_typescript::LANGUAGE_TYPESCRIPT;
+        parser
+            .set_language(&language.into())
+            .map_err(|error| TypeScriptParserError::ParserInitialization(error.to_string()))?;
+        let tree = parser
+            .parse(&source.content, None)
+            .ok_or(TypeScriptParserError::ParserUnavailable)?;
+        let root = tree.root_node();
+        if root.has_error() {
+            return Err(TypeScriptParserError::MalformedSyntax {
                 path: source.path.clone(),
-                actual: source.language,
+                line: first_error_line(root).unwrap_or(1),
             });
         }
 
         let mut items = Vec::new();
-        let mut state = LexState::default();
-        let mut depth = 0_u32;
-
-        for (offset, raw_line) in source.content.lines().enumerate() {
-            let line = u32::try_from(offset + 1).unwrap_or(u32::MAX);
-            if depth == 0 && !state.in_block_comment && state.quote.is_none() {
-                if let Some(item) = parse_top_level_declaration(raw_line, line, items.len())? {
-                    items.push(item);
-                }
-            }
-            depth = scan_structure(raw_line, line, depth, &mut state).map_err(|line| {
-                TypeScriptParserError::UnbalancedStructure {
-                    path: source.path.clone(),
-                    line,
-                }
-            })?;
-        }
-
-        if depth != 0 || state.in_block_comment || state.quote.is_some() {
-            return Err(TypeScriptParserError::UnbalancedStructure {
-                path: source.path.clone(),
-                line: u32::try_from(source.content.lines().count()).unwrap_or(u32::MAX),
-            });
+        let mut cursor = root.walk();
+        for child in root.named_children(&mut cursor) {
+            collect_top_level(child, &source.content, &mut items)?;
         }
 
         let evidence_sha256 = parse_digest(&source.path, &items);
@@ -97,162 +87,174 @@ impl TypeScriptParserAdapter {
     }
 }
 
-fn parse_top_level_declaration(
-    raw_line: &str,
-    line: u32,
-    ordinal: usize,
-) -> Result<Option<TypeScriptItem>, TypeScriptParserError> {
-    let code = strip_leading_modifiers(raw_line.trim_start());
-    let Some((kind, remainder)) = declaration_prefix(code) else {
-        return Ok(None);
-    };
+fn validate_source(source: &SourceFile) -> Result<(), TypeScriptParserError> {
+    if source.path.trim().is_empty() {
+        return Err(TypeScriptParserError::EmptyPath);
+    }
+    if source.language != Language::TypeScript {
+        return Err(TypeScriptParserError::LanguageMismatch {
+            path: source.path.clone(),
+            actual: source.language,
+        });
+    }
+    Ok(())
+}
 
-    let name = extract_identifier(remainder).ok_or_else(|| {
+fn collect_top_level(
+    node: Node<'_>,
+    source: &str,
+    items: &mut Vec<TypeScriptItem>,
+) -> Result<(), TypeScriptParserError> {
+    match node.kind() {
+        "export_statement" | "ambient_declaration" => {
+            let mut cursor = node.walk();
+            for child in node.named_children(&mut cursor) {
+                collect_top_level(child, source, items)?;
+            }
+        }
+        "function_declaration" | "generator_function_declaration" => {
+            push_named_item(node, source, TypeScriptItemKind::Function, items)?;
+        }
+        "class_declaration" | "abstract_class_declaration" => {
+            push_named_item(node, source, TypeScriptItemKind::Class, items)?;
+        }
+        "interface_declaration" => {
+            push_named_item(node, source, TypeScriptItemKind::Interface, items)?;
+        }
+        "type_alias_declaration" => {
+            push_named_item(node, source, TypeScriptItemKind::TypeAlias, items)?;
+        }
+        "enum_declaration" => {
+            push_named_item(node, source, TypeScriptItemKind::Enum, items)?;
+        }
+        "internal_module" | "module_declaration" => {
+            push_named_item(node, source, TypeScriptItemKind::Namespace, items)?;
+        }
+        "lexical_declaration" => collect_variable_items(node, source, items)?,
+        "variable_declaration" => {
+            collect_variable_items_with_kind(node, source, TypeScriptItemKind::Var, items)?;
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+fn push_named_item(
+    node: Node<'_>,
+    source: &str,
+    kind: TypeScriptItemKind,
+    items: &mut Vec<TypeScriptItem>,
+) -> Result<(), TypeScriptParserError> {
+    let name_node = node.child_by_field_name("name").ok_or_else(|| {
         TypeScriptParserError::MalformedDeclaration {
-            line,
-            declaration: raw_line.trim().to_owned(),
+            line: node_line(node),
+            declaration: node_text(node, source).to_owned(),
         }
     })?;
+    let name = node_text(name_node, source);
+    if name.trim().is_empty() {
+        return Err(TypeScriptParserError::MalformedDeclaration {
+            line: node_line(node),
+            declaration: node_text(node, source).to_owned(),
+        });
+    }
+    push_item(items, kind, name, node_line(name_node));
+    Ok(())
+}
 
-    Ok(Some(TypeScriptItem {
+fn collect_variable_items(
+    node: Node<'_>,
+    source: &str,
+    items: &mut Vec<TypeScriptItem>,
+) -> Result<(), TypeScriptParserError> {
+    let text = node_text(node, source).trim_start();
+    let kind = if text.starts_with("const") {
+        TypeScriptItemKind::Const
+    } else if text.starts_with("let") {
+        TypeScriptItemKind::Let
+    } else {
+        return Err(TypeScriptParserError::MalformedDeclaration {
+            line: node_line(node),
+            declaration: text.to_owned(),
+        });
+    };
+    collect_variable_items_with_kind(node, source, kind, items)
+}
+
+fn collect_variable_items_with_kind(
+    node: Node<'_>,
+    source: &str,
+    kind: TypeScriptItemKind,
+    items: &mut Vec<TypeScriptItem>,
+) -> Result<(), TypeScriptParserError> {
+    let mut found = false;
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        if child.kind() != "variable_declarator" {
+            continue;
+        }
+        let Some(name_node) = child.child_by_field_name("name") else {
+            return Err(TypeScriptParserError::MalformedDeclaration {
+                line: node_line(child),
+                declaration: node_text(child, source).to_owned(),
+            });
+        };
+        let name = node_text(name_node, source);
+        if !is_supported_binding_name(name) {
+            continue;
+        }
+        push_item(items, kind, name, node_line(name_node));
+        found = true;
+    }
+    if !found {
+        return Err(TypeScriptParserError::MalformedDeclaration {
+            line: node_line(node),
+            declaration: node_text(node, source).to_owned(),
+        });
+    }
+    Ok(())
+}
+
+fn is_supported_binding_name(name: &str) -> bool {
+    let mut characters = name.chars();
+    let Some(first) = characters.next() else {
+        return false;
+    };
+    (first == '_' || first == '$' || first.is_alphabetic())
+        && characters.all(|character| {
+            character == '_' || character == '$' || character.is_alphanumeric()
+        })
+}
+
+fn push_item(items: &mut Vec<TypeScriptItem>, kind: TypeScriptItemKind, name: &str, line: u32) {
+    items.push(TypeScriptItem {
         kind,
         name: name.to_owned(),
         line,
-        ordinal: u32::try_from(ordinal).unwrap_or(u32::MAX),
-    }))
+        ordinal: u32::try_from(items.len()).unwrap_or(u32::MAX),
+    });
 }
 
-fn strip_leading_modifiers(mut source: &str) -> &str {
-    const MODIFIERS: [&str; 6] = [
-        "export", "default", "declare", "abstract", "async", "public",
-    ];
+fn node_text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
+    source.get(node.byte_range()).unwrap_or_default()
+}
 
-    loop {
-        let trimmed = source.trim_start();
-        let Some((token, remainder)) = split_token(trimmed) else {
-            return trimmed;
-        };
-        if MODIFIERS.contains(&token) {
-            source = remainder;
-        } else {
-            return trimmed;
-        }
+fn node_line(node: Node<'_>) -> u32 {
+    u32::try_from(node.start_position().row + 1).unwrap_or(u32::MAX)
+}
+
+fn first_error_line(node: Node<'_>) -> Option<u32> {
+    if node.is_error() || node.is_missing() {
+        return Some(node_line(node));
     }
-}
-
-fn declaration_prefix(source: &str) -> Option<(TypeScriptItemKind, &str)> {
-    const PREFIXES: [(&str, TypeScriptItemKind); 9] = [
-        ("function", TypeScriptItemKind::Function),
-        ("class", TypeScriptItemKind::Class),
-        ("interface", TypeScriptItemKind::Interface),
-        ("type", TypeScriptItemKind::TypeAlias),
-        ("enum", TypeScriptItemKind::Enum),
-        ("namespace", TypeScriptItemKind::Namespace),
-        ("const", TypeScriptItemKind::Const),
-        ("let", TypeScriptItemKind::Let),
-        ("var", TypeScriptItemKind::Var),
-    ];
-
-    PREFIXES.iter().find_map(|(prefix, kind)| {
-        source.strip_prefix(prefix).and_then(|remainder| {
-            has_declaration_boundary(remainder)
-                .then_some((*kind, remainder.trim_start_matches('*').trim_start()))
-        })
-    })
-}
-
-fn has_declaration_boundary(remainder: &str) -> bool {
-    remainder
-        .chars()
-        .next()
-        .is_some_and(|character| character.is_whitespace() || character == '*')
-}
-
-fn split_token(source: &str) -> Option<(&str, &str)> {
-    let end = source
-        .char_indices()
-        .find_map(|(index, character)| character.is_whitespace().then_some(index))?;
-    Some((&source[..end], &source[end..]))
-}
-
-fn extract_identifier(source: &str) -> Option<&str> {
-    let source = source.trim_start();
-    let end = source
-        .char_indices()
-        .find_map(|(index, character)| (!is_identifier_continue(character)).then_some(index))
-        .unwrap_or(source.len());
-    let candidate = &source[..end];
-    let first = candidate.chars().next()?;
-    (is_identifier_start(first) && candidate.chars().all(is_identifier_continue))
-        .then_some(candidate)
-}
-
-fn is_identifier_start(character: char) -> bool {
-    character == '_' || character == '$' || character.is_ascii_alphabetic()
-}
-
-fn is_identifier_continue(character: char) -> bool {
-    is_identifier_start(character) || character.is_ascii_digit()
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-struct LexState {
-    in_block_comment: bool,
-    quote: Option<char>,
-    escaped: bool,
-}
-
-fn scan_structure(
-    line_text: &str,
-    line_number: u32,
-    mut depth: u32,
-    state: &mut LexState,
-) -> Result<u32, u32> {
-    let mut characters = line_text.chars().peekable();
-
-    while let Some(character) = characters.next() {
-        if state.in_block_comment {
-            if character == '*' && characters.peek() == Some(&'/') {
-                let _ = characters.next();
-                state.in_block_comment = false;
-            }
-            continue;
-        }
-
-        if let Some(active_quote) = state.quote {
-            if state.escaped {
-                state.escaped = false;
-                continue;
-            }
-            if character == '\\' {
-                state.escaped = true;
-                continue;
-            }
-            if character == active_quote {
-                state.quote = None;
-            }
-            continue;
-        }
-
-        match character {
-            '/' if characters.peek() == Some(&'/') => break,
-            '/' if characters.peek() == Some(&'*') => {
-                let _ = characters.next();
-                state.in_block_comment = true;
-            }
-            '\'' | '"' | '`' => state.quote = Some(character),
-            '{' => depth = depth.saturating_add(1),
-            '}' => depth = depth.checked_sub(1).ok_or(line_number)?,
-            _ => {}
-        }
-    }
-
-    state.escaped = false;
-    Ok(depth)
+    let mut cursor = node.walk();
+    node.children(&mut cursor)
+        .filter(|child| child.has_error() || child.is_missing())
+        .find_map(first_error_line)
 }
 
 fn parse_digest(path: &str, items: &[TypeScriptItem]) -> String {
-    let mut canonical = format!("{path}\nTypeScript\n");
+    let mut canonical = format!("{path}\nTypeScriptTreeSitter\n");
     for item in items {
         writeln!(
             &mut canonical,
@@ -269,8 +271,10 @@ fn parse_digest(path: &str, items: &[TypeScriptItem]) -> String {
 pub enum TypeScriptParserError {
     EmptyPath,
     LanguageMismatch { path: String, actual: Language },
+    ParserInitialization(String),
+    ParserUnavailable,
+    MalformedSyntax { path: String, line: u32 },
     MalformedDeclaration { line: u32, declaration: String },
-    UnbalancedStructure { path: String, line: u32 },
 }
 
 impl fmt::Display for TypeScriptParserError {
@@ -281,13 +285,19 @@ impl fmt::Display for TypeScriptParserError {
                 formatter,
                 "source '{path}' language {actual:?} does not match TypeScript parser adapter"
             ),
+            Self::ParserInitialization(reason) => {
+                write!(formatter, "TypeScript parser initialization failed: {reason}")
+            }
+            Self::ParserUnavailable => {
+                formatter.write_str("TypeScript parser returned no syntax tree")
+            }
+            Self::MalformedSyntax { path, line } => write!(
+                formatter,
+                "source '{path}' contains malformed TypeScript syntax near line {line}"
+            ),
             Self::MalformedDeclaration { line, declaration } => write!(
                 formatter,
                 "malformed TypeScript declaration at line {line}: {declaration}"
-            ),
-            Self::UnbalancedStructure { path, line } => write!(
-                formatter,
-                "source '{path}' has unbalanced TypeScript structure at line {line}"
             ),
         }
     }
@@ -309,13 +319,13 @@ mod tests {
     }
 
     #[test]
-    fn parses_supported_top_level_declarations_deterministically() {
+    fn ast_evidence_is_deterministic_for_supported_declarations() {
         let source = typescript_source(
-            "export interface Actor {}\nexport default class Player implements Actor {}\nexport async function spawn() {}\ntype Id = string;\nconst MAX_HEALTH = 100;\n",
+            "export interface Actor {}\nexport default class Player<T> implements Actor {}\nexport async function spawn<T>(value: T): Promise<T> { return value; }\ntype Id = string;\nconst MAX_HEALTH = 100;\n",
         );
 
-        let first = TypeScriptParserAdapter::parse(&source).expect("valid TypeScript structure");
-        let second = TypeScriptParserAdapter::parse(&source).expect("valid TypeScript structure");
+        let first = TypeScriptParserAdapter::parse(&source).expect("valid TypeScript AST");
+        let second = TypeScriptParserAdapter::parse(&source).expect("valid TypeScript AST");
 
         assert_eq!(first, second);
         assert_eq!(first.items.len(), 5);
@@ -328,11 +338,25 @@ mod tests {
     }
 
     #[test]
+    fn multiline_declarations_use_parser_locations() {
+        let document = TypeScriptParserAdapter::parse(&typescript_source(
+            "interface Actor<\n  T\n> { value: T }\n\nexport class Player<\n  T extends Actor<string>\n> {}\n",
+        ))
+        .expect("multiline TypeScript must parse");
+
+        assert_eq!(document.items.len(), 2);
+        assert_eq!(document.items[0].name, "Actor");
+        assert_eq!(document.items[0].line, 1);
+        assert_eq!(document.items[1].name, "Player");
+        assert_eq!(document.items[1].line, 5);
+    }
+
+    #[test]
     fn nested_declarations_are_not_promoted_to_top_level() {
         let document = TypeScriptParserAdapter::parse(&typescript_source(
             "class Player {\n  tick() {\n    const local = 1;\n  }\n}\nconst GLOBAL = 2;\n",
         ))
-        .expect("valid TypeScript structure");
+        .expect("valid TypeScript AST");
 
         assert_eq!(document.items.len(), 2);
         assert_eq!(document.items[0].name, "Player");
@@ -340,37 +364,28 @@ mod tests {
     }
 
     #[test]
-    fn braces_inside_comments_and_strings_do_not_change_depth() {
+    fn regex_and_template_expressions_do_not_corrupt_ast() {
         let document = TypeScriptParserAdapter::parse(&typescript_source(
-            "// unmatched-looking brace {\nconst LABEL = \"}\";\nconst TEMPLATE = `value { still text }`;\nclass Player {}\n",
+            "const PATTERN = /[{}]/g;\nconst TEMPLATE = `value ${JSON.stringify({ ok: true })}`;\nclass Player {}\n",
         ))
-        .expect("lexical shielding must preserve structure");
+        .expect("valid TypeScript grammar constructs must parse");
 
         assert_eq!(document.items.len(), 3);
         assert_eq!(document.items[2].name, "Player");
     }
 
     #[test]
-    fn multiline_template_does_not_promote_embedded_text() {
+    fn multiple_variable_declarators_are_explicit() {
         let document = TypeScriptParserAdapter::parse(&typescript_source(
-            "const TEMPLATE = `start {\nclass Hidden {}\n} end`;\nclass Visible {}\n",
+            "const FIRST = 1, SECOND = 2;\nlet THIRD = 3;\nvar FOURTH = 4;\n",
         ))
-        .expect("multiline template must be shielded");
+        .expect("valid variable declarations");
 
-        assert_eq!(document.items.len(), 2);
-        assert_eq!(document.items[0].name, "TEMPLATE");
-        assert_eq!(document.items[1].name, "Visible");
-    }
-
-    #[test]
-    fn block_comments_do_not_emit_declarations() {
-        let document = TypeScriptParserAdapter::parse(&typescript_source(
-            "/*\nclass Hidden {}\n*/\nclass Visible {}\n",
-        ))
-        .expect("block comments must be ignored");
-
-        assert_eq!(document.items.len(), 1);
-        assert_eq!(document.items[0].name, "Visible");
+        let names: Vec<_> = document.items.iter().map(|item| item.name.as_str()).collect();
+        assert_eq!(names, vec!["FIRST", "SECOND", "THIRD", "FOURTH"]);
+        assert_eq!(document.items[0].kind, TypeScriptItemKind::Const);
+        assert_eq!(document.items[2].kind, TypeScriptItemKind::Let);
+        assert_eq!(document.items[3].kind, TypeScriptItemKind::Var);
     }
 
     #[test]
@@ -389,35 +404,16 @@ mod tests {
     }
 
     #[test]
-    fn malformed_recognized_declaration_fails_closed() {
-        let error = TypeScriptParserAdapter::parse(&typescript_source("export class {\n}\n"))
-            .expect_err("recognized malformed declaration must fail");
+    fn malformed_typescript_fails_closed() {
+        let error = TypeScriptParserAdapter::parse(&typescript_source(
+            "export class Player<T {\n  value: T;\n}\n",
+        ))
+        .expect_err("malformed TypeScript must fail");
 
         assert!(matches!(
             error,
-            TypeScriptParserError::MalformedDeclaration { line: 1, .. }
-        ));
-    }
-
-    #[test]
-    fn unmatched_close_fails_closed() {
-        let error = TypeScriptParserAdapter::parse(&typescript_source("const value = 1;\n}\n"))
-            .expect_err("unmatched close must fail");
-
-        assert!(matches!(
-            error,
-            TypeScriptParserError::UnbalancedStructure { line: 2, .. }
-        ));
-    }
-
-    #[test]
-    fn unmatched_open_fails_closed() {
-        let error = TypeScriptParserAdapter::parse(&typescript_source("class Player {\n"))
-            .expect_err("unmatched open must fail");
-
-        assert!(matches!(
-            error,
-            TypeScriptParserError::UnbalancedStructure { line: 1, .. }
+            TypeScriptParserError::MalformedSyntax { .. }
+                | TypeScriptParserError::MalformedDeclaration { .. }
         ));
     }
 }
