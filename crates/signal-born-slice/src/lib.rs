@@ -139,10 +139,7 @@ impl VerticalSliceContract {
     /// # Errors
     /// Returns [`SliceError`] for malformed contracts or reports that claim tests for unimplemented
     /// capabilities.
-    pub fn assess(
-        &self,
-        report: &RuntimeCapabilityReport,
-    ) -> Result<SliceReadiness, SliceError> {
+    pub fn assess(&self, report: &RuntimeCapabilityReport) -> Result<SliceReadiness, SliceError> {
         if self.project_id.trim().is_empty() {
             return Err(SliceError::EmptyProjectId);
         }
@@ -190,7 +187,10 @@ mod tests {
             })
             .expect("valid report");
         assert!(!readiness.ready);
-        assert_eq!(readiness.missing_implementation.len(), contract.required.len());
+        assert_eq!(
+            readiness.missing_implementation.len(),
+            contract.required.len()
+        );
     }
 
     #[test]
@@ -202,6 +202,9 @@ mod tests {
                 tested: BTreeSet::from([GameplayCapability::Walk]),
             })
             .expect_err("test-only claim must fail closed");
-        assert_eq!(error, SliceError::TestedButNotImplemented(GameplayCapability::Walk));
+        assert_eq!(
+            error,
+            SliceError::TestedButNotImplemented(GameplayCapability::Walk)
+        );
     }
 }
