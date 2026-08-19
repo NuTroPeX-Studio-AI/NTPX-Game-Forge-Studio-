@@ -59,7 +59,7 @@ pub enum TaskState {
 }
 
 impl TaskState {
-    fn is_failure_terminal(self) -> bool {
+    const fn is_failure_terminal(self) -> bool {
         matches!(self, Self::Failed | Self::Escalated | Self::Blocked)
     }
 }
@@ -120,13 +120,32 @@ pub enum DispatchOutcome {
 pub enum OrchestratorError {
     DuplicateAgentId(String),
     DuplicateTaskId(String),
-    InvalidAgent { agent_id: String, reason: String },
-    InvalidTask { task_id: String, reason: String },
-    UnknownAssignedAgent { task_id: String, agent_id: String },
-    UnknownDependency { task_id: String, dependency_id: String },
+    InvalidAgent {
+        agent_id: String,
+        reason: String,
+    },
+    InvalidTask {
+        task_id: String,
+        reason: String,
+    },
+    UnknownAssignedAgent {
+        task_id: String,
+        agent_id: String,
+    },
+    UnknownDependency {
+        task_id: String,
+        dependency_id: String,
+    },
     DependencyCycle,
-    AgentSkillMismatch { task_id: String, agent_id: String, skill: String },
-    GovernedPrincipalMismatch { task_id: String, agent_id: String },
+    AgentSkillMismatch {
+        task_id: String,
+        agent_id: String,
+        skill: String,
+    },
+    GovernedPrincipalMismatch {
+        task_id: String,
+        agent_id: String,
+    },
     UnknownTask(String),
     TaskNotRunning(String),
     GovernedRequestNotDeclared(String),
@@ -275,6 +294,7 @@ impl TaskGraph {
     }
 
     /// Return validated tasks in stable identifier order.
+    #[must_use]
     pub fn tasks(&self) -> impl Iterator<Item = &TaskContract> {
         self.tasks.values()
     }
@@ -504,7 +524,11 @@ impl AgentOrchestrator {
         if self.state(task_id) != Some(TaskState::Running) {
             return Err(OrchestratorError::TaskNotRunning(task_id.to_owned()));
         }
-        if !task.governed_requests.iter().any(|declared| declared == request) {
+        if !task
+            .governed_requests
+            .iter()
+            .any(|declared| declared == request)
+        {
             return Err(OrchestratorError::GovernedRequestNotDeclared(
                 task_id.to_owned(),
             ));
@@ -516,7 +540,8 @@ impl AgentOrchestrator {
             attempt,
             event: EvidenceEvent::GovernedActionAuthorized,
             routing_evidence_sha256: None,
-            message: "exact predeclared governed request authorized by Autonomy Governor".to_owned(),
+            message: "exact predeclared governed request authorized by Autonomy Governor"
+                .to_owned(),
         });
         Ok(permit)
     }
@@ -626,34 +651,41 @@ fn validate_agent(agent: &AgentContract) -> Result<(), OrchestratorError> {
 
 fn validate_task(task: &TaskContract) -> Result<(), OrchestratorError> {
     if task.id.trim().is_empty() {
-        return invalid_task(task, "identifier must not be blank");
+        return Err(invalid_task(task, "identifier must not be blank"));
     }
     if task.objective.trim().is_empty() {
-        return invalid_task(task, "objective must not be blank");
+        return Err(invalid_task(task, "objective must not be blank"));
     }
     if task.assigned_agent.trim().is_empty() {
-        return invalid_task(task, "assigned_agent must not be blank");
+        return Err(invalid_task(task, "assigned_agent must not be blank"));
     }
     if task.routing_request.request_id != task.id {
-        return invalid_task(task, "routing request id must equal task id");
+        return Err(invalid_task(task, "routing request id must equal task id"));
     }
     if task.max_attempts == 0 {
-        return invalid_task(task, "max_attempts must be at least one");
+        return Err(invalid_task(task, "max_attempts must be at least one"));
     }
     if task.dependencies.contains(&task.id) {
-        return invalid_task(task, "task must not depend on itself");
+        return Err(invalid_task(task, "task must not depend on itself"));
     }
-    if task.required_skills.iter().any(|skill| skill.trim().is_empty()) {
-        return invalid_task(task, "required_skills must not contain blank values");
+    if task
+        .required_skills
+        .iter()
+        .any(|skill| skill.trim().is_empty())
+    {
+        return Err(invalid_task(
+            task,
+            "required_skills must not contain blank values",
+        ));
     }
     Ok(())
 }
 
-fn invalid_task(task: &TaskContract, reason: &str) -> Result<(), OrchestratorError> {
-    Err(OrchestratorError::InvalidTask {
+fn invalid_task(task: &TaskContract, reason: &str) -> OrchestratorError {
+    OrchestratorError::InvalidTask {
         task_id: task.id.clone(),
         reason: reason.to_owned(),
-    })
+    }
 }
 
 fn validate_task_bindings(
