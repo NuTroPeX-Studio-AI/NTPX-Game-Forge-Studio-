@@ -5,7 +5,7 @@
   "milestone": "M07",
   "build": 30,
   "buildId": "NTPX-GFΩ-G0-v0.7.0-dev.2-M07-B000030",
-  "status": "candidate",
+  "status": "blocked",
   "phaseStatus": "in_progress",
   "release": false
 }
