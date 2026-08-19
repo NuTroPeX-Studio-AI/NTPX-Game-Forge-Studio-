@@ -42,7 +42,10 @@ pub enum ImprovementError {
 
 impl fmt::Display for ImprovementError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "controlled improvement validation failed: {self:?}")
+        write!(
+            formatter,
+            "controlled improvement validation failed: {self:?}"
+        )
     }
 }
 
@@ -92,7 +95,8 @@ pub fn evaluate_candidate(
             reason: "performance gate failed".to_owned(),
         });
     }
-    let score_delta = i32::from(candidate.score_basis_points) - i32::from(baseline.score_basis_points);
+    let score_delta =
+        i32::from(candidate.score_basis_points) - i32::from(baseline.score_basis_points);
     if score_delta < 0 {
         return Ok(PromotionDecision::Reject {
             reason: "candidate benchmark regressed".to_owned(),
