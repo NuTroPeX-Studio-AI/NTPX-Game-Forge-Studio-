@@ -57,12 +57,7 @@ fn routing(task_id: &str) -> RoutingRequest {
     }
 }
 
-fn task(
-    id: &str,
-    dependencies: &[&str],
-    assigned_agent: &str,
-    max_attempts: u16,
-) -> TaskContract {
+fn task(id: &str, dependencies: &[&str], assigned_agent: &str, max_attempts: u16) -> TaskContract {
     TaskContract {
         id: id.to_owned(),
         objective: format!("complete {id}"),
@@ -103,12 +98,18 @@ fn local_adapter() -> LocalProviderAdapter {
 fn plan_and_ready_order_are_deterministic_across_input_order() {
     let first = TaskGraph::new(
         vec![agent("agent-b", 1), agent("agent-a", 1)],
-        vec![task("task-b", &[], "agent-b", 2), task("task-a", &[], "agent-a", 2)],
+        vec![
+            task("task-b", &[], "agent-b", 2),
+            task("task-a", &[], "agent-a", 2),
+        ],
     )
     .expect("valid graph");
     let second = TaskGraph::new(
         vec![agent("agent-a", 1), agent("agent-b", 1)],
-        vec![task("task-a", &[], "agent-a", 2), task("task-b", &[], "agent-b", 2)],
+        vec![
+            task("task-a", &[], "agent-a", 2),
+            task("task-b", &[], "agent-b", 2),
+        ],
     )
     .expect("valid graph");
 
@@ -123,10 +124,7 @@ fn plan_and_ready_order_are_deterministic_across_input_order() {
 fn graph_rejects_cycles_unknown_dependencies_and_skill_drift() {
     let cycle = TaskGraph::new(
         vec![agent("agent", 1)],
-        vec![
-            task("a", &["b"], "agent", 1),
-            task("b", &["a"], "agent", 1),
-        ],
+        vec![task("a", &["b"], "agent", 1), task("b", &["a"], "agent", 1)],
     );
     assert!(matches!(cycle, Err(OrchestratorError::DependencyCycle)));
 
@@ -152,10 +150,7 @@ fn graph_rejects_cycles_unknown_dependencies_and_skill_drift() {
 fn dispatch_uses_model_router_and_respects_agent_parallelism() {
     let graph = TaskGraph::new(
         vec![agent("agent", 1)],
-        vec![
-            task("a", &[], "agent", 2),
-            task("b", &[], "agent", 2),
-        ],
+        vec![task("a", &[], "agent", 2), task("b", &[], "agent", 2)],
     )
     .expect("valid graph");
     let mut orchestrator = AgentOrchestrator::new(graph);
@@ -188,11 +183,8 @@ fn dispatch_uses_model_router_and_respects_agent_parallelism() {
 
 #[test]
 fn bounded_retry_escalates_after_final_allowed_attempt() {
-    let graph = TaskGraph::new(
-        vec![agent("agent", 1)],
-        vec![task("task", &[], "agent", 2)],
-    )
-    .expect("valid graph");
+    let graph = TaskGraph::new(vec![agent("agent", 1)], vec![task("task", &[], "agent", 2)])
+        .expect("valid graph");
     let mut orchestrator = AgentOrchestrator::new(graph);
     let adapter = local_adapter();
 
@@ -226,11 +218,8 @@ fn bounded_retry_escalates_after_final_allowed_attempt() {
 
 #[test]
 fn routing_abstention_escalates_without_consuming_attempt() {
-    let graph = TaskGraph::new(
-        vec![agent("agent", 1)],
-        vec![task("task", &[], "agent", 2)],
-    )
-    .expect("valid graph");
+    let graph = TaskGraph::new(vec![agent("agent", 1)], vec![task("task", &[], "agent", 2)])
+        .expect("valid graph");
     let mut orchestrator = AgentOrchestrator::new(graph);
 
     let outcome = orchestrator
@@ -249,10 +238,7 @@ fn routing_abstention_escalates_without_consuming_attempt() {
 fn failed_dependency_blocks_downstream_work() {
     let graph = TaskGraph::new(
         vec![agent("agent", 1)],
-        vec![
-            task("a", &[], "agent", 1),
-            task("b", &["a"], "agent", 1),
-        ],
+        vec![task("a", &[], "agent", 1), task("b", &["a"], "agent", 1)],
     )
     .expect("valid graph");
     let mut orchestrator = AgentOrchestrator::new(graph);
@@ -283,8 +269,8 @@ fn governed_actions_require_exact_predeclared_request_and_governor_permit() {
     };
     let mut governed_task = task("task", &[], "agent", 1);
     governed_task.governed_requests.push(governed.clone());
-    let graph = TaskGraph::new(vec![agent("agent", 1)], vec![governed_task])
-        .expect("valid governed graph");
+    let graph =
+        TaskGraph::new(vec![agent("agent", 1)], vec![governed_task]).expect("valid governed graph");
     let mut orchestrator = AgentOrchestrator::new(graph);
     let adapter = local_adapter();
     orchestrator
