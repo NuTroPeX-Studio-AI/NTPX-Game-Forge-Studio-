@@ -419,3 +419,265 @@ mod tests {
         assert_eq!(impact.dependent_paths, vec!["consumer.rs"]);
     }
 }
+
+/// Result of deterministic incremental repository indexing.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IncrementalIndexResult {
+    pub index: RepositoryIndex,
+    pub reused_files: usize,
+    pub reindexed_files: usize,
+    pub removed_files: usize,
+}
+
+/// Incremental-index validation or prior-evidence failure.
+#[derive(Debug)]
+pub enum IncrementalIndexError {
+    Index(CodeIntelligenceError),
+    PriorEvidenceMismatch {
+        expected: String,
+        actual: String,
+    },
+}
+
+impl fmt::Display for IncrementalIndexError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Index(error) => write!(formatter, "incremental index failed: {error}"),
+            Self::PriorEvidenceMismatch { expected, actual } => write!(
+                formatter,
+                "prior repository evidence mismatch: expected {expected}, recomputed {actual}"
+            ),
+        }
+    }
+}
+
+impl Error for IncrementalIndexError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Index(error) => Some(error),
+            Self::PriorEvidenceMismatch { .. } => None,
+        }
+    }
+}
+
+impl From<CodeIntelligenceError> for IncrementalIndexError {
+    fn from(error: CodeIntelligenceError) -> Self {
+        Self::Index(error)
+    }
+}
+
+/// Build a deterministic repository index while reusing exact unchanged prior file evidence.
+///
+/// Reuse requires the same path, language, generated-file state, and SHA-256 source-content digest.
+/// Prior repository evidence is recomputed and verified before any cached file is trusted. Exact
+/// language-driver availability remains mandatory even for a reusable file, so cache reuse cannot
+/// silently relax the configured language boundary. Removed files are omitted from the new index.
+///
+/// # Errors
+/// Returns [`IncrementalIndexError`] when prior evidence does not verify or normal indexing
+/// validation fails.
+pub fn build_repository_index_incremental(
+    sources: &[SourceFile],
+    drivers: &[&dyn LanguageDriver],
+    previous: Option<&RepositoryIndex>,
+) -> Result<IncrementalIndexResult, IncrementalIndexError> {
+    if let Some(previous) = previous {
+        let actual = repository_digest(&previous.files)?;
+        if actual != previous.evidence_sha256 {
+            return Err(IncrementalIndexError::PriorEvidenceMismatch {
+                expected: previous.evidence_sha256.clone(),
+                actual,
+            });
+        }
+    }
+
+    let mut files = BTreeMap::new();
+    let mut reused_files = 0;
+    let mut reindexed_files = 0;
+
+    for source in sources {
+        if source.path.trim().is_empty() {
+            return Err(CodeIntelligenceError::EmptyPath.into());
+        }
+        if files.contains_key(&source.path) {
+            return Err(CodeIntelligenceError::DuplicatePath(source.path.clone()).into());
+        }
+
+        let driver = drivers
+            .iter()
+            .find(|driver| driver.language() == source.language)
+            .ok_or(CodeIntelligenceError::MissingDriver(source.language))?;
+        let content_sha256 = sha256_hex(source.content.as_bytes());
+        let reusable = previous
+            .and_then(|index| index.files.get(&source.path))
+            .filter(|file| {
+                file.path == source.path
+                    && file.language == source.language
+                    && file.generated == source.generated
+                    && file.content_sha256 == content_sha256
+            });
+
+        let file_index = if let Some(file) = reusable {
+            reused_files += 1;
+            file.clone()
+        } else {
+            reindexed_files += 1;
+            driver.index(source)?
+        };
+        files.insert(source.path.clone(), file_index);
+    }
+
+    let removed_files = previous.map_or(0, |index| {
+        index
+            .files
+            .keys()
+            .filter(|path| !files.contains_key(*path))
+            .count()
+    });
+    let evidence_sha256 = repository_digest(&files)?;
+
+    Ok(IncrementalIndexResult {
+        index: RepositoryIndex {
+            files,
+            evidence_sha256,
+        },
+        reused_files,
+        reindexed_files,
+        removed_files,
+    })
+}
+
+#[cfg(test)]
+mod incremental_tests {
+    use super::*;
+
+    struct ReuseOnlyRustDriver;
+
+    impl LanguageDriver for ReuseOnlyRustDriver {
+        fn language(&self) -> Language {
+            Language::Rust
+        }
+
+        fn index(&self, _source: &SourceFile) -> Result<FileIndex, CodeIntelligenceError> {
+            panic!("unchanged cached source must not be reindexed")
+        }
+    }
+
+    fn rust_source(path: &str, content: &str, generated: bool) -> SourceFile {
+        SourceFile {
+            path: path.to_owned(),
+            language: Language::Rust,
+            content: content.to_owned(),
+            generated,
+        }
+    }
+
+    #[test]
+    fn unchanged_files_reuse_verified_prior_index_without_driver_execution() {
+        let lexical = LexicalLanguageDriver::rust();
+        let sources = vec![rust_source("src/lib.rs", "fn run() {}", false)];
+        let previous = build_repository_index(&sources, &[&lexical]).expect("initial index");
+        let reuse_only = ReuseOnlyRustDriver;
+
+        let result = build_repository_index_incremental(&sources, &[&reuse_only], Some(&previous))
+            .expect("verified unchanged index should be reusable");
+
+        assert_eq!(result.index, previous);
+        assert_eq!(result.reused_files, 1);
+        assert_eq!(result.reindexed_files, 0);
+        assert_eq!(result.removed_files, 0);
+    }
+
+    #[test]
+    fn changed_content_is_reindexed_and_matches_clean_rebuild() {
+        let lexical = LexicalLanguageDriver::rust();
+        let before = vec![
+            rust_source("src/lib.rs", "fn run() {}", false),
+            rust_source("src/keep.rs", "fn keep() {}", false),
+        ];
+        let previous = build_repository_index(&before, &[&lexical]).expect("initial index");
+        let after = vec![
+            rust_source("src/lib.rs", "fn run_changed() {}", false),
+            rust_source("src/keep.rs", "fn keep() {}", false),
+        ];
+
+        let incremental = build_repository_index_incremental(&after, &[&lexical], Some(&previous))
+            .expect("incremental index");
+        let clean = build_repository_index(&after, &[&lexical]).expect("clean rebuild");
+
+        assert_eq!(incremental.index, clean);
+        assert_eq!(incremental.reused_files, 1);
+        assert_eq!(incremental.reindexed_files, 1);
+        assert_eq!(incremental.removed_files, 0);
+    }
+
+    #[test]
+    fn generated_state_change_invalidates_cached_file() {
+        let lexical = LexicalLanguageDriver::rust();
+        let before = vec![rust_source("src/generated.rs", "fn generated() {}", false)];
+        let previous = build_repository_index(&before, &[&lexical]).expect("initial index");
+        let after = vec![rust_source("src/generated.rs", "fn generated() {}", true)];
+
+        let result = build_repository_index_incremental(&after, &[&lexical], Some(&previous))
+            .expect("generated-state change should reindex");
+
+        assert_eq!(result.reused_files, 0);
+        assert_eq!(result.reindexed_files, 1);
+        assert!(result.index.files["src/generated.rs"].generated);
+    }
+
+    #[test]
+    fn removed_files_are_reported_and_excluded() {
+        let lexical = LexicalLanguageDriver::rust();
+        let before = vec![
+            rust_source("src/lib.rs", "fn run() {}", false),
+            rust_source("src/removed.rs", "fn removed() {}", false),
+        ];
+        let previous = build_repository_index(&before, &[&lexical]).expect("initial index");
+        let after = vec![rust_source("src/lib.rs", "fn run() {}", false)];
+
+        let result = build_repository_index_incremental(&after, &[&lexical], Some(&previous))
+            .expect("removed file should be omitted");
+
+        assert_eq!(result.reused_files, 1);
+        assert_eq!(result.reindexed_files, 0);
+        assert_eq!(result.removed_files, 1);
+        assert!(!result.index.files.contains_key("src/removed.rs"));
+    }
+
+    #[test]
+    fn tampered_prior_evidence_fails_closed_before_cache_reuse() {
+        let lexical = LexicalLanguageDriver::rust();
+        let sources = vec![rust_source("src/lib.rs", "fn run() {}", false)];
+        let mut previous = build_repository_index(&sources, &[&lexical]).expect("initial index");
+        previous.evidence_sha256 = "tampered".to_owned();
+
+        let error = build_repository_index_incremental(&sources, &[&lexical], Some(&previous))
+            .expect_err("tampered prior evidence must fail closed");
+
+        assert!(matches!(
+            error,
+            IncrementalIndexError::PriorEvidenceMismatch { .. }
+        ));
+    }
+
+    #[test]
+    fn equivalent_source_order_produces_identical_incremental_index() {
+        let lexical = LexicalLanguageDriver::rust();
+        let first = vec![
+            rust_source("src/a.rs", "fn a() {}", false),
+            rust_source("src/b.rs", "fn b() {}", false),
+        ];
+        let previous = build_repository_index(&first, &[&lexical]).expect("initial index");
+        let mut second = first.clone();
+        second.reverse();
+
+        let first_result = build_repository_index_incremental(&first, &[&lexical], Some(&previous))
+            .expect("first incremental index");
+        let second_result =
+            build_repository_index_incremental(&second, &[&lexical], Some(&previous))
+                .expect("second incremental index");
+
+        assert_eq!(first_result, second_result);
+    }
+}
