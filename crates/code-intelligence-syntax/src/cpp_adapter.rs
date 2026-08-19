@@ -144,8 +144,14 @@ fn push_function(
     let declarator = node
         .child_by_field_name("declarator")
         .ok_or_else(|| malformed_declaration(node, source))?;
-    let name_node = find_name_node(declarator).ok_or_else(|| malformed_declaration(node, source))?;
-    push_item(items, CppItemKind::Function, node_text(name_node, source), name_node);
+    let name_node =
+        find_name_node(declarator).ok_or_else(|| malformed_declaration(node, source))?;
+    push_item(
+        items,
+        CppItemKind::Function,
+        node_text(name_node, source),
+        name_node,
+    );
     Ok(())
 }
 
@@ -286,7 +292,11 @@ mod tests {
             "class Player { public: void tick() {} };\nint global_tick() { return 0; }\n",
         ))
         .expect("valid C++ AST");
-        let names: Vec<_> = document.items.iter().map(|item| item.name.as_str()).collect();
+        let names: Vec<_> = document
+            .items
+            .iter()
+            .map(|item| item.name.as_str())
+            .collect();
         assert!(names.contains(&"Player"));
         assert!(names.contains(&"global_tick"));
         assert!(!names.contains(&"tick"));
@@ -298,7 +308,11 @@ mod tests {
             "template <typename T> class Box {};\ntemplate <typename T> T identity(T value) { return value; }\n",
         ))
         .expect("valid templates");
-        let names: Vec<_> = document.items.iter().map(|item| item.name.as_str()).collect();
+        let names: Vec<_> = document
+            .items
+            .iter()
+            .map(|item| item.name.as_str())
+            .collect();
         assert!(names.contains(&"Box"));
         assert!(names.contains(&"identity"));
     }
