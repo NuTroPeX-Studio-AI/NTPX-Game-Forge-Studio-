@@ -153,7 +153,10 @@ impl ExecutionLifecycle {
     /// # Errors
     /// Returns [`ExecutionError::InvalidTransition`] after a terminal state or from any state that
     /// cannot legally accept cancellation.
-    pub fn request_cancellation(&mut self, reason: impl Into<String>) -> Result<(), ExecutionError> {
+    pub fn request_cancellation(
+        &mut self,
+        reason: impl Into<String>,
+    ) -> Result<(), ExecutionError> {
         self.transition(ExecutionState::CancellationRequested, reason)
     }
 }
@@ -187,16 +190,29 @@ fn transition_allowed(from: ExecutionState, to: ExecutionState) -> bool {
 /// Validation and lifecycle failures for Agent Zero execution contracts.
 #[derive(Debug)]
 pub enum ExecutionError {
-    InvalidTool { reason: String },
-    InvalidRequest { reason: String },
+    InvalidTool {
+        reason: String,
+    },
+    InvalidRequest {
+        reason: String,
+    },
     GovernedPrincipalMismatch,
     GovernedPermissionMismatch,
     GovernedScopeKindMismatch,
-    GovernedResourceMismatch { expected: String, actual: String },
-    DynamicArgumentLimit { allowed: u16, actual: usize },
+    GovernedResourceMismatch {
+        expected: String,
+        actual: String,
+    },
+    DynamicArgumentLimit {
+        allowed: u16,
+        actual: usize,
+    },
     EnvironmentNotAllowed(String),
     Encode(serde_json::Error),
-    InvalidTransition { from: ExecutionState, to: ExecutionState },
+    InvalidTransition {
+        from: ExecutionState,
+        to: ExecutionState,
+    },
     InvalidLifecycleReason,
 }
 
@@ -204,7 +220,9 @@ impl fmt::Display for ExecutionError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidTool { reason } => write!(formatter, "invalid tool contract: {reason}"),
-            Self::InvalidRequest { reason } => write!(formatter, "invalid execution request: {reason}"),
+            Self::InvalidRequest { reason } => {
+                write!(formatter, "invalid execution request: {reason}")
+            }
             Self::GovernedPrincipalMismatch => {
                 formatter.write_str("execution principal does not match governed request principal")
             }
@@ -223,11 +241,17 @@ impl fmt::Display for ExecutionError {
                 "execution dynamic argument count {actual} exceeds contract maximum {allowed}"
             ),
             Self::EnvironmentNotAllowed(key) => {
-                write!(formatter, "execution environment key '{key}' is not allowlisted")
+                write!(
+                    formatter,
+                    "execution environment key '{key}' is not allowlisted"
+                )
             }
             Self::Encode(error) => write!(formatter, "execution evidence encoding failed: {error}"),
             Self::InvalidTransition { from, to } => {
-                write!(formatter, "invalid execution lifecycle transition {from:?} -> {to:?}")
+                write!(
+                    formatter,
+                    "invalid execution lifecycle transition {from:?} -> {to:?}"
+                )
             }
             Self::InvalidLifecycleReason => {
                 formatter.write_str("execution lifecycle transition reason must not be blank")
@@ -411,7 +435,10 @@ mod tests {
         let first = validate_execution(&contract(), &request()).expect("valid execution");
         let second = validate_execution(&contract(), &request()).expect("valid execution");
         assert_eq!(first, second);
-        assert_eq!(first.request.governed_request.permission, Permission::Execute);
+        assert_eq!(
+            first.request.governed_request.permission,
+            Permission::Execute
+        );
         assert_eq!(first.request.governed_request.scope.kind, ScopeKind::Tool);
     }
 
