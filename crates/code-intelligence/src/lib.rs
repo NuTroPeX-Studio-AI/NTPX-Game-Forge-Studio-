@@ -1,4 +1,4 @@
-//! Provider-neutral, engine-neutral code intelligence substrate for NTPX GameForge Ω∞.
+//! Provider-neutral, engine-neutral code intelligence substrate for NTPX `GameForge` Ω∞.
 //!
 //! Phase 06 starts with deterministic repository indexing, language-driver contracts, symbol and
 //! dependency metadata, diagnostics, impact analysis, patch planning, and reproducible evidence.
@@ -79,6 +79,12 @@ pub struct PatchPlan {
 /// Language indexing contract.
 pub trait LanguageDriver: Send + Sync {
     fn language(&self) -> Language;
+
+    /// Index one source file into deterministic symbol/dependency metadata.
+    ///
+    /// # Errors
+    /// Returns [`CodeIntelligenceError`] when the source path is malformed or its declared
+    /// language does not match this driver.
     fn index(&self, source: &SourceFile) -> Result<FileIndex, CodeIntelligenceError>;
 }
 
