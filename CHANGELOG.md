@@ -2,6 +2,21 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.5.0-dev.1 — Phase 05 — Build B000014
+
+### Verified Agent Orchestrator substrate
+- Added the provider-neutral, engine-neutral `agent-orchestrator` Rust workspace crate.
+- Added typed agent, task, capability, task-state, and advisory assignment contracts.
+- Added fail-closed task graph validation for duplicate/empty task IDs, unknown/self dependencies, zero attempt budgets, and dependency cycles.
+- Added deterministic topological ordering and dependency-ready scheduling using stable task/agent identity ordering.
+- Added capability and declared-concurrency enforcement without silently relaxing hard scheduling constraints.
+- Kept this increment advisory-only: it introduces no model/tool invocation, credentials, network access, filesystem/repository mutation, engine execution, merge, publishing, or release authority.
+- Added unit tests for cycle rejection, dependency readiness, deterministic agent selection, capability filtering, and capacity bounds.
+- Safely repaired CI findings from rustfmt and strict Clippy by applying formatter output, correcting documentation markup, and removing two internal panic paths rather than suppressing checks.
+- CI run `32199879479` passed Rust formatting, strict Clippy with warnings denied, all workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0012 for the deterministic advisory orchestration substrate and preserved the Autonomy Governor as the required future execution-authority boundary.
+- Phase 05 remains IN PROGRESS. Bounded retries/state transitions, delegation, evidence collection, escalation, Model Router selection integration, and Autonomy Governor-governed execution remain unfinished.
+
 ## 0.4.0-dev.1 — Phase 04 — Build B000013
 
 ### Verified Model Router
