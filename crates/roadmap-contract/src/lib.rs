@@ -59,22 +59,32 @@ impl fmt::Display for RoadmapError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidSchemaVersion => formatter.write_str("roadmap schema version must be 1"),
-            Self::WrongPhaseCount(count) => write!(formatter, "roadmap must contain 18 phases, found {count}"),
+            Self::WrongPhaseCount(count) => {
+                write!(formatter, "roadmap must contain 18 phases, found {count}")
+            }
             Self::NonContiguousPhase { expected, actual } => write!(
                 formatter,
                 "roadmap phase IDs must be contiguous; expected {expected}, found {actual}"
             ),
-            Self::EmptyPhaseName(phase) => write!(formatter, "phase {phase} name must not be empty"),
+            Self::EmptyPhaseName(phase) => {
+                write!(formatter, "phase {phase} name must not be empty")
+            }
             Self::InvalidStatus { phase, status } => {
                 write!(formatter, "phase {phase} has invalid status '{status}'")
             }
-            Self::EmptyComponents(phase) => write!(formatter, "phase {phase} must declare components"),
-            Self::EmptyComponent { phase } => write!(formatter, "phase {phase} contains an empty component"),
+            Self::EmptyComponents(phase) => {
+                write!(formatter, "phase {phase} must declare components")
+            }
+            Self::EmptyComponent { phase } => {
+                write!(formatter, "phase {phase} contains an empty component")
+            }
             Self::DuplicateComponent { phase, component } => write!(
                 formatter,
                 "phase {phase} contains duplicate component '{component}'"
             ),
-            Self::RequiredRuleDisabled(rule) => write!(formatter, "required roadmap rule '{rule}' is disabled"),
+            Self::RequiredRuleDisabled(rule) => {
+                write!(formatter, "required roadmap rule '{rule}' is disabled")
+            }
             Self::Parse(reason) => write!(formatter, "roadmap manifest parse failed: {reason}"),
         }
     }
@@ -89,7 +99,8 @@ impl RoadmapManifest {
     /// Returns [`RoadmapError`] if JSON decoding or structural validation fails.
     pub fn embedded() -> Result<Self, RoadmapError> {
         let raw = include_str!("../../../orchestration/roadmap.manifest.json");
-        let manifest: Self = serde_json::from_str(raw).map_err(|error| RoadmapError::Parse(error.to_string()))?;
+        let manifest: Self =
+            serde_json::from_str(raw).map_err(|error| RoadmapError::Parse(error.to_string()))?;
         manifest.validate()?;
         Ok(manifest)
     }
@@ -116,7 +127,10 @@ impl RoadmapManifest {
             if phase.name.trim().is_empty() {
                 return Err(RoadmapError::EmptyPhaseName(phase.id));
             }
-            if !matches!(phase.status.as_str(), "verified" | "in_progress" | "planned" | "blocked") {
+            if !matches!(
+                phase.status.as_str(),
+                "verified" | "in_progress" | "planned" | "blocked"
+            ) {
                 return Err(RoadmapError::InvalidStatus {
                     phase: phase.id,
                     status: phase.status.clone(),
@@ -181,16 +195,23 @@ mod tests {
     #[test]
     fn current_verified_and_in_progress_statuses_are_explicit() {
         let manifest = RoadmapManifest::embedded().expect("embedded roadmap must be valid");
-        assert!(manifest.phases[..4].iter().all(|phase| phase.status == "verified"));
+        assert!(manifest.phases[..4]
+            .iter()
+            .all(|phase| phase.status == "verified"));
         assert_eq!(manifest.phases[4].status, "in_progress");
-        assert!(manifest.phases[5..].iter().all(|phase| phase.status == "planned"));
+        assert!(manifest.phases[5..]
+            .iter()
+            .all(|phase| phase.status == "planned"));
     }
 
     #[test]
     fn release_phase_keeps_signing_and_human_approval_boundaries() {
         let manifest = RoadmapManifest::embedded().expect("embedded roadmap must be valid");
         let release = &manifest.phases[17];
-        assert!(release.components.iter().any(|item| item == "signing-boundary"));
+        assert!(release
+            .components
+            .iter()
+            .any(|item| item == "signing-boundary"));
         assert!(release
             .components
             .iter()
