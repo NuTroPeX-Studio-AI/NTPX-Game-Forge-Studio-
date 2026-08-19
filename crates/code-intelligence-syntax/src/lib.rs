@@ -1,11 +1,11 @@
-//! Deterministic provider-neutral syntax-service boundary for NTPX GameForge Ω∞.
+//! Deterministic provider-neutral syntax-service boundary for NTPX `GameForge` Ω∞.
 //!
 //! This crate is the first Phase 06 language-service substrate above lexical indexing. It emits
 //! deterministic structural syntax evidence without claiming compiler/LSP-grade AST semantics.
 //! It performs no source mutation, model invocation, tool execution, network access, credential
 //! use, repository write, engine action, publishing, signing, or release action.
 
-use std::{error::Error, fmt};
+use std::{error::Error, fmt, fmt::Write};
 
 use code_intelligence::{Language, SourceFile};
 use serde::{Deserialize, Serialize};
@@ -208,10 +208,12 @@ impl Error for SyntaxServiceError {}
 fn syntax_digest(path: &str, language: Language, nodes: &[SyntaxNode]) -> String {
     let mut canonical = format!("{path}\n{language:?}\n");
     for node in nodes {
-        canonical.push_str(&format!(
-            "{:?}\t{}\t{}\t{}\n",
+        writeln!(
+            &mut canonical,
+            "{:?}\t{}\t{}\t{}",
             node.kind, node.line, node.depth, node.text
-        ));
+        )
+        .expect("writing syntax evidence to String cannot fail");
     }
     format!("{:x}", Sha256::digest(canonical.as_bytes()))
 }
