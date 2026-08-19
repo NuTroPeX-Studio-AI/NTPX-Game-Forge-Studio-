@@ -1,10 +1,10 @@
 # Phase 06 Code Intelligence verification
 
-Phase status: CANDIDATE
+Phase status: VERIFIED
 
-Candidate build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
+Final build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
 
-Phase 07 remains gated until the exact stamped candidate and final verification-evidence head pass both repository CI and NTPX Fortress, and PR #17 is merged to `main`.
+Phase 07 Agent Zero Execution is NEXT. This verification-status head must pass the same repository CI and NTPX Fortress gates before PR #17 is merged to `main`.
 
 ## Acceptance gate
 
@@ -53,8 +53,8 @@ Phase 07 remains gated until the exact stamped candidate and final verification-
 - [x] implementation desktop frontend typecheck/build passed;
 - [x] implementation Windows Autonomy Governor check/tests passed;
 - [x] implementation NTPX Fortress bootstrap gate passed;
-- [ ] exact stamped B000028 candidate passes the same repository CI gate;
-- [ ] exact stamped B000028 candidate passes Fortress;
+- [x] exact stamped B000028 candidate passed complete repository CI `32261483993`;
+- [x] exact stamped B000028 candidate passed Fortress `32261483663`;
 - [ ] final VERIFIED evidence head passes both gates;
 - [ ] PR #17 merges to `main` and default-branch readback confirms B000028 / Phase 06 VERIFIED / Phase 07 NEXT.
 
@@ -75,13 +75,13 @@ Phase 07 remains gated until the exact stamped candidate and final verification-
 
 Detailed build evidence remains in `docs/verification/phase-06-build-*.md`, `.gameforge/history/`, and the accepted Phase 06 ADRs.
 
-## B000028 implementation evidence
+## B000028 evidence lineage
 
 Initial closure CI `32260168938` stopped the Rust job at rustfmt-only differences in `code-intelligence-apply`; frontend validation passed and no lint, test, security, or authorization check was weakened.
 
 Formatter-equivalent repair head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete repository CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed edit application/rollback behavior, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32260654100` also passed.
 
-ADR 0026 records the application/authority boundary. The full B000028 build/roadmap/UI/verification stamp is now the candidate that must pass exact-head gates before verification.
+The exact full B000028 candidate head passed complete repository CI `32261483993` and NTPX Fortress `32261483663`. That gate covered the implementation, ADR 0026, architecture/security/agent boundaries, roadmap, command-center UI, build metadata, and candidate verification records. The present commit changes verification/status evidence only and must pass the same two gates before merge.
 
 ## Explicit boundaries / deferred work
 
