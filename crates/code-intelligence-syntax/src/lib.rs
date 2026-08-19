@@ -5,9 +5,16 @@
 //! It performs no source mutation, model invocation, tool execution, network access, credential
 //! use, repository write, engine action, publishing, signing, or release action.
 
+mod blueprint_adapter;
+mod cpp_adapter;
 mod rust_adapter;
 mod typescript_adapter;
 
+pub use blueprint_adapter::{
+    BlueprintItem, BlueprintItemKind, BlueprintMetadataParserAdapter, BlueprintParseDocument,
+    BlueprintParserError, BlueprintReference, BlueprintReferenceKind,
+};
+pub use cpp_adapter::{CppItem, CppItemKind, CppParseDocument, CppParserAdapter, CppParserError};
 pub use rust_adapter::{
     RustItem, RustItemKind, RustParseDocument, RustParserAdapter, RustParserError,
 };
