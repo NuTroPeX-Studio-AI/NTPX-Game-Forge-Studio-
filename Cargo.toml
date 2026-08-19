@@ -12,6 +12,9 @@ members = [
   "crates/agent-orchestrator-escalation",
   "crates/roadmap-contract",
   "crates/code-intelligence",
+  "crates/agent-zero-execution",
+  "crates/unreal-engine-bridge",
+  "crates/build-test-repair",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
