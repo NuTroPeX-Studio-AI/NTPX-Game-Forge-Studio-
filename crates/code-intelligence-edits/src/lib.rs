@@ -28,11 +28,26 @@ pub enum EditPlanError {
     EmptyPath,
     MissingIndexedFile(String),
     GeneratedSource(String),
-    PathMismatch { expected: String, actual: String },
-    LanguageMismatch { expected: Language, actual: Language },
-    GeneratedStateMismatch { expected: bool, actual: bool },
-    StaleSource { expected: String, actual: String },
-    RepositoryEvidenceMismatch { expected: String, actual: String },
+    PathMismatch {
+        expected: String,
+        actual: String,
+    },
+    LanguageMismatch {
+        expected: Language,
+        actual: Language,
+    },
+    GeneratedStateMismatch {
+        expected: bool,
+        actual: bool,
+    },
+    StaleSource {
+        expected: String,
+        actual: String,
+    },
+    RepositoryEvidenceMismatch {
+        expected: String,
+        actual: String,
+    },
     NoChange(String),
 }
 
@@ -41,10 +56,16 @@ impl fmt::Display for EditPlanError {
         match self {
             Self::EmptyPath => formatter.write_str("edit source path must not be empty"),
             Self::MissingIndexedFile(path) => {
-                write!(formatter, "source '{path}' is not present in the repository index")
+                write!(
+                    formatter,
+                    "source '{path}' is not present in the repository index"
+                )
             }
             Self::GeneratedSource(path) => {
-                write!(formatter, "refusing exact edit plan for generated source '{path}'")
+                write!(
+                    formatter,
+                    "refusing exact edit plan for generated source '{path}'"
+                )
             }
             Self::PathMismatch { expected, actual } => write!(
                 formatter,
@@ -67,7 +88,10 @@ impl fmt::Display for EditPlanError {
                 "edit plan repository evidence mismatch: expected {expected}, got {actual}"
             ),
             Self::NoChange(path) => {
-                write!(formatter, "replacement for '{path}' does not change source content")
+                write!(
+                    formatter,
+                    "replacement for '{path}' does not change source content"
+                )
             }
         }
     }
@@ -229,7 +253,10 @@ mod tests {
             .expect("valid edit plan");
 
         assert_eq!(first, second);
-        assert_ne!(first.expected_content_sha256, first.replacement_content_sha256);
+        assert_ne!(
+            first.expected_content_sha256,
+            first.replacement_content_sha256
+        );
         assert_eq!(first.repository_evidence_sha256, index.evidence_sha256);
     }
 
@@ -239,8 +266,9 @@ mod tests {
         let index = index_for(&indexed_source);
         let changed_source = source("fn player() { moved(); }\n", false);
 
-        let error = plan_exact_file_replacement(&index, &changed_source, "fn player() { tick(); }\n")
-            .expect_err("stale source must fail");
+        let error =
+            plan_exact_file_replacement(&index, &changed_source, "fn player() { tick(); }\n")
+                .expect_err("stale source must fail");
         assert!(matches!(error, EditPlanError::StaleSource { .. }));
     }
 
@@ -276,12 +304,9 @@ mod tests {
     fn generated_sources_are_rejected() {
         let current = source("fn generated_player() {}\n", true);
         let index = index_for(&current);
-        let error = plan_exact_file_replacement(
-            &index,
-            &current,
-            "fn generated_player() { changed(); }\n",
-        )
-        .expect_err("generated source mutation plan must fail");
+        let error =
+            plan_exact_file_replacement(&index, &current, "fn generated_player() { changed(); }\n")
+                .expect_err("generated source mutation plan must fail");
         assert!(matches!(error, EditPlanError::GeneratedSource(_)));
     }
 
