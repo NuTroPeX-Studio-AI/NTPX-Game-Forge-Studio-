@@ -136,7 +136,11 @@ impl fmt::Display for ScheduleError {
                 id.0
             ),
             Self::InvalidTaskState(id) => {
-                write!(f, "task '{}' has state inconsistent with its retry budget", id.0)
+                write!(
+                    f,
+                    "task '{}' has state inconsistent with its retry budget",
+                    id.0
+                )
             }
         }
     }
@@ -331,7 +335,9 @@ impl TaskGraph {
                 }
             }
             (TaskState::Running { .. }, TaskEvent::Succeed) => TaskState::Succeeded,
-            (TaskState::Running { attempt, .. }, TaskEvent::Fail) if *attempt < task.max_attempts => {
+            (TaskState::Running { attempt, .. }, TaskEvent::Fail)
+                if *attempt < task.max_attempts =>
+            {
                 TaskState::RetryPending { attempts: *attempt }
             }
             (TaskState::Running { attempt, .. }, TaskEvent::Fail) => {
@@ -656,7 +662,9 @@ mod tests {
             graph.transition(
                 &task_id,
                 &TaskState::Pending,
-                TaskEvent::Escalate { reason: "  ".into() }
+                TaskEvent::Escalate {
+                    reason: "  ".into()
+                }
             ),
             Err(TransitionError::InvalidEscalationReason)
         ));
