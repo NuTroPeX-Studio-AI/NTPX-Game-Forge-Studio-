@@ -2,9 +2,9 @@
 
 Phase status: IN PROGRESS
 
-Validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.1-M06-B000015` — deterministic repository index foundation
+Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — deterministic lexical reference resolution
 
-## Increment acceptance gate
+## B000015 acceptance gate — deterministic index foundation
 
 - [x] provider-neutral `code-intelligence` Rust workspace crate;
 - [x] explicit language-driver boundary;
@@ -20,22 +20,44 @@ Validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.1-M06-B000015` — deterministic r
 - [x] driver/language mismatch fails closed;
 - [x] advisory change-impact output is deterministic;
 - [x] no code mutation or execution authority added;
-- [x] repaired implementation candidate passes Rust formatting;
-- [x] repaired implementation candidate passes strict Clippy with warnings denied;
-- [x] repaired implementation candidate passes full workspace tests;
-- [x] repaired implementation candidate passes desktop frontend typecheck/build;
-- [x] repaired implementation candidate preserves Windows Autonomy Governor check/tests.
+- [x] exact B000015 stamped head passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32211032036`.
+
+## B000016 acceptance gate — lexical reference resolution
+
+- [x] repository-level reference graph consumes deterministic `RepositoryIndex` evidence;
+- [x] unique exact lexical target/symbol-name matches resolve to stable symbol ID, path, and line evidence;
+- [x] duplicate exact symbol matches remain explicitly `Ambiguous` and select no arbitrary winner;
+- [x] missing matches remain explicitly `Unresolved` rather than being discarded;
+- [x] candidate ordering is deterministic;
+- [x] equivalent source enumeration order produces equivalent reference-graph evidence;
+- [x] reference graph carries deterministic SHA-256 correlation evidence;
+- [x] unit coverage exercises resolved, ambiguous, unresolved, and order-determinism behavior;
+- [x] no compiler/LSP-grade semantic claim is introduced;
+- [x] no mutation, execution, network, credential, engine, publish, signing, or release authority is introduced;
+- [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32214521151`.
 
 ## Evidence lineage
 
-- Initial CI run `32210625731` found rustfmt-only differences in `code-intelligence`; desktop frontend validation passed while the Rust job stopped before Clippy/tests. Formatter output was applied without changing the authority boundary or weakening tests.
-- CI run `32210746616` passed formatting and identified one strict-Clippy `doc_markdown` issue in crate documentation. The documentation was corrected rather than suppressing the lint.
-- Repaired implementation candidate CI run `32210838815` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
-- Build B000015, changelog, roadmap, ADR 0013, and this verification record were stamped after that implementation gate. The exact stamped documentation/build-metadata head must pass the same CI gate before the increment is classified VERIFIED.
+### B000015
+
+- CI `32210625731` found rustfmt-only differences in `code-intelligence`; formatter output was applied without changing the authority boundary or weakening tests.
+- CI `32210746616` passed formatting and identified one strict-Clippy `doc_markdown` issue; the documentation was corrected rather than suppressing the lint.
+- Repaired implementation candidate CI `32210838815` passed the full repository gate.
+- Exact stamped B000015 head CI `32211032036` passed the same full repository gate. B000015 is VERIFIED.
+
+### B000016
+
+- CI `32214476226` failed only on rustfmt drift in `crates/code-intelligence/src/resolution.rs`; frontend validation continued successfully and the Rust job stopped before Clippy/tests.
+- Formatter output was applied exactly. No lint, validation, test, or security control was weakened.
+- Repaired implementation candidate CI `32214521151` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- ADR 0014 and build-history evidence record the deterministic lexical-resolution boundary.
+- The exact stamped B000016 documentation/build-metadata head must pass the same CI gate before the final B000016 classification is VERIFIED.
 
 ## Explicit boundaries
 
-- The initial drivers are lexical and are not represented as AST-complete, compiler-grade, or LSP-grade semantic analysis.
+- The drivers and B000016 resolver remain lexical. They are not represented as AST-complete, compiler-grade, linker-grade, or LSP-grade semantic analysis.
+- Exact target/name correlation does not model scopes, aliases, namespaces, imports, overloads, templates/generics, type inference, macros, or engine reflection semantics.
+- Ambiguity remains explicit and never grants permission to choose or mutate a target.
 - Code Intelligence evidence does not authorize source mutation, tool execution, model invocation, repository changes, network/credential use, or engine execution.
 - Later refactor/application paths must consume the verified Agent Orchestrator and Autonomy Governor boundaries.
-- Phase 06 remains IN PROGRESS after this increment. AST-native parsing, resolved references/call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governed source mutation remain pending.
+- Phase 06 remains IN PROGRESS after B000016. AST-native parsing/language services, compiler/LSP-grade resolution, call/dependency graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governed source mutation remain pending.
