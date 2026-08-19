@@ -1,0 +1,15 @@
+[package]
+name = "agent-orchestrator-router"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+agent-orchestrator = { path = "../agent-orchestrator" }
+model-router = { path = "../model-router" }
+serde.workspace = true
+
+[lints]
+workspace = true
