@@ -1,90 +1,99 @@
 # Phase 06 Code Intelligence verification
 
-Phase status: IN PROGRESS
+Phase status: CANDIDATE
 
-Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.3-M06-B000017` — deterministic advisory lexical dependency graph
+Candidate build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
 
-## B000015 acceptance gate — deterministic index foundation
+Phase 07 remains gated until the exact stamped candidate and final verification-evidence head pass both repository CI and NTPX Fortress, and PR #17 is merged to `main`.
+
+## Acceptance gate
+
+### Deterministic repository intelligence
 
 - [x] provider-neutral `code-intelligence` Rust workspace crate;
-- [x] explicit language-driver boundary;
-- [x] Rust, TypeScript, C++, and Blueprint-metadata lexical driver contracts;
-- [x] deterministic file ordering independent of input enumeration order;
-- [x] stable SHA-256 source content evidence;
-- [x] stable symbol identifiers;
-- [x] lexical reference records with source line evidence;
-- [x] generated-file metadata preserved in the index;
-- [x] deterministic repository SHA-256 correlation evidence;
-- [x] duplicate source paths fail closed;
-- [x] missing language drivers fail closed;
-- [x] driver/language mismatch fails closed;
-- [x] advisory change-impact output is deterministic;
-- [x] no code mutation or execution authority added;
-- [x] exact B000015 stamped head passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32211032036`.
+- [x] deterministic file ordering and repository evidence;
+- [x] stable SHA-256 source evidence and stable symbol identifiers;
+- [x] explicit Rust, TypeScript, C++, and textual Blueprint metadata language boundaries;
+- [x] lexical reference evidence with explicit resolved/ambiguous/unresolved outcomes;
+- [x] deterministic advisory dependency/change-impact evidence;
+- [x] fail-closed incremental index reuse bound to verified prior evidence;
+- [x] deterministic advisory diagnostics and lexical symbol search;
+- [x] generated-file metadata remains explicit.
 
-## B000016 acceptance gate — lexical reference resolution
+### Language-specific syntax substrate
 
-- [x] repository-level reference graph consumes deterministic `RepositoryIndex` evidence;
-- [x] unique exact lexical target/symbol-name matches resolve to stable symbol ID, path, and line evidence;
-- [x] duplicate exact symbol matches remain explicitly `Ambiguous` and select no arbitrary winner;
-- [x] missing matches remain explicitly `Unresolved` rather than being discarded;
-- [x] candidate ordering is deterministic;
-- [x] equivalent source enumeration order produces equivalent reference-graph evidence;
-- [x] reference graph carries deterministic SHA-256 correlation evidence;
-- [x] unit coverage exercises resolved, ambiguous, unresolved, and order-determinism behavior;
-- [x] no compiler/LSP-grade semantic claim is introduced;
-- [x] no mutation, execution, network, credential, engine, publish, signing, or release authority is introduced;
-- [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32214521151`;
-- [x] exact stamped B000016 head passed the same complete repository gate in CI `32214681258`.
+- [x] provider-neutral syntax-service boundary;
+- [x] Rust full-file syntax parsing through `syn`;
+- [x] TypeScript full-file syntax parsing through Tree-sitter;
+- [x] C++ top-level syntax parsing through Tree-sitter;
+- [x] deterministic textual Blueprint metadata parser;
+- [x] parser/language/path/malformed-input failures remain fail closed.
 
-## B000017 acceptance gate — advisory lexical dependency graph
+### Safe edit planning and governed application
 
-- [x] dependency graph consumes the deterministic B000016 reference graph;
-- [x] only uniquely resolved references become dependency edges;
-- [x] edges retain source path/reference line/target token and stable target symbol ID/path/line evidence;
-- [x] ambiguous references never become guessed dependency edges and remain explicitly counted;
-- [x] unresolved references never become guessed dependency edges and remain explicitly counted;
-- [x] dependency edges are canonically ordered;
-- [x] equivalent source enumeration order produces equivalent dependency-graph evidence;
-- [x] dependency graph carries deterministic SHA-256 correlation evidence;
-- [x] unit coverage exercises resolved-edge creation, ambiguity/unresolved fail-closed behavior, and order determinism;
-- [x] no AST/compiler/LSP semantic or call-graph claim is introduced;
-- [x] no mutation, execution, network, credential, engine, publish, signing, or release authority is introduced;
-- [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32217787844`;
-- [x] exact stamped B000017 candidate head passed the same complete repository gate in CI `32218018982`.
+- [x] B000027 deterministic exact whole-file edit plans bind path/language/current source/repository/replacement evidence;
+- [x] generated-source and no-op plans are rejected;
+- [x] stale repository or current-source evidence is rejected;
+- [x] B000028 recomputes replacement-content SHA-256 and full plan correlation evidence before mutation;
+- [x] B000028 requires an existing canonical repository root;
+- [x] B000028 accepts only normal non-empty repository-relative plan paths and rejects traversal/absolute/prefix/current-directory paths;
+- [x] target path is resolved through the Autonomy Governor filesystem boundary before source re-read;
+- [x] current on-disk source is re-read and B000027 freshness validation is rerun immediately before the governed write path;
+- [x] direct mutation uses `GovernanceRuntime::write_file` only;
+- [x] human-gated mutation uses `write_file_with_approval` only;
+- [x] a Code Intelligence plan cannot override denial or satisfy/weaken a human approval gate;
+- [x] successful application returns the existing audited rollback-capable `TransactionReceipt`;
+- [x] executable coverage proves successful mutation + rollback, stale source rejection, replacement tamper rejection, repository escape rejection, direct human-gate refusal, and successful exact approved application.
 
-## Evidence lineage
+### Repository gates
 
-### B000015
+- [x] implementation Rust formatting passed;
+- [x] implementation strict Clippy passed with warnings denied;
+- [x] implementation full workspace tests passed;
+- [x] implementation desktop frontend typecheck/build passed;
+- [x] implementation Windows Autonomy Governor check/tests passed;
+- [x] implementation NTPX Fortress bootstrap gate passed;
+- [ ] exact stamped B000028 candidate passes the same repository CI gate;
+- [ ] exact stamped B000028 candidate passes Fortress;
+- [ ] final VERIFIED evidence head passes both gates;
+- [ ] PR #17 merges to `main` and default-branch readback confirms B000028 / Phase 06 VERIFIED / Phase 07 NEXT.
 
-- CI `32210625731` found rustfmt-only differences in `code-intelligence`; formatter output was applied without changing the authority boundary or weakening tests.
-- CI `32210746616` passed formatting and identified one strict-Clippy `doc_markdown` issue; the documentation was corrected rather than suppressing the lint.
-- Repaired implementation candidate CI `32210838815` passed the full repository gate.
-- Exact stamped B000015 head CI `32211032036` passed the same full repository gate. B000015 is VERIFIED.
+## Phase 06 build lineage
 
-### B000016
+- B000015 — deterministic provider-neutral code index foundation.
+- B000016 — deterministic lexical reference resolution.
+- B000017 — deterministic advisory lexical dependency graph.
+- B000018 — fail-closed deterministic incremental index reuse.
+- B000019 — deterministic advisory lexical diagnostics.
+- B000020 — deterministic advisory lexical symbol search.
+- B000021 — provider-neutral syntax-service boundary.
+- B000022/B000023 — Rust parser foundation upgraded to `syn` full-file syntax parsing.
+- B000024/B000025 — TypeScript parser foundation upgraded to Tree-sitter full-file syntax parsing.
+- B000026 — Tree-sitter C++ plus deterministic textual Blueprint metadata parsing.
+- B000027 — deterministic evidence-bound exact whole-file edit planning with stale repository/source rejection.
+- B000028 — governed evidence-bound exact edit application through the verified Autonomy Governor reversible transaction boundary.
 
-- CI `32214476226` failed only on rustfmt drift in `crates/code-intelligence/src/resolution.rs`; frontend validation continued successfully and the Rust job stopped before Clippy/tests.
-- Formatter output was applied exactly. No lint, validation, test, or security control was weakened.
-- Repaired implementation candidate CI `32214521151` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
-- Exact stamped B000016 head CI `32214681258` passed the same complete repository gate with build metadata, roadmap, ADR 0014, verification evidence, and changelog records present.
-- B000016 is VERIFIED.
+Detailed build evidence remains in `docs/verification/phase-06-build-*.md`, `.gameforge/history/`, and the accepted Phase 06 ADRs.
 
-### B000017
+## B000028 implementation evidence
 
-- CI `32217736330` failed only on rustfmt drift in `crates/code-intelligence/src/dependency.rs`; desktop frontend typecheck/build passed and Rust Clippy/tests did not run after the formatting failure.
-- Exact formatter output was applied. No lint, validation, test, or security control was weakened.
-- Repaired implementation candidate CI `32217787844` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
-- ADR 0015 records the deterministic advisory dependency-graph boundary.
-- Exact stamped B000017 candidate head CI `32218018982` passed the same complete repository gate with build metadata, roadmap, ADR 0015, verification evidence, build history, and changelog records present.
-- B000017 is VERIFIED. The final synchronized verification-status head is subject to the same repository CI gate before this evidence record is considered fully synchronized.
+Initial closure CI `32260168938` stopped the Rust job at rustfmt-only differences in `code-intelligence-apply`; frontend validation passed and no lint, test, security, or authorization check was weakened.
 
-## Explicit boundaries
+Formatter-equivalent repair head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete repository CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed edit application/rollback behavior, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32260654100` also passed.
 
-- The drivers, B000016 resolver, and B000017 dependency graph remain lexical. They are not represented as AST-complete, compiler-grade, linker-grade, or LSP-grade semantic analysis.
-- B000017 is a file-to-symbol dependency graph derived only from uniquely resolved lexical evidence; it is not a call graph.
-- Exact target/name correlation does not model scopes, aliases, namespaces, imports, overloads, templates/generics, type inference, macros, dynamic dispatch, or engine reflection semantics.
-- Ambiguity remains explicit and never grants permission to choose or mutate a target.
-- Code Intelligence evidence does not authorize source mutation, tool execution, model invocation, repository changes, network/credential use, or engine execution.
-- Later refactor/application paths must consume the verified Agent Orchestrator and Autonomy Governor boundaries.
-- Phase 06 remains IN PROGRESS after B000017. AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governed source mutation remain pending.
+ADR 0026 records the application/authority boundary. The full B000028 build/roadmap/UI/verification stamp is now the candidate that must pass exact-head gates before verification.
+
+## Explicit boundaries / deferred work
+
+Phase 06 completion is scoped to the revised minimum safe-edit substrate needed for the M06→M09 vertical loop. It does **not** claim:
+
+- `rustc`, Clang, or TypeScript-compiler type semantics;
+- a true semantic call graph;
+- an LSP semantic model;
+- embedding/vector semantic search;
+- Blueprint binary `.uasset` parsing or mutation;
+- distributed workers, remote execution, or tool/process execution;
+- repository merge, network, credential, publishing, signing, or release authority;
+- hostile compare-and-swap/TOCTOU elimination beyond the verified Phase 03 Governor path/race guarantees.
+
+The freshness check immediately precedes Governor entry, but non-cooperating external processes remain outside cooperative transaction-lock guarantees. Existing Phase 03 canonical path revalidation, audit, rollback, Windows replacement, and multi-file atomicity limitations remain authoritative.
