@@ -6,9 +6,14 @@
 //! use, repository write, engine action, publishing, signing, or release action.
 
 mod rust_adapter;
+mod typescript_adapter;
 
 pub use rust_adapter::{
     RustItem, RustItemKind, RustParseDocument, RustParserAdapter, RustParserError,
+};
+pub use typescript_adapter::{
+    TypeScriptItem, TypeScriptItemKind, TypeScriptParseDocument, TypeScriptParserAdapter,
+    TypeScriptParserError,
 };
 
 use std::{error::Error, fmt, fmt::Write};
