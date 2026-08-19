@@ -6,7 +6,7 @@
 4. 🧠 Model Router — VERIFIED
 5. 🧠 Agent Orchestrator — VERIFIED
 6. 🟥 Code Intelligence — VERIFIED
-7. 0️⃣ Agent Zero Execution — NEXT
+7. 0️⃣ Agent Zero Execution — IN PROGRESS
 8. 🟧 Unreal Engine Bridge
 9. ⬜ Build / Test / Repair
 10. ☤ Hermes Memory + Skills
@@ -21,7 +21,7 @@
 
 ## Phase progression rule
 
-A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. B000028 has passed its exact stamped candidate CI and NTPX Fortress gates. This VERIFIED evidence/status head must pass the same gates before PR #17 is merged to `main`.
+A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. Phase 07 remains IN PROGRESS; B000029 is a candidate because its implementation passed the available CI gate but the carried-forward NTPX Fortress workflow did not execute on the stacked Phase 07 branch topology.
 
 ## Verified foundation
 
@@ -47,15 +47,13 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 - **B000027** — deterministic exact whole-file edit planning bound to repository/source/replacement evidence, with generated/no-op/stale-plan rejection.
 - **B000028** — `code-intelligence-apply` rechecks plan/replacement integrity, canonical repository-relative targeting, and current on-disk source freshness, then routes mutation exclusively through the verified Autonomy Governor rollback-capable file transaction path. Direct policy and human-approval paths remain distinct and fail closed.
 
-## B000028 verification evidence
+## Phase 06 verification evidence
 
 Initial closure CI `32260168938` exposed rustfmt-only drift in the new governed application crate. Exact formatter-equivalent changes were applied without weakening behavior or tests.
 
 Repaired implementation head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete CI `32260654093` and Fortress `32260654100`.
 
-The exact stamped B000028 candidate head passed complete CI `32261483993`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed mutation/rollback/stale/tamper/traversal/approval coverage, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32261483663` also passed.
-
-The current verification-status head must pass both gates before merge; no Phase 06 implementation behavior changed in the verification flip.
+The exact stamped B000028 candidate head passed complete CI `32261483993`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed mutation/rollback/stale/tamper/traversal/approval coverage, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32261483663` also passed. The subsequent Phase 06 verification-status head also passed the complete repository CI and Fortress gates.
 
 ## Revised Phase 06 completion threshold
 
@@ -77,16 +75,33 @@ The following remain deferred and are **not** represented as completed Phase 06 
 - broad persistent semantic caches beyond the verified incremental evidence substrate;
 - Blueprint binary `.uasset` parsing/mutation (Phase 08 Unreal bridge responsibility).
 
+## Phase 07 lineage
+
+- **B000029 — CANDIDATE / overall UNKNOWN** — adds the provider-neutral `agent-zero-execution` crate with immutable tool/process contracts, exact Governor `Execute` + `Tool` scope/principal/resource binding, bounded resource declarations, environment allowlisting, deterministic SHA-256 execution evidence, and explicit lifecycle/cancellation transitions. Initial CI `32262392263` exposed rustfmt-only drift; the formatter-equivalent repair head `0738494d547c2332b5db5a7d0c1288df44b1bcc9` passed available complete CI `32262553710` across formatting, strict Clippy, full workspace tests, desktop typecheck/build, and Windows Governor regressions. Fortress did not execute because this intentionally stacked PR is based on the unmerged Phase 06 branch, which predates the Fortress workflow file on `main`; that missing gate prevents VERIFIED classification.
+
+## Phase 07 remaining acceptance work
+
+- implement the narrow real worker/process boundary only after exact Autonomy Governor authorization;
+- provide isolated workspace/process execution without ambient credential inheritance;
+- enforce wall-time, cancellation grace, stdout/stderr byte limits, and bounded arguments at runtime;
+- capture exit/status/output evidence deterministically with truncation explicitly represented;
+- implement cancellation/timeout termination semantics and cleanup;
+- verify sandbox/workspace-mount and environment-scrubbing policy on supported operating systems;
+- run the carried-forward NTPX Fortress gate on the exact Phase 07 candidate topology;
+- keep Phase 07 IN PROGRESS until the complete execution acceptance gate passes.
+
 ## Boundaries carried forward
 
 - Model Router selection does not invoke a model or grant execution authority.
 - Agent Orchestrator scheduling does not grant tool, network, credential, repository, engine, publishing, signing, or release authority.
-- `GovernanceRuntime` remains the sole verified authorization boundary for governed source mutation.
+- `GovernanceRuntime` remains the verified authorization boundary for governed capabilities.
 - A Code Intelligence plan is evidence, never permission.
+- A validated Agent Zero execution contract is evidence, never an authorization permit.
 - B000028 whole-file application cannot override Governor denial or a human approval gate.
-- Phase 03 cooperative locking, path-race, Windows replacement, rollback, and multi-file atomicity limitations remain authoritative; Phase 06 does not claim hostile compare-and-swap/TOCTOU elimination.
-- NTPX Fortress bootstrap protection on `main` is a required carried-forward gate.
+- B000029 does not spawn a process and does not claim its declared resource limits are runtime-enforced yet.
+- Phase 03 cooperative locking, path-race, Windows replacement, rollback, and multi-file atomicity limitations remain authoritative.
+- NTPX Fortress bootstrap protection on `main` remains a required carried-forward gate.
 
 ## Current target
 
-Phase 07: Agent Zero Execution — introduce isolated execution workers, explicit process/tool contracts, lifecycle/cancellation/resource limits, evidence capture, and governed tool/process execution without bypassing the verified Autonomy Governor, Agent Orchestrator, Code Intelligence, or Fortress boundaries.
+Phase 07: Agent Zero Execution — next implement the smallest governed worker increment: obtain the exact predeclared Governor authorization immediately before process creation, execute only a registered tool contract in a constrained local worker, enforce lifecycle/time/output/cancellation limits, and emit deterministic execution evidence without adding network, credential, engine, publishing, signing, or release authority.
