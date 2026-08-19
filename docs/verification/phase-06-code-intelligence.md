@@ -4,7 +4,7 @@ Phase status: VERIFIED
 
 Final build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
 
-Phase 07 Agent Zero Execution is NEXT. The final verification-status head passed repository CI and NTPX Fortress; this synchronization commit records those exact run IDs and must pass the same gates before PR #17 is merged to `main`.
+Phase 07 Agent Zero Execution is NEXT. Phase 06 passed every required implementation, candidate, VERIFIED-evidence, synchronization, and merge-readback gate.
 
 ## Acceptance gate
 
@@ -45,7 +45,7 @@ Phase 07 Agent Zero Execution is NEXT. The final verification-status head passed
 - [x] successful application returns the existing audited rollback-capable `TransactionReceipt`;
 - [x] executable coverage proves successful mutation + rollback, stale source rejection, replacement tamper rejection, repository escape rejection, direct human-gate refusal, and successful exact approved application.
 
-### Repository gates
+### Repository and merge gates
 
 - [x] implementation Rust formatting passed;
 - [x] implementation strict Clippy passed with warnings denied;
@@ -57,8 +57,11 @@ Phase 07 Agent Zero Execution is NEXT. The final verification-status head passed
 - [x] exact stamped B000028 candidate passed Fortress `32261483663`;
 - [x] final VERIFIED evidence head passed complete repository CI `32262188186`;
 - [x] final VERIFIED evidence head passed Fortress `32262188321`;
-- [ ] synchronization head containing these final run IDs passes both gates;
-- [ ] PR #17 merges to `main` and default-branch readback confirms B000028 / Phase 06 VERIFIED / Phase 07 NEXT.
+- [x] final synchronization head `301980124823397d72592fa3f33186898bfb0844` passed complete CI `32262420120`;
+- [x] final synchronization head passed Fortress `32262420198`;
+- [x] PR #17 squash-merged the exact tested head to `main` as `094da1cc35efc596568fdc77bb7f3551093e8079`;
+- [x] default-branch readback confirmed B000028 / Phase 06 VERIFIED / Phase 07 NEXT;
+- [x] NTPX Fortress bootstrap workflow remains present on `main`.
 
 ## Phase 06 build lineage
 
@@ -81,11 +84,9 @@ Detailed build evidence remains in `docs/verification/phase-06-build-*.md`, `.ga
 
 Initial closure CI `32260168938` stopped the Rust job at rustfmt-only differences in `code-intelligence-apply`; frontend validation passed and no lint, test, security, or authorization check was weakened.
 
-Formatter-equivalent repair head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete repository CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed edit application/rollback behavior, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32260654100` also passed.
+Formatter-equivalent repair head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete repository CI `32260654093`; NTPX Fortress `32260654100` also passed.
 
-The exact full B000028 candidate head passed complete repository CI `32261483993` and NTPX Fortress `32261483663`. That gate covered the implementation, ADR 0026, architecture/security/agent boundaries, roadmap, command-center UI, build metadata, and candidate verification records.
-
-The final VERIFIED evidence head `0cb80c409f41369cdb52d9ffd3eecc1b03a8de6f` passed complete repository CI `32262188186` and NTPX Fortress `32262188321`. This synchronization commit changes evidence text only; it must pass the same gates before merge and will not be followed by further file changes if green.
+The exact full B000028 candidate passed complete repository CI `32261483993` and Fortress `32261483663`. The final VERIFIED evidence head passed CI `32262188186` and Fortress `32262188321`. The final synchronization head passed CI `32262420120` and Fortress `32262420198`, then PR #17 squash-merged that exact tested Phase 06 state to `main`.
 
 ## Explicit boundaries / deferred work
 

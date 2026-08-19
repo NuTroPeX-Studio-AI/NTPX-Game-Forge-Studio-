@@ -21,7 +21,7 @@
 
 ## Phase progression rule
 
-A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. B000028 has passed its exact stamped candidate CI and NTPX Fortress gates. This VERIFIED evidence/status head must pass the same gates before PR #17 is merged to `main`.
+A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. Phase 06/B000028 passed its candidate, VERIFIED-evidence, and final synchronization CI/Fortress gates before PR #17 was squash-merged to `main`.
 
 ## Verified foundation
 
@@ -53,9 +53,11 @@ Initial closure CI `32260168938` exposed rustfmt-only drift in the new governed 
 
 Repaired implementation head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete CI `32260654093` and Fortress `32260654100`.
 
-The exact stamped B000028 candidate head passed complete CI `32261483993`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed mutation/rollback/stale/tamper/traversal/approval coverage, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32261483663` also passed.
+The exact stamped B000028 candidate passed complete CI `32261483993` and NTPX Fortress `32261483663`.
 
-The current verification-status head must pass both gates before merge; no Phase 06 implementation behavior changed in the verification flip.
+The final VERIFIED evidence head passed complete CI `32262188186` and Fortress `32262188321`.
+
+The exact final synchronization head `301980124823397d72592fa3f33186898bfb0844` passed complete CI `32262420120` and Fortress `32262420198`, then PR #17 squash-merged it to `main` as signed commit `094da1cc35efc596568fdc77bb7f3551093e8079`.
 
 ## Revised Phase 06 completion threshold
 
