@@ -2,6 +2,22 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.6.0-dev.1 — Phase 06 — Build B000015
+
+### Verified deterministic code-index foundation increment
+- Added the provider-neutral `code-intelligence` Rust workspace crate behind the verified Agent Orchestrator and Autonomy Governor boundaries.
+- Added explicit lexical language-driver boundaries for Rust, TypeScript, C++, and Blueprint metadata without introducing provider SDKs, game-engine SDKs, external language-service processes, or mutation authority.
+- Added deterministic repository indexing with stable source paths, generated-file metadata, SHA-256 content digests, stable symbol IDs, lexical reference records, and a reproducible repository evidence digest.
+- Normalized repository/file evidence through ordered maps so equivalent source sets and language-driver enumeration orders produce equivalent index evidence.
+- Added fail-closed validation for empty paths, duplicate paths, missing drivers, and driver/language mismatches.
+- Added advisory deterministic change-impact output derived from indexed references; it does not authorize edits.
+- Added unit tests for input-order determinism, duplicate-path rejection, missing-driver rejection, and deterministic change-impact behavior.
+- Initial CI run `32210625731` identified rustfmt-only differences; formatter output was applied without changing the authority boundary or weakening tests.
+- CI run `32210746616` passed formatting and identified one strict-Clippy documentation-markdown issue; the documentation was corrected instead of suppressing the lint.
+- Repaired implementation candidate CI run `32210838815` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0013 describing the deterministic lexical indexing boundary and its deliberate non-AST/non-LSP limitations.
+- Phase 06 remains IN PROGRESS. AST-native parsing, resolved references/call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
+
 ## 0.5.0-dev.1 — Phase 05 — Build B000014
 
 ### Verified Agent Orchestrator
