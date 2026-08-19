@@ -12,6 +12,8 @@ proc-macro2.workspace = true
 serde.workspace = true
 sha2.workspace = true
 syn.workspace = true
+tree-sitter.workspace = true
+tree-sitter-typescript.workspace = true
 
 [lints]
 workspace = true
