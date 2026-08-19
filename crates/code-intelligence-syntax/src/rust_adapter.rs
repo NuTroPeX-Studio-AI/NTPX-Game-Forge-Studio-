@@ -161,8 +161,7 @@ fn item_name(kind: RustItemKind, remainder: &str) -> Option<String> {
 
     let candidate = remainder
         .split(|character: char| {
-            character.is_whitespace()
-                || matches!(character, '(' | '<' | '{' | ':' | '=' | ';')
+            character.is_whitespace() || matches!(character, '(' | '<' | '{' | ':' | '=' | ';')
         })
         .next()?
         .trim();
@@ -206,7 +205,10 @@ impl fmt::Display for RustParserError {
                 "source '{path}' language {actual:?} does not match Rust parser adapter"
             ),
             Self::MalformedItem { path, line } => {
-                write!(formatter, "source '{path}' has malformed Rust item at line {line}")
+                write!(
+                    formatter,
+                    "source '{path}' has malformed Rust item at line {line}"
+                )
             }
             Self::UnbalancedBlock { path, line } => write!(
                 formatter,
