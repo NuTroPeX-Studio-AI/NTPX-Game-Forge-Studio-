@@ -2,6 +2,23 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.5.0-dev.3 — Phase 05 — Build B000016
+
+### Verified delegation-bound orchestration evidence increment
+- Added the provider-neutral, engine-neutral `agent-orchestrator-evidence` workspace crate on top of the verified advisory scheduler/state machine.
+- Added explicit `DelegationDirective` records containing task, delegator, delegate, and non-empty reason.
+- Bound delegation fail-closed to the scheduler assignment: a delegate that differs from the task's advisory assignment is rejected rather than becoming a parallel scheduling path.
+- Added versioned canonical orchestration evidence covering deterministic task order, task states, assignments, and delegation directives.
+- Canonicalized assignment/delegation vector ordering and added reproducible SHA-256 evidence digests for equivalent inputs.
+- Added fail-closed validation for empty/duplicate task IDs, missing/unknown states, unknown assignment/delegation tasks, empty agent IDs, duplicate assignments, self-delegation, empty reasons, and unbound delegation.
+- Added unit tests for deterministic evidence, assignment-binding enforcement, duplicate assignment rejection, missing-state rejection, and invalid delegation metadata.
+- Initial candidate CI `32207288582` identified rustfmt-only differences; the formatter output was applied without weakening behavior or checks.
+- Formatter repair CI `32207368160` passed formatting and then strict Clippy identified only a function-length quality finding. Validation/canonicalization was refactored into private helpers instead of suppressing the lint.
+- Repaired implementation candidate `2728c4d12c16e026ce7806fe8033a9f1ecc4eb2e` passed CI `32207504756`: Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0014 and build-specific Phase 05 verification evidence.
+- Phase 05 remains IN PROGRESS. Model Router selection integration, Autonomy Governor-governed execution, and broader escalation routing/policy remain unfinished.
+- Delegation and evidence remain advisory only. This increment introduces no model/tool invocation, credentials, network access, runtime repository/filesystem mutation, engine execution, merge, publishing, signing, or release authority.
+
 ## 0.5.0-dev.2 — Phase 05 — Build B000015
 
 ### Verified bounded retry/state-transition increment
