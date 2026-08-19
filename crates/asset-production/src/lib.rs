@@ -105,7 +105,10 @@ pub fn validate_artifact(job: &AssetJob, artifact: &AssetArtifact) -> Result<(),
         return Err(AssetError::EmptyArtifactPath);
     }
     if artifact.content_sha256.len() != 64
-        || !artifact.content_sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || !artifact
+            .content_sha256
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit())
     {
         return Err(AssetError::InvalidDigest);
     }
