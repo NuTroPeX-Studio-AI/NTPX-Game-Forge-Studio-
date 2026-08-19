@@ -244,7 +244,9 @@ impl fmt::Display for CodeIntelligenceError {
                 "source '{path}' language {actual:?} does not match driver {expected:?}"
             ),
             Self::EmptyPatchObjective => formatter.write_str("patch objective must not be empty"),
-            Self::EmptyPatchPaths => formatter.write_str("patch plan must include at least one path"),
+            Self::EmptyPatchPaths => {
+                formatter.write_str("patch plan must include at least one path")
+            }
         }
     }
 }
@@ -359,8 +361,12 @@ mod tests {
             generated: true,
         }];
         let index = build_repository_index(&sources, &[&rust]).expect("valid index");
-        let plan = plan_patch(&index, "update generated output", vec!["generated.rs".to_owned()])
-            .expect("valid patch plan");
+        let plan = plan_patch(
+            &index,
+            "update generated output",
+            vec!["generated.rs".to_owned()],
+        )
+        .expect("valid patch plan");
         assert!(plan.requires_generated_file_edit);
     }
 
