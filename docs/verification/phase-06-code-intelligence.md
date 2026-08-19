@@ -4,7 +4,7 @@ Phase status: VERIFIED
 
 Final build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
 
-Phase 07 Agent Zero Execution is NEXT. This verification-status head must pass the same repository CI and NTPX Fortress gates before PR #17 is merged to `main`.
+Phase 07 Agent Zero Execution is NEXT. The final verification-status head passed repository CI and NTPX Fortress; this synchronization commit records those exact run IDs and must pass the same gates before PR #17 is merged to `main`.
 
 ## Acceptance gate
 
@@ -55,7 +55,9 @@ Phase 07 Agent Zero Execution is NEXT. This verification-status head must pass t
 - [x] implementation NTPX Fortress bootstrap gate passed;
 - [x] exact stamped B000028 candidate passed complete repository CI `32261483993`;
 - [x] exact stamped B000028 candidate passed Fortress `32261483663`;
-- [ ] final VERIFIED evidence head passes both gates;
+- [x] final VERIFIED evidence head passed complete repository CI `32262188186`;
+- [x] final VERIFIED evidence head passed Fortress `32262188321`;
+- [ ] synchronization head containing these final run IDs passes both gates;
 - [ ] PR #17 merges to `main` and default-branch readback confirms B000028 / Phase 06 VERIFIED / Phase 07 NEXT.
 
 ## Phase 06 build lineage
@@ -81,7 +83,9 @@ Initial closure CI `32260168938` stopped the Rust job at rustfmt-only difference
 
 Formatter-equivalent repair head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete repository CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed edit application/rollback behavior, desktop frontend typecheck/build, and Windows Autonomy Governor tests. NTPX Fortress gate `32260654100` also passed.
 
-The exact full B000028 candidate head passed complete repository CI `32261483993` and NTPX Fortress `32261483663`. That gate covered the implementation, ADR 0026, architecture/security/agent boundaries, roadmap, command-center UI, build metadata, and candidate verification records. The present commit changes verification/status evidence only and must pass the same two gates before merge.
+The exact full B000028 candidate head passed complete repository CI `32261483993` and NTPX Fortress `32261483663`. That gate covered the implementation, ADR 0026, architecture/security/agent boundaries, roadmap, command-center UI, build metadata, and candidate verification records.
+
+The final VERIFIED evidence head `0cb80c409f41369cdb52d9ffd3eecc1b03a8de6f` passed complete repository CI `32262188186` and NTPX Fortress `32262188321`. This synchronization commit changes evidence text only; it must pass the same gates before merge and will not be followed by further file changes if green.
 
 ## Explicit boundaries / deferred work
 
