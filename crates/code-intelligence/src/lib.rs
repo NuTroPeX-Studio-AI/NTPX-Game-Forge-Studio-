@@ -119,9 +119,14 @@ impl LexicalLanguageDriver {
     const fn symbol_prefixes(self) -> &'static [&'static str] {
         match self.language {
             Language::Rust => &["fn ", "struct ", "enum ", "trait ", "mod ", "const "],
-            Language::TypeScript => {
-                &["function ", "class ", "interface ", "type ", "const ", "enum "]
-            }
+            Language::TypeScript => &[
+                "function ",
+                "class ",
+                "interface ",
+                "type ",
+                "const ",
+                "enum ",
+            ],
             Language::Cpp => &["class ", "struct ", "enum ", "void ", "bool ", "int "],
             Language::BlueprintMetadata => &["Function=", "Class=", "Variable="],
         }
@@ -176,9 +181,8 @@ impl LanguageDriver for LexicalLanguageDriver {
             }
         }
         symbols.sort_by(|left, right| left.id.cmp(&right.id));
-        references.sort_by(|left, right| {
-            (&left.target, left.line).cmp(&(&right.target, right.line))
-        });
+        references
+            .sort_by(|left, right| (&left.target, left.line).cmp(&(&right.target, right.line)));
 
         Ok(FileIndex {
             path: source.path.clone(),
@@ -348,7 +352,8 @@ mod tests {
         let mut second = first.clone();
         second.reverse();
 
-        let first_index = build_repository_index(&first, &[&rust, &typescript]).expect("valid index");
+        let first_index =
+            build_repository_index(&first, &[&rust, &typescript]).expect("valid index");
         let second_index =
             build_repository_index(&second, &[&typescript, &rust]).expect("valid index");
 
