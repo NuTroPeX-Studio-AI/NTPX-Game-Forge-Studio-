@@ -1,6 +1,6 @@
 # Phase 06 — Build B000028 verification
 
-Status: CANDIDATE
+Status: VERIFIED
 
 Build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
 
@@ -31,16 +31,18 @@ Build: `NTPX-GFΩ-G0-v0.6.0-dev.14-M06-B000028`
 - [x] implementation desktop TypeScript typecheck/build passes;
 - [x] implementation Windows Autonomy Governor tests pass;
 - [x] implementation NTPX Fortress bootstrap gate passes;
-- [ ] exact B000028 stamped candidate head passes the complete CI gate;
-- [ ] exact B000028 stamped candidate head passes Fortress;
+- [x] exact B000028 stamped candidate head passed complete CI `32261483993`;
+- [x] exact B000028 stamped candidate head passed Fortress `32261483663`;
 - [ ] final VERIFIED evidence head passes both gates;
 - [ ] PR #17 merges to `main` and default-branch readback confirms Phase 06 VERIFIED / Phase 07 NEXT.
 
-## Implementation evidence
+## Evidence
 
-CI `32260168938` stopped the Rust job at rustfmt-only differences in `code-intelligence-apply`; frontend passed and no behavior/lint gate was suppressed. Exact formatter-equivalent changes were applied.
+CI `32260168938` stopped the first closure Rust job at rustfmt-only differences in `code-intelligence-apply`; frontend passed and no behavior/lint/security gate was suppressed. Exact formatter-equivalent changes were applied.
 
-Repaired implementation head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed-edit application/rollback tests, desktop frontend typecheck/build, and Windows Autonomy Governor tests. Fortress gate `32260654100` also passed.
+Repaired implementation head `d63050c8184521e6408b6bb9923af4da327f0ebf` passed complete CI `32260654093`: Rust formatting, strict Clippy with warnings denied, full workspace tests including governed-edit application/rollback tests, desktop frontend typecheck/build, and Windows Autonomy Governor tests. Fortress `32260654100` also passed.
+
+The exact full B000028 candidate head passed complete CI `32261483993` and Fortress `32261483663`. This VERIFIED evidence/status update changes no implementation behavior and must pass those same gates before merge.
 
 ## Claim boundary
 
