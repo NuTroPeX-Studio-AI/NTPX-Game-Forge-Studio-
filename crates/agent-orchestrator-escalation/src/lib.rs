@@ -60,9 +60,15 @@ impl fmt::Display for EscalationError {
         match self {
             Self::TaskNotEscalated(id) => write!(formatter, "task '{}' is not escalated", id.0),
             Self::EmptyTargetId => formatter.write_str("escalation target id must not be empty"),
-            Self::EmptyFallback => formatter.write_str("escalation fallback targets must not be empty"),
-            Self::EmptyRulePrefix => formatter.write_str("escalation rule prefix must not be empty"),
-            Self::EmptyRuleTargets => formatter.write_str("escalation rule targets must not be empty"),
+            Self::EmptyFallback => {
+                formatter.write_str("escalation fallback targets must not be empty")
+            }
+            Self::EmptyRulePrefix => {
+                formatter.write_str("escalation rule prefix must not be empty")
+            }
+            Self::EmptyRuleTargets => {
+                formatter.write_str("escalation rule targets must not be empty")
+            }
         }
     }
 }
@@ -148,10 +154,7 @@ mod tests {
                     target("safety-review", EscalationTargetKind::SafetyReview),
                 ]),
             }],
-            fallback_targets: BTreeSet::from([target(
-                "human-owner",
-                EscalationTargetKind::Human,
-            )]),
+            fallback_targets: BTreeSet::from([target("human-owner", EscalationTargetKind::Human)]),
         };
         let route = policy
             .route(
@@ -169,10 +172,7 @@ mod tests {
     fn uses_fallback_when_no_rule_matches() {
         let policy = EscalationPolicy {
             rules: Vec::new(),
-            fallback_targets: BTreeSet::from([target(
-                "human-owner",
-                EscalationTargetKind::Human,
-            )]),
+            fallback_targets: BTreeSet::from([target("human-owner", EscalationTargetKind::Human)]),
         };
         let route = policy
             .route(
@@ -189,10 +189,7 @@ mod tests {
     fn rejects_non_escalated_state() {
         let policy = EscalationPolicy {
             rules: Vec::new(),
-            fallback_targets: BTreeSet::from([target(
-                "human-owner",
-                EscalationTargetKind::Human,
-            )]),
+            fallback_targets: BTreeSet::from([target("human-owner", EscalationTargetKind::Human)]),
         };
         let error = policy
             .route(&TaskId("task-3".to_owned()), &TaskState::Pending)
