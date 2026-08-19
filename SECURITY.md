@@ -43,24 +43,42 @@ The following always require explicit human authorization:
 - Routing evidence is SHA-256 digested for deterministic correlation.
 - `ProviderAdapter`, `LocalProviderAdapter`, and `CloudProviderAdapter` expose catalog information only. Phase 04 adds no provider network-call or credential-use API.
 
-## Model Router authority boundaries
+## Phase 05 Agent Orchestrator candidate guarantees
+
+- Agent/task contracts are validated before orchestration and canonicalized into a deterministic task graph.
+- Agent identifiers must match their Autonomy Governor `PrincipalId`; task-governed requests must already name that same assigned principal.
+- Duplicate identifiers, unknown assigned agents, unknown dependencies, self-dependencies, dependency cycles, and required-skill mismatches fail closed.
+- Ready-task order and the canonical plan digest are deterministic for equivalent contracts regardless of input enumeration order.
+- Per-agent `max_parallel_tasks` bounds concurrent running task state.
+- Model selection is delegated to the verified Model Router. Routing abstention escalates rather than weakening hard model constraints.
+- Retry budgets are immutable task-contract inputs. Exhausted retryable failures escalate rather than extending the budget automatically.
+- Permanent failure/escalation/blocking propagates dependency blocking to downstream pending work.
+- Governed authorization can be requested only for a running task and only when the exact request was predeclared in that task contract.
+- Exact governed requests are submitted to `GovernanceRuntime::authorize`; the orchestrator cannot manufacture a permit, override denial, or bypass required human approval.
+- Phase 05 adds no model invocation, network connection, credential use, tool execution, repository mutation, engine execution, publishing, or release API.
+
+## Authority boundaries
 
 - Selecting a cloud model does not authorize a network connection, API request, paid usage, or credential access.
 - Selecting a model that advertises tool-use capability does not authorize any tool invocation.
-- Routing evidence is not an Autonomy Governor permit and cannot override a denial or human approval gate.
+- Scheduling or dispatching a task does not authorize that task to use a governed capability.
+- A task cannot expand its own governed scopes; undeclared requests fail before Governor submission.
+- Routing evidence and orchestration evidence are not Autonomy Governor permits and cannot override a denial or human approval gate.
+- A returned `AuthorizationPermit` records authorization for an exact request; Phase 05 does not claim that an external operation was executed.
 - Provider capability, cost, latency, and reliability values are input metadata. Structural consistency is validated, but the router does not independently authenticate or prove those provider claims.
-- Future live-provider/inference adapters must keep credentials external, obtain governor authorization for governed actions, and preserve protected-action human approval.
-- Prompt/project payload content should not be included merely to make a routing decision; Phase 04 routes from requirements and estimates rather than content.
+- Future live-provider, tool, repository, engine, and Agent Zero execution adapters must keep credentials external, obtain Governor authorization for governed actions, and preserve protected-action human approval.
 
 ## Residual security boundaries
 
-- Advisory audit/transaction locks coordinate cooperating processes only. An actor bypassing governor APIs is outside the locking guarantee.
+- Advisory audit/transaction locks coordinate cooperating processes only. An actor bypassing Governor APIs is outside the locking guarantee.
 - Audit and rollback SHA-256 chains/digests are tamper-evident, not authenticated against an actor able to rewrite all relevant files and recompute hashes.
 - Canonical path resolution plus parent identity revalidation reduces path-alias, symlink, and directory-replacement risk but does not pin a directory handle for the entire mutation. Hostile TOCTOU races are therefore not claimed to be mathematically eliminated.
 - The Windows replacement fallback is reversible/failure-safe but not kernel-atomic across the target-to-backup and stage-to-target renames.
 - Multi-file batches are all-or-reverted for ordinary failures, not kernel-level atomic across multiple files or crash points.
 - Verified rollback snapshots are intentionally not auto-restored because a retained snapshot can represent a successful reversible transaction as well as interrupted work.
-- Phase 04 does not grant production credentials, network connections, provider invocation, repository merge rights, engine execution, publishing, or release authority. Future adapters must consume the governor rather than bypass it.
+- Phase 05 orchestrator state/evidence is in-memory and serializable but not a crash-safe durable scheduler journal.
+- Phase 05 has no distributed worker leases, heartbeats, cancellation propagation, or external executor. Task state therefore must not be represented as proof that real-world work occurred.
+- Workflow evidence is not a cryptographically authenticated authorization audit. Governor audit evidence remains authoritative for governed capability decisions.
 
 ## Agent execution principles
 
@@ -74,10 +92,13 @@ The following always require explicit human authorization:
 - snapshot/rollback before high-risk changes
 - fail closed on ambiguity or corrupted evidence
 - keep selection separate from authorization and execution
+- keep scheduling separate from authorization
+- predeclare governed capability requests in immutable task contracts
+- escalate rather than silently widening retries, scopes, or model constraints
 
 ## Secret handling
 
-Never commit secrets, tokens, private keys, certificates, `.env` files, or production credentials. Approval-signing secrets and future model-provider credentials must remain external inputs and must not be serialized or logged. Use environment variables or an approved secret store.
+Never commit secrets, tokens, private keys, certificates, `.env` files, or production credentials. Approval-signing secrets and future model-provider/execution credentials must remain external inputs and must not be serialized or logged. Use environment variables or an approved secret store.
 
 ## Reporting
 

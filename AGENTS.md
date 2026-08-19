@@ -24,3 +24,10 @@
 22. Preserve deterministic routing: hard constraints must not be silently relaxed, adapter enumeration order must not change equivalent decisions, and stable identity must remain the final tie-breaker unless an ADR explicitly changes the contract.
 23. Keep prompt/project payload content out of routing requests unless a future reviewed architecture explicitly requires content-aware routing and documents its privacy/provenance implications.
 24. Treat provider capability, cost, latency, and reliability declarations as versioned input metadata, not independently verified truth or permission evidence.
+25. Treat validated Agent Orchestrator task contracts as immutable work authority inputs. An agent may not add dependencies, increase retry limits, change its assigned principal, or expand governed scopes during execution without producing a newly validated contract.
+26. Scheduling is not authorization. A ready or dispatched task still requires the Autonomy Governor for every governed capability.
+27. A task may submit only exact governed requests predeclared in its validated contract; never synthesize a broader permission request as a retry or fallback.
+28. Retry exhaustion must escalate rather than silently increasing `max_attempts`; dependency failures must remain visible and block downstream work until explicitly replanned.
+29. Model Router abstention must remain an explicit orchestration escalation; never bypass hard model constraints to keep a workflow moving.
+30. Phase 05 workflow evidence is not a substitute for the durable Autonomy Governor audit log. Governed authorization evidence remains Governor-owned.
+31. Do not claim Phase 05 provides distributed workers, crash-safe scheduler journaling, leases, heartbeats, or external execution; those capabilities belong to later phases unless separately implemented and verified.
