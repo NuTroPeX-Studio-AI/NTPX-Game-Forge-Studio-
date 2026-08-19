@@ -5,7 +5,7 @@
 3. ⬛ Autonomy Governor — VERIFIED
 4. 🧠 Model Router — VERIFIED
 5. 🧠 Agent Orchestrator — VERIFIED
-6. 🟥 Code Intelligence — NEXT
+6. 🟥 Code Intelligence — IN PROGRESS
 7. 0️⃣ Agent Zero Execution
 8. 🟧 Unreal Engine Bridge
 9. ⬜ Build / Test / Repair
@@ -33,7 +33,9 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 06: Code Intelligence — repository parsing/indexing, symbols, references, call/dependency graphs, change-impact analysis, and refactor intelligence behind the existing orchestration and governance boundaries.
+Phase 06: Code Intelligence — IN PROGRESS. The first increment introduces the provider-neutral `code-intelligence` workspace crate, explicit Rust/TypeScript/C++/Blueprint-metadata language-driver boundaries, deterministic source indexing, stable symbol IDs, lexical references, generated-file metadata, SHA-256 repository evidence, fail-closed input validation, and advisory change-impact output.
+
+Remaining Phase 06 work includes AST-native parsing/language services, resolved symbol/reference graphs, call/dependency graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound write execution.
 
 ## Boundaries carried forward
 
@@ -41,5 +43,7 @@ Phase 06: Code Intelligence — repository parsing/indexing, symbols, references
 - Agent Orchestrator scheduling does not grant tool, network, credential, repository, engine, publishing, or release authority.
 - A task may request only exact governed capabilities declared in its validated task contract; undeclared capability expansion fails before Governor submission.
 - `GovernanceRuntime` remains the sole verified authorization boundary for governed requests and preserves human approval for protected actions.
+- Code Intelligence analysis/index evidence does not authorize source mutation, repository writes, tool execution, model invocation, or engine actions.
+- The first Phase 06 lexical drivers are not represented as AST-complete or compiler/LSP-grade semantic resolution.
 - Phase 05 workflow state/evidence is serializable in-memory state, not yet a crash-safe durable distributed scheduler journal.
 - Phase 03 path/locking/replacement/recovery residual limits remain as documented in `ARCHITECTURE.md` and `SECURITY.md`.
