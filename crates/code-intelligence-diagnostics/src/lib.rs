@@ -46,7 +46,9 @@ pub enum DiagnosticError {
 impl fmt::Display for DiagnosticError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Encode(error) => write!(formatter, "diagnostic evidence encoding failed: {error}"),
+            Self::Encode(error) => {
+                write!(formatter, "diagnostic evidence encoding failed: {error}")
+            }
         }
     }
 }
@@ -71,7 +73,9 @@ fn sha256_hex(bytes: &[u8]) -> String {
 ///
 /// # Errors
 /// Returns [`DiagnosticError`] if deterministic evidence serialization fails.
-pub fn build_diagnostic_report(graph: &ReferenceGraph) -> Result<DiagnosticReport, DiagnosticError> {
+pub fn build_diagnostic_report(
+    graph: &ReferenceGraph,
+) -> Result<DiagnosticReport, DiagnosticError> {
     let mut diagnostics = Vec::new();
     let mut unresolved_count = 0;
     let mut ambiguous_count = 0;
@@ -205,10 +209,7 @@ mod tests {
             report.diagnostics[0].candidate_symbol_ids,
             vec!["symbol-a", "symbol-b"]
         );
-        assert_eq!(
-            report.diagnostics[1].code,
-            "NTPX-CI-UNRESOLVED-REFERENCE"
-        );
+        assert_eq!(report.diagnostics[1].code, "NTPX-CI-UNRESOLVED-REFERENCE");
     }
 
     #[test]
