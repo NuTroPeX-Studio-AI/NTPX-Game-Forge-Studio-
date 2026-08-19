@@ -6,7 +6,9 @@
 use std::{error::Error, fmt};
 
 use agent_orchestrator::{AgentId, Assignment, TaskId};
-use autonomy_governor::{DecisionRecord, Permission, Policy, PrincipalId, Request, RiskLevel, Scope};
+use autonomy_governor::{
+    DecisionRecord, Permission, Policy, PrincipalId, Request, RiskLevel, Scope,
+};
 use serde::{Deserialize, Serialize};
 
 /// Governed action requested on behalf of one exact scheduler assignment.
@@ -100,8 +102,8 @@ pub fn evaluate_assignment_action(
 mod tests {
     use agent_orchestrator::{AgentId, Assignment, TaskId};
     use autonomy_governor::{
-        ApprovalRequirement, Decision, Grant, Permission, Policy, Principal, PrincipalId, RiskLevel,
-        Scope, ScopeKind,
+        ApprovalRequirement, Decision, Grant, Permission, Policy, Principal, PrincipalId,
+        RiskLevel, Scope, ScopeKind,
     };
 
     use super::*;
@@ -143,12 +145,9 @@ mod tests {
             scope: scope.clone(),
             risk: RiskLevel::Low,
         };
-        let result = evaluate_assignment_action(
-            &policy(Permission::Execute, scope),
-            &assignment,
-            &intent,
-        )
-        .expect("exact assignment should evaluate");
+        let result =
+            evaluate_assignment_action(&policy(Permission::Execute, scope), &assignment, &intent)
+                .expect("exact assignment should evaluate");
         assert!(matches!(result.decision.decision, Decision::Allow { .. }));
     }
 
@@ -166,12 +165,9 @@ mod tests {
             scope: scope.clone(),
             risk: RiskLevel::Protected,
         };
-        let result = evaluate_assignment_action(
-            &policy(Permission::Publish, scope),
-            &assignment,
-            &intent,
-        )
-        .expect("protected action should evaluate");
+        let result =
+            evaluate_assignment_action(&policy(Permission::Publish, scope), &assignment, &intent)
+                .expect("protected action should evaluate");
         assert!(matches!(
             result.decision.decision,
             Decision::RequireHumanApproval { .. }
@@ -192,12 +188,9 @@ mod tests {
             scope: scope.clone(),
             risk: RiskLevel::Low,
         };
-        let error = evaluate_assignment_action(
-            &policy(Permission::Execute, scope),
-            &assignment,
-            &intent,
-        )
-        .expect_err("task substitution must fail closed");
+        let error =
+            evaluate_assignment_action(&policy(Permission::Execute, scope), &assignment, &intent)
+                .expect_err("task substitution must fail closed");
         assert!(matches!(error, IntegrationError::AssignmentMismatch { .. }));
     }
 }
