@@ -123,7 +123,9 @@ fn parse_top_level_declaration(
 }
 
 fn strip_leading_modifiers(mut source: &str) -> &str {
-    const MODIFIERS: [&str; 6] = ["export", "default", "declare", "abstract", "async", "public"];
+    const MODIFIERS: [&str; 6] = [
+        "export", "default", "declare", "abstract", "async", "public",
+    ];
 
     loop {
         let trimmed = source.trim_start();
@@ -153,12 +155,8 @@ fn declaration_prefix(source: &str) -> Option<(TypeScriptItemKind, &str)> {
 
     PREFIXES.iter().find_map(|(prefix, kind)| {
         source.strip_prefix(prefix).and_then(|remainder| {
-            has_declaration_boundary(remainder).then(|| {
-                (
-                    *kind,
-                    remainder.trim_start_matches('*').trim_start(),
-                )
-            })
+            has_declaration_boundary(remainder)
+                .then_some((*kind, remainder.trim_start_matches('*').trim_start()))
         })
     })
 }
@@ -185,7 +183,8 @@ fn extract_identifier(source: &str) -> Option<&str> {
         .unwrap_or(source.len());
     let candidate = &source[..end];
     let first = candidate.chars().next()?;
-    (is_identifier_start(first) && candidate.chars().all(is_identifier_continue)).then_some(candidate)
+    (is_identifier_start(first) && candidate.chars().all(is_identifier_continue))
+        .then_some(candidate)
 }
 
 fn is_identifier_start(character: char) -> bool {
@@ -269,18 +268,9 @@ fn parse_digest(path: &str, items: &[TypeScriptItem]) -> String {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TypeScriptParserError {
     EmptyPath,
-    LanguageMismatch {
-        path: String,
-        actual: Language,
-    },
-    MalformedDeclaration {
-        line: u32,
-        declaration: String,
-    },
-    UnbalancedStructure {
-        path: String,
-        line: u32,
-    },
+    LanguageMismatch { path: String, actual: Language },
+    MalformedDeclaration { line: u32, declaration: String },
+    UnbalancedStructure { path: String, line: u32 },
 }
 
 impl fmt::Display for TypeScriptParserError {
