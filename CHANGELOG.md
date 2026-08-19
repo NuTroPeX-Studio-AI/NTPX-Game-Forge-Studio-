@@ -4,7 +4,7 @@ All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
 ## 0.5.0-dev.1 — Phase 05 — Build B000014
 
-### Agent Orchestrator verification candidate
+### Verified Agent Orchestrator
 - Added the provider-neutral `agent-orchestrator` Rust workspace crate on top of the verified Model Router and Autonomy Governor boundaries.
 - Added immutable typed `AgentContract` and `TaskContract` inputs with stable identities, assigned Governor principals, declared skills, dependencies, Model Router requests/policies, bounded retry budgets, and exact predeclared governed requests.
 - Added deterministic task-graph validation with duplicate/blank identity rejection, assigned-agent checks, required-skill validation, dangling/self dependency rejection, dependency-cycle detection, and governed-principal binding.
@@ -17,9 +17,10 @@ All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 - Added acceptance tests for deterministic plan/ready ordering, DAG validation, skill mismatch, Model Router dispatch, per-agent concurrency, retry exhaustion, routing abstention, dependency blocking, and Autonomy Governor authorization boundaries.
 - Safely repaired CI findings from rustfmt and strict Clippy: applied formatter output, removed a redundant double-`must_use`, and replaced an internal dispatch `.expect()` panic path with a typed `OrchestratorError`. No lint/test/security gate was weakened.
 - Implementation candidate CI run `32209679408` passed Rust formatting, strict Clippy, full workspace tests including Agent Orchestrator acceptance tests, desktop frontend typecheck/build, and Windows Autonomy Governor regressions.
+- Exact stamped B000014 candidate CI run `32210007101` passed the same Rust, frontend, and Windows gates with the final ADR, architecture/security/agent rules, roadmap, build metadata, command-center UI, changelog, and candidate verification record present.
 - Recorded ADR 0012 and Phase 05 security/agent rules. Selection, scheduling, authorization, and execution remain distinct boundaries.
 - Residual limits are explicit: Phase 05 workflow state/evidence is serializable in-memory state, not a crash-safe distributed scheduler journal, and Phase 05 adds no external execution adapter.
-- B000014 remains CANDIDATE until the exact stamped documentation/build/UI head passes CI. Phase 06 Code Intelligence remains gated until then.
+- Phase 05 is VERIFIED. Phase 06 Code Intelligence is next.
 
 ## 0.4.0-dev.1 — Phase 04 — Build B000013
 
