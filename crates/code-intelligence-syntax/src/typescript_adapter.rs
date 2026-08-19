@@ -247,9 +247,11 @@ fn first_error_line(node: Node<'_>) -> Option<u32> {
         return Some(node_line(node));
     }
     let mut cursor = node.walk();
-    node.children(&mut cursor)
+    let result = node
+        .children(&mut cursor)
         .filter(|child| child.has_error() || child.is_missing())
-        .find_map(first_error_line)
+        .find_map(first_error_line);
+    result
 }
 
 fn parse_digest(path: &str, items: &[TypeScriptItem]) -> String {
