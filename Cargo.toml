@@ -6,6 +6,7 @@ members = [
   "crates/autonomy-governor",
   "crates/model-router",
   "crates/agent-orchestrator",
+  "crates/agent-orchestrator-evidence",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
