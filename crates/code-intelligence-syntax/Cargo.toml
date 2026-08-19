@@ -8,8 +8,10 @@ rust-version.workspace = true
 
 [dependencies]
 code-intelligence = { path = "../code-intelligence" }
+proc-macro2.workspace = true
 serde.workspace = true
 sha2.workspace = true
+syn.workspace = true
 
 [lints]
 workspace = true
