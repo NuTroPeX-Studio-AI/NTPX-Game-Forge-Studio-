@@ -433,10 +433,7 @@ pub struct IncrementalIndexResult {
 #[derive(Debug)]
 pub enum IncrementalIndexError {
     Index(CodeIntelligenceError),
-    PriorEvidenceMismatch {
-        expected: String,
-        actual: String,
-    },
+    PriorEvidenceMismatch { expected: String, actual: String },
 }
 
 impl fmt::Display for IncrementalIndexError {
