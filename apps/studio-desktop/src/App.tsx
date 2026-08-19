@@ -4,7 +4,8 @@ const stages = [
   "Autonomy Governor",
   "Model Router",
   "Agent Orchestrator",
-  "Code Intelligence"
+  "Code Intelligence",
+  "Agent Zero Execution"
 ];
 
 export default function App() {
@@ -14,14 +15,14 @@ export default function App() {
         <p className="eyebrow">NTPX GAMEFORGE Ω∞</p>
         <h1>Autonomous Game Development Command Center</h1>
         <p className="lede">
-          Phase 05 Agent Orchestrator is verified. Phase 06 Code Intelligence is the next construction target.
+          Phase 06 Code Intelligence is a B000028 verification candidate. Phase 07 remains gated until exact-head CI and Fortress verification pass.
         </p>
       </section>
 
       <section className="panel">
-        <div><span className="label">Current build</span><strong>B000014</strong></div>
-        <div><span className="label">Milestone</span><strong>M05</strong></div>
-        <div><span className="label">State</span><strong>Verified</strong></div>
+        <div><span className="label">Current build</span><strong>B000028</strong></div>
+        <div><span className="label">Milestone</span><strong>M06</strong></div>
+        <div><span className="label">State</span><strong>Candidate</strong></div>
       </section>
 
       <section className="roadmap">
