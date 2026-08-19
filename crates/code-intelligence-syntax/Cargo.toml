@@ -1,0 +1,20 @@
+[package]
+name = "code-intelligence-syntax"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+code-intelligence = { path = "../code-intelligence" }
+proc-macro2.workspace = true
+serde.workspace = true
+sha2.workspace = true
+syn.workspace = true
+tree-sitter.workspace = true
+tree-sitter-typescript.workspace = true
+tree-sitter-cpp.workspace = true
+
+[lints]
+workspace = true

@@ -2,6 +2,113 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.6.0-dev.8 — Phase 06 — Build B000022
+
+### Verified Rust parser adapter foundation
+- Added `RustParserAdapter` as the first language-specific parser adapter behind the verified `code-intelligence-syntax` boundary.
+- Added deterministic top-level Rust item evidence for functions, structs, enums, traits, modules, impls, type aliases, constants, and statics with stable source line, ordinal, and SHA-256 correlation evidence.
+- Added common Rust visibility handling for ordinary, `pub`, `pub(crate)`, and `pub(super)` declarations and brace-depth tracking so nested methods are not promoted to top-level item evidence.
+- Added fail-closed validation for empty paths, non-Rust input, malformed recognized declarations, and unbalanced block structure.
+- Added unit tests for deterministic parsing, top-level/nested separation, language mismatch, malformed-item rejection, and unbalanced-structure rejection.
+- Initial candidate CI `32240568368` found rustfmt-only drift; exact formatter output was applied without weakening validation, linting, tests, or security controls.
+- Repaired formatting candidate CI `32240687863` passed formatting and desktop validation; strict Clippy found one redundant `trim()` before `split_whitespace()`, which was removed directly without suppression.
+- Repaired implementation head `8242add6cf64bc51a4804e631ebdb5669ece37c1` passed CI `32240851940`: Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop TypeScript typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0020, B000022 build history, Phase 06 verification evidence, roadmap state, and continuous build metadata.
+- Phase 06 remains IN PROGRESS. This increment is not represented as a `rustc` AST, macro/type resolver, control-flow graph, true call graph, or LSP semantic model; TypeScript/C++/Blueprint native adapters and the remaining semantic/refactor/cache/governed-write work remain pending.
+
+## 0.6.0-dev.7 — Phase 06 — Build B000021
+
+### Verified deterministic syntax-service boundary
+- Added the provider-neutral `code-intelligence-syntax` workspace crate and explicit `SyntaxService` boundary above the verified lexical Code Intelligence layers.
+- Added deterministic declaration, block-open, and block-close structural evidence with stable line/depth metadata and SHA-256 syntax correlation evidence.
+- Added fail-closed handling for empty source paths, language mismatch, unmatched closing blocks, and unmatched opening blocks.
+- Added unit coverage for repeated deterministic parsing and all fail-closed structure/language cases.
+- Initial candidate CI `32235600460` found rustfmt-only drift; exact formatter-equivalent output was applied without weakening validation.
+- CI `32235778520` then exposed two strict-Clippy code-quality findings; both were repaired without lint suppression or behavioral/security relaxation.
+- Repaired implementation head `c21f51098c077375b832979bf6267ff24ab6b855` passed CI `32235947084`, and the final synchronized B000021 head also passed the complete repository gate.
+- Recorded ADR 0019, B000021 history, Phase 06 verification evidence, roadmap state, and continuous build metadata.
+- Phase 06 remains IN PROGRESS. B000021 is a structural syntax/language-service substrate, not a compiler-native AST or LSP semantic model.
+
+## 0.6.0-dev.6 — Phase 06 — Build B000020
+
+### Verified deterministic advisory lexical symbol search
+- Added provider-neutral deterministic lexical symbol search over the verified repository index.
+- Added normalized query handling with exact, prefix, and substring ranking, stable path/name/line/symbol-ID tie-breaking, deterministic result limiting, and SHA-256 evidence bound to repository evidence.
+- Preserved explicit lexical-only scope; no compiler/LSP/embedding semantic claim or mutation authority was introduced.
+- Initial candidate CI `32230634146` found rustfmt-only drift; exact formatter-equivalent output was applied without weakening validation.
+- Repaired implementation candidate CI `32230716674` passed the complete repository gate, and exact synchronized B000020 head CI `32230940838` completed successfully.
+- Recorded ADR 0018, B000020 history, verification evidence, roadmap state, and continuous build metadata.
+- Phase 06 remains IN PROGRESS.
+
+## 0.6.0-dev.5 — Phase 06 — Build B000019
+
+### Verified deterministic advisory diagnostics
+- Added provider-neutral deterministic advisory diagnostics over the verified lexical reference graph.
+- Unresolved and ambiguous lexical references now emit stable warning records with canonical ordering, normalized candidate symbol IDs, explicit counts, and SHA-256 report evidence.
+- Preserved fail-closed ambiguity and unresolved evidence rather than guessing compiler/LSP semantics.
+- Initial candidate failed only formatting; exact formatter output was applied without weakening validation.
+- Repaired implementation candidate CI `32226278375` passed Rust formatting, strict Clippy, full workspace tests, desktop TypeScript typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0017, B000019 history, verification evidence, roadmap state, and continuous build metadata.
+- Phase 06 remains IN PROGRESS.
+
+## 0.6.0-dev.4 — Phase 06 — Build B000018
+
+### Verified deterministic incremental index reuse increment
+- Added deterministic incremental repository indexing on top of the verified B000015–B000017 Code Intelligence evidence layers.
+- Unchanged file evidence is reused only when path, language, generated-file state, and current source-content SHA-256 match exactly.
+- Recomputed and verified the prior repository evidence digest before any cached file record is trusted; mismatched/tampered prior evidence fails closed with explicit `PriorEvidenceMismatch`.
+- Kept exact language-driver availability mandatory even for reusable files so cache reuse cannot silently bypass the configured language boundary.
+- Content changes and generated-state changes invalidate reuse; removed files are excluded and reuse/reindex/removal counts remain explicit.
+- Added tests proving unchanged-cache reuse without driver execution, changed-content equivalence to a clean rebuild, generated-state invalidation, removed-file handling, tampered-evidence rejection, and source-order determinism.
+- Initial candidate CI `32221871332` found rustfmt-only drift; exact formatter-equivalent output was applied without weakening validation, linting, tests, or security controls.
+- Repaired implementation candidate CI `32221974551` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0016, B000018 build history, Phase 06 verification evidence, roadmap state, and continuous build metadata.
+- Phase 06 remains IN PROGRESS. AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, diagnostics, semantic search, refactor planning/application, persistent cache policy, and governance-bound source mutation remain pending.
+
+## 0.6.0-dev.3 — Phase 06 — Build B000017
+
+### Deterministic advisory lexical dependency graph candidate
+- Added repository-level advisory dependency graph construction on top of the verified B000016 lexical reference graph.
+- Only uniquely resolved references become file-to-symbol dependency edges carrying source path/reference line/target token and stable target symbol ID/path/line evidence.
+- Ambiguous and unresolved references never become guessed dependency edges and remain visible through explicit counts.
+- Added deterministic canonical edge ordering, SHA-256 dependency-graph evidence, and unit coverage for resolved-edge creation, ambiguity/unresolved fail-closed behavior, and source-order equivalence.
+- Initial candidate CI `32217736330` found rustfmt-only drift in the new dependency module; exact formatter output was applied without weakening validation, linting, tests, or security controls.
+- Repaired implementation candidate CI `32217787844` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0015 describing the advisory dependency-graph boundary and its deliberate non-AST/non-compiler/non-LSP/non-call-graph limits.
+- Exact stamped B000017 documentation/build-metadata head must pass the same complete repository gate before final VERIFIED classification.
+- Phase 06 remains IN PROGRESS. AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
+
+## 0.6.0-dev.2 — Phase 06 — Build B000016
+
+### Verified deterministic lexical reference resolution increment
+- Added repository-level lexical reference graph construction on top of the B000015 deterministic index.
+- Unique exact lexical target/symbol-name matches resolve to stable symbol ID, path, and line evidence.
+- Ambiguous exact matches remain explicit, deterministically ordered, and never select an arbitrary winner.
+- Unresolved references remain explicit evidence instead of being silently discarded.
+- Added deterministic SHA-256 reference-graph evidence and unit coverage for resolved, ambiguous, unresolved, and source-order-equivalence behavior.
+- CI `32214476226` found rustfmt-only drift in the new resolution module; exact formatter output was applied without weakening validation, linting, tests, or security.
+- Repaired implementation candidate CI `32214521151` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Exact stamped B000016 head CI `32214681258` passed the same complete repository gate.
+- Recorded ADR 0014 describing deterministic lexical resolution and its deliberate non-AST/non-compiler/non-LSP limits.
+- Phase 06 remains IN PROGRESS. AST-native parsing/language services, compiler/LSP-grade semantic resolution, call/dependency graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
+
+## 0.6.0-dev.1 — Phase 06 — Build B000015
+
+### Verified deterministic code-index foundation increment
+- Added the provider-neutral `code-intelligence` Rust workspace crate behind the verified Agent Orchestrator and Autonomy Governor boundaries.
+- Added explicit lexical language-driver boundaries for Rust, TypeScript, C++, and Blueprint metadata without introducing provider SDKs, game-engine SDKs, external language-service processes, or mutation authority.
+- Added deterministic repository indexing with stable source paths, generated-file metadata, SHA-256 content digests, stable symbol IDs, lexical reference records, and a reproducible repository evidence digest.
+- Normalized repository/file evidence through ordered maps so equivalent source sets and language-driver enumeration orders produce equivalent index evidence.
+- Added fail-closed validation for empty paths, duplicate paths, missing drivers, and driver/language mismatches.
+- Added advisory deterministic change-impact output derived from indexed references; it does not authorize edits.
+- Added unit tests for input-order determinism, duplicate-path rejection, missing-driver rejection, and deterministic change-impact behavior.
+- Initial CI run `32210625731` identified rustfmt-only differences; formatter output was applied without changing the authority boundary or weakening tests.
+- CI run `32210746616` passed formatting and identified one strict-Clippy documentation-markdown issue; the documentation was corrected instead of suppressing the lint.
+- Repaired implementation candidate CI run `32210838815` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Exact stamped B000015 head CI `32211032036` passed the same complete repository gate.
+- Recorded ADR 0013 describing the deterministic lexical indexing boundary and its deliberate non-AST/non-LSP limitations.
+- Phase 06 remains IN PROGRESS. AST-native parsing, resolved references/call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
+
 ## 0.5.0-dev.1 — Phase 05 — Build B000014
 
 ### Verified Agent Orchestrator
@@ -31,7 +138,7 @@ All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 - Added deterministic lexicographic routing policies with stable provider/model identity as the final tie-breaker, making equivalent decisions independent of adapter enumeration order.
 - Added ordered bounded fallback candidates and explicit fail-closed abstention when no model satisfies all hard constraints.
 - Added deterministic rejection evidence for missing capabilities, insufficient capacity, privacy violations, cost/latency ceilings, and reliability floors.
-- Added fail-closed validation for duplicate model identities, adapter provider/class mismatches, invalid reliability values, and repeated/empty ranking policies.
+- Added fail-closed validation for duplicate model identities, adapter provider/class inconsistencies, invalid reliability values, and repeated/empty ranking policies.
 - Added SHA-256 routing evidence covering request, policy, eligible/rejected candidates, and outcome.
 - Added acceptance tests for adapter interchangeability, local-only privacy, deterministic ordering/digest, policy precedence, fallbacks, abstention, rejection evidence, duplicate identities, and invalid policy.
 - Safely repaired CI findings from rustfmt and one strict Clippy documentation-markdown issue without weakening routing behavior or tests.

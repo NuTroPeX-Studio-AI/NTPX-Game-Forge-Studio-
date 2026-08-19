@@ -6,6 +6,12 @@ members = [
   "crates/autonomy-governor",
   "crates/model-router",
   "crates/agent-orchestrator",
+  "crates/code-intelligence",
+  "crates/code-intelligence-diagnostics",
+  "crates/code-intelligence-search",
+  "crates/code-intelligence-syntax",
+  "crates/code-intelligence-edits",
+  "crates/code-intelligence-apply",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
@@ -25,6 +31,11 @@ serde_json = "1.0"
 sha2 = "0.10.9"
 hmac = "0.12.1"
 fs2 = "0.4.3"
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
+syn = { version = "2.0", features = ["full"] }
+tree-sitter = "0.26.11"
+tree-sitter-typescript = "0.23.2"
+tree-sitter-cpp = "0.23.4"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

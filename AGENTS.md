@@ -31,3 +31,13 @@
 29. Model Router abstention must remain an explicit orchestration escalation; never bypass hard model constraints to keep a workflow moving.
 30. Phase 05 workflow evidence is not a substitute for the durable Autonomy Governor audit log. Governed authorization evidence remains Governor-owned.
 31. Do not claim Phase 05 provides distributed workers, crash-safe scheduler journaling, leases, heartbeats, or external execution; those capabilities belong to later phases unless separately implemented and verified.
+32. Treat Code Intelligence indexes, references, dependency graphs, diagnostics, search results, syntax evidence, and edit plans as evidence only; none is an authorization token.
+33. Ambiguous or unresolved lexical references must stay explicit. Never choose a mutation target merely to keep a workflow moving.
+34. Do not describe Phase 06 lexical dependency evidence as a true semantic call graph or compiler/LSP semantic model.
+35. Preserve language-specific syntax boundaries: Rust `syn`, TypeScript/C++ Tree-sitter, and textual Blueprint metadata. Do not claim compiler/type semantics or Blueprint binary `.uasset` understanding without separate implementation and verification.
+36. Exact edit plans must remain bound to repository evidence, source digest, replacement digest, and plan evidence; generated/no-op/stale plans fail closed.
+37. Before applying a Phase 06 edit plan, recheck replacement/plan integrity, enforce a normal repository-relative path, re-read current on-disk source, and rerun freshness validation.
+38. Phase 06 source mutation must enter through `GovernanceRuntime` and the existing rollback-capable transaction path. Never add a Code Intelligence-specific bypass, raw write, permission grant, or parallel audit system.
+39. A Code Intelligence plan cannot override denial or human approval. Human-gated mutation must use the exact existing request-bound approval path.
+40. Do not claim B000028 eliminates hostile TOCTOU/content races; the Phase 03 cooperative-locking and path-race residual limits remain authoritative.
+41. NTPX Fortress bootstrap monitoring is a carried-forward repository gate. Do not weaken, bypass, or seed secrets/high-classification material to make that gate pass.
