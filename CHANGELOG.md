@@ -2,6 +2,19 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.6.0-dev.3 — Phase 06 — Build B000017
+
+### Deterministic advisory lexical dependency graph candidate
+- Added repository-level advisory dependency graph construction on top of the verified B000016 lexical reference graph.
+- Only uniquely resolved references become file-to-symbol dependency edges carrying source path/reference line/target token and stable target symbol ID/path/line evidence.
+- Ambiguous and unresolved references never become guessed dependency edges and remain visible through explicit counts.
+- Added deterministic canonical edge ordering, SHA-256 dependency-graph evidence, and unit coverage for resolved-edge creation, ambiguity/unresolved fail-closed behavior, and source-order equivalence.
+- Initial candidate CI `32217736330` found rustfmt-only drift in the new dependency module; exact formatter output was applied without weakening validation, linting, tests, or security controls.
+- Repaired implementation candidate CI `32217787844` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0015 describing the advisory dependency-graph boundary and its deliberate non-AST/non-compiler/non-LSP/non-call-graph limits.
+- Exact stamped B000017 documentation/build-metadata head must pass the same complete repository gate before final VERIFIED classification.
+- Phase 06 remains IN PROGRESS. AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
+
 ## 0.6.0-dev.2 — Phase 06 — Build B000016
 
 ### Verified deterministic lexical reference resolution increment
