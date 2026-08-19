@@ -100,7 +100,7 @@ impl BlueprintMetadataParserAdapter {
                     line,
                 ),
                 "Asset" => {
-                    push_reference(&mut references, BlueprintReferenceKind::Asset, value, line)
+                    push_reference(&mut references, BlueprintReferenceKind::Asset, value, line);
                 }
                 _ => {
                     return Err(BlueprintParserError::UnknownRecord {
