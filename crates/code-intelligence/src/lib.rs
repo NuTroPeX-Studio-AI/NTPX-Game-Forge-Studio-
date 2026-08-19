@@ -9,7 +9,9 @@ use std::{collections::BTreeMap, error::Error, fmt};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+mod dependency;
 mod resolution;
+pub use dependency::{build_dependency_graph, DependencyEdge, DependencyGraph};
 pub use resolution::{
     build_reference_graph, ReferenceGraph, ReferenceResolution, ResolvedReferenceRecord,
 };
