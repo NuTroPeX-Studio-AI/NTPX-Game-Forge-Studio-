@@ -116,7 +116,11 @@ impl NarrativeGraph {
                 return Err(NarrativeError::UnknownDialogueLink(next.clone()));
             }
         }
-        if self.dialogue.insert(node.id.clone(), node.clone()).is_some() {
+        if self
+            .dialogue
+            .insert(node.id.clone(), node.clone())
+            .is_some()
+        {
             return Err(NarrativeError::DuplicateDialogue(node.id));
         }
         Ok(())
@@ -138,7 +142,11 @@ impl NarrativeGraph {
                 return Err(NarrativeError::UnknownQuestDependency(dependency.clone()));
             }
         }
-        if self.quests.insert(quest.id.clone(), quest.clone()).is_some() {
+        if self
+            .quests
+            .insert(quest.id.clone(), quest.clone())
+            .is_some()
+        {
             return Err(NarrativeError::DuplicateQuest(quest.id));
         }
         Ok(())
