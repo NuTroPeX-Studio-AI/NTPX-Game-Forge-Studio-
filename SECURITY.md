@@ -50,7 +50,7 @@ The following always require explicit human authorization:
 - Requests are delegated to `GovernanceRuntime`; orchestration cannot manufacture a permit or bypass human approval.
 - Phase 05 adds no external executor, model invocation, network connection, credential use, tool execution, repository mutation, engine execution, publishing, signing, or release API.
 
-## Phase 06 Code Intelligence candidate guarantees
+## Verified Phase 06 Code Intelligence guarantees
 
 ### Analysis and syntax evidence
 
