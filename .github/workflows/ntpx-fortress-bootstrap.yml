@@ -1,0 +1,45 @@
+name: NTPX Fortress Bootstrap Gate
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  fortress:
+    name: Fortress monitor gate
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Run NTPX Fortress bootstrap monitor
+        id: fortress
+        shell: bash
+        run: |
+          set +e
+          python3 scripts/ntpx_fortress_gate.py --mode monitor
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload Fortress evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ntpx-fortress-bootstrap-${{ github.sha }}
+          path: |
+            .ntpx/fortress/bootstrap-report.json
+            .ntpx/fortress/bootstrap-manifest.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Enforce Fortress gate
+        shell: bash
+        run: |
+          code='${{ steps.fortress.outputs.exit_code }}'
+          if [ -z "$code" ]; then exit 31; fi
+          if [ "$code" -ne 0 ]; then
+            echo "NTPX Fortress blocked this change (exit $code)."
+            exit "$code"
+          fi
+          echo "NTPX Fortress bootstrap monitor passed."
