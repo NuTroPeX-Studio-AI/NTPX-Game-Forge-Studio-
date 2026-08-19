@@ -4,6 +4,8 @@ Phase status: IN PROGRESS
 
 Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — deterministic lexical reference resolution
 
+Current candidate: `NTPX-GFΩ-G0-v0.6.0-dev.3-M06-B000017` — deterministic advisory lexical dependency graph
+
 ## B000015 acceptance gate — deterministic index foundation
 
 - [x] provider-neutral `code-intelligence` Rust workspace crate;
@@ -37,6 +39,22 @@ Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — determin
 - [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32214521151`;
 - [x] exact stamped B000016 head passed the same complete repository gate in CI `32214681258`.
 
+## B000017 acceptance gate — advisory lexical dependency graph
+
+- [x] dependency graph consumes the deterministic B000016 reference graph;
+- [x] only uniquely resolved references become dependency edges;
+- [x] edges retain source path/reference line/target token and stable target symbol ID/path/line evidence;
+- [x] ambiguous references never become guessed dependency edges and remain explicitly counted;
+- [x] unresolved references never become guessed dependency edges and remain explicitly counted;
+- [x] dependency edges are canonically ordered;
+- [x] equivalent source enumeration order produces equivalent dependency-graph evidence;
+- [x] dependency graph carries deterministic SHA-256 correlation evidence;
+- [x] unit coverage exercises resolved-edge creation, ambiguity/unresolved fail-closed behavior, and order determinism;
+- [x] no AST/compiler/LSP semantic or call-graph claim is introduced;
+- [x] no mutation, execution, network, credential, engine, publish, signing, or release authority is introduced;
+- [x] repaired implementation candidate passed Rust formatting, strict Clippy, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests in CI `32217787844`;
+- [ ] exact stamped B000017 head passes the same complete repository gate.
+
 ## Evidence lineage
 
 ### B000015
@@ -54,11 +72,20 @@ Latest validated increment: `NTPX-GFΩ-G0-v0.6.0-dev.2-M06-B000016` — determin
 - Exact stamped B000016 head CI `32214681258` passed the same complete repository gate with build metadata, roadmap, ADR 0014, verification evidence, and changelog records present.
 - B000016 is VERIFIED.
 
+### B000017
+
+- CI `32217736330` failed only on rustfmt drift in `crates/code-intelligence/src/dependency.rs`; desktop frontend typecheck/build passed and Rust Clippy/tests did not run after the formatting failure.
+- Exact formatter output was applied. No lint, validation, test, or security control was weakened.
+- Repaired implementation candidate CI `32217787844` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- ADR 0015 records the deterministic advisory dependency-graph boundary.
+- Final B000017 VERIFIED classification requires the exact stamped documentation/build-metadata head to pass the same complete repository gate.
+
 ## Explicit boundaries
 
-- The drivers and B000016 resolver remain lexical. They are not represented as AST-complete, compiler-grade, linker-grade, or LSP-grade semantic analysis.
-- Exact target/name correlation does not model scopes, aliases, namespaces, imports, overloads, templates/generics, type inference, macros, or engine reflection semantics.
+- The drivers, B000016 resolver, and B000017 dependency graph remain lexical. They are not represented as AST-complete, compiler-grade, linker-grade, or LSP-grade semantic analysis.
+- B000017 is a file-to-symbol dependency graph derived only from uniquely resolved lexical evidence; it is not a call graph.
+- Exact target/name correlation does not model scopes, aliases, namespaces, imports, overloads, templates/generics, type inference, macros, dynamic dispatch, or engine reflection semantics.
 - Ambiguity remains explicit and never grants permission to choose or mutate a target.
 - Code Intelligence evidence does not authorize source mutation, tool execution, model invocation, repository changes, network/credential use, or engine execution.
 - Later refactor/application paths must consume the verified Agent Orchestrator and Autonomy Governor boundaries.
-- Phase 06 remains IN PROGRESS after B000016. AST-native parsing/language services, compiler/LSP-grade resolution, call/dependency graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governed source mutation remain pending.
+- Phase 06 remains IN PROGRESS after B000017. AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governed source mutation remain pending.
