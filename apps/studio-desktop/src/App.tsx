@@ -14,14 +14,14 @@ export default function App() {
         <p className="eyebrow">NTPX GAMEFORGE Ω∞</p>
         <h1>Autonomous Game Development Command Center</h1>
         <p className="lede">
-          Phase 04 Model Router is verified. Phase 05 Agent Orchestrator is the next construction target.
+          Phase 05 Agent Orchestrator is the B000014 verification candidate. Phase 06 Code Intelligence unlocks after exact-head CI.
         </p>
       </section>
 
       <section className="panel">
-        <div><span className="label">Current build</span><strong>B000013</strong></div>
-        <div><span className="label">Milestone</span><strong>M04</strong></div>
-        <div><span className="label">State</span><strong>Verified</strong></div>
+        <div><span className="label">Current build</span><strong>B000014</strong></div>
+        <div><span className="label">Milestone</span><strong>M05</strong></div>
+        <div><span className="label">State</span><strong>Candidate</strong></div>
       </section>
 
       <section className="roadmap">
