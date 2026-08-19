@@ -2,6 +2,20 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.6.0-dev.2 — Phase 06 — Build B000016
+
+### Verified deterministic lexical reference resolution increment
+- Added repository-level lexical reference graph construction on top of the B000015 deterministic index.
+- Unique exact lexical target/symbol-name matches resolve to stable symbol ID, path, and line evidence.
+- Ambiguous exact matches remain explicit, deterministically ordered, and never select an arbitrary winner.
+- Unresolved references remain explicit evidence instead of being silently discarded.
+- Added deterministic SHA-256 reference-graph evidence and unit coverage for resolved, ambiguous, unresolved, and source-order-equivalence behavior.
+- CI `32214476226` found rustfmt-only drift in the new resolution module; exact formatter output was applied without weakening validation, linting, tests, or security.
+- Repaired implementation candidate CI `32214521151` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Exact stamped B000016 head CI `32214681258` passed the same complete repository gate.
+- Recorded ADR 0014 describing deterministic lexical resolution and its deliberate non-AST/non-compiler/non-LSP limits.
+- Phase 06 remains IN PROGRESS. AST-native parsing/language services, compiler/LSP-grade semantic resolution, call/dependency graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
+
 ## 0.6.0-dev.1 — Phase 06 — Build B000015
 
 ### Verified deterministic code-index foundation increment
@@ -15,6 +29,7 @@ All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 - Initial CI run `32210625731` identified rustfmt-only differences; formatter output was applied without changing the authority boundary or weakening tests.
 - CI run `32210746616` passed formatting and identified one strict-Clippy documentation-markdown issue; the documentation was corrected instead of suppressing the lint.
 - Repaired implementation candidate CI run `32210838815` passed Rust formatting, strict Clippy with warnings denied, the full workspace test suite, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Exact stamped B000015 head CI `32211032036` passed the same complete repository gate.
 - Recorded ADR 0013 describing the deterministic lexical indexing boundary and its deliberate non-AST/non-LSP limitations.
 - Phase 06 remains IN PROGRESS. AST-native parsing, resolved references/call graphs, incremental caching, diagnostics, semantic search, refactor planning/application, and governance-bound source mutation remain pending.
 
