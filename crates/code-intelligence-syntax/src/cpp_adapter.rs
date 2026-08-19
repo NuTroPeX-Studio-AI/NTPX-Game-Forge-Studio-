@@ -178,7 +178,8 @@ fn find_name_node(node: Node<'_>) -> Option<Node<'_>> {
         return Some(node);
     }
     let mut cursor = node.walk();
-    node.named_children(&mut cursor).find_map(find_name_node)
+    let result = node.named_children(&mut cursor).find_map(find_name_node);
+    result
 }
 
 fn push_item(items: &mut Vec<CppItem>, kind: CppItemKind, name: &str, node: Node<'_>) {
