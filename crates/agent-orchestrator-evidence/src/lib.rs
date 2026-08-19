@@ -87,7 +87,9 @@ impl fmt::Display for EvidenceError {
             }
             Self::InvalidDelegator(id) => write!(f, "delegator id must not be empty: '{}'", id.0),
             Self::InvalidDelegate(id) => write!(f, "delegate id must not be empty: '{}'", id.0),
-            Self::SelfDelegation(id) => write!(f, "task '{}' cannot be delegated to the delegator", id.0),
+            Self::SelfDelegation(id) => {
+                write!(f, "task '{}' cannot be delegated to the delegator", id.0)
+            }
             Self::EmptyDelegationReason(id) => {
                 write!(f, "task '{}' delegation reason must not be empty", id.0)
             }
@@ -96,7 +98,9 @@ impl fmt::Display for EvidenceError {
                 "task '{}' delegation is not bound to the same scheduler assignment",
                 id.0
             ),
-            Self::Serialization(message) => write!(f, "failed to serialize orchestration evidence: {message}"),
+            Self::Serialization(message) => {
+                write!(f, "failed to serialize orchestration evidence: {message}")
+            }
         }
     }
 }
@@ -156,7 +160,9 @@ pub fn collect_evidence(
     let mut assignment_by_task = BTreeMap::new();
     for assignment in &canonical_assignments {
         if !known_tasks.contains(&assignment.task_id) {
-            return Err(EvidenceError::UnknownAssignmentTask(assignment.task_id.clone()));
+            return Err(EvidenceError::UnknownAssignmentTask(
+                assignment.task_id.clone(),
+            ));
         }
         if assignment.agent_id.0.is_empty() {
             return Err(EvidenceError::InvalidAssignmentAgent(
@@ -207,9 +213,7 @@ pub fn collect_evidence(
             ));
         }
         if assignment_by_task.get(&delegation.task_id) != Some(&delegation.delegated_to) {
-            return Err(EvidenceError::UnboundDelegation(
-                delegation.task_id.clone(),
-            ));
+            return Err(EvidenceError::UnboundDelegation(delegation.task_id.clone()));
         }
     }
 
