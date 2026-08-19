@@ -54,12 +54,17 @@ impl fmt::Display for MemoryError {
             Self::EmptyId => formatter.write_str("memory/skill id must not be empty"),
             Self::EmptyContent => formatter.write_str("memory content must not be empty"),
             Self::EmptyProvenance => formatter.write_str("memory provenance must not be empty"),
-            Self::EmptyPrivacyLabel => formatter.write_str("memory privacy label must not be empty"),
+            Self::EmptyPrivacyLabel => {
+                formatter.write_str("memory privacy label must not be empty")
+            }
             Self::DuplicateRecord(id) => write!(formatter, "duplicate memory record '{id}'"),
             Self::DuplicateSkill(id) => write!(formatter, "duplicate skill '{id}'"),
             Self::EmptySkillVersion => formatter.write_str("skill version must not be empty"),
             Self::UnknownSkillDependency { skill, dependency } => {
-                write!(formatter, "skill '{skill}' depends on unknown skill '{dependency}'")
+                write!(
+                    formatter,
+                    "skill '{skill}' depends on unknown skill '{dependency}'"
+                )
             }
         }
     }
@@ -85,7 +90,11 @@ impl LocalMemoryStore {
         if record.privacy_label.trim().is_empty() {
             return Err(MemoryError::EmptyPrivacyLabel);
         }
-        if self.records.insert(record.id.clone(), record.clone()).is_some() {
+        if self
+            .records
+            .insert(record.id.clone(), record.clone())
+            .is_some()
+        {
             return Err(MemoryError::DuplicateRecord(record.id));
         }
         Ok(())
@@ -110,7 +119,11 @@ impl LocalMemoryStore {
                 });
             }
         }
-        if self.skills.insert(skill.id.clone(), skill.clone()).is_some() {
+        if self
+            .skills
+            .insert(skill.id.clone(), skill.clone())
+            .is_some()
+        {
             return Err(MemoryError::DuplicateSkill(skill.id));
         }
         Ok(())
