@@ -1,0 +1,10 @@
+{
+  "schema": "ntpx-fortress-bootstrap-config/v1",
+  "project": "NTPX-Game-Forge-Studio-",
+  "classification_max": "L2",
+  "excluded_directories": [".git", ".ntpx", "target", "build", "dist", ".dart_tool", ".gradle", "node_modules", "vendor"],
+  "sensitive_filename_globs": ["*.pem", "*.key", "*.p12", "*.pfx", "*.jks", "*.keystore", ".env", ".env.*", "id_rsa", "id_ed25519"],
+  "allowed_sensitive_examples": [".env.example", ".env.sample"],
+  "crown_jewel_markers": ["NTPX_CLASSIFICATION=L3", "NTPX_CLASSIFICATION=L4", "NTPX-CLASSIFICATION: L3", "NTPX-CLASSIFICATION: L4"],
+  "policy_files": ["config/fortress-bootstrap.json"]
+}
