@@ -41,3 +41,8 @@
 39. A Code Intelligence plan cannot override denial or human approval. Human-gated mutation must use the exact existing request-bound approval path.
 40. Do not claim B000028 eliminates hostile TOCTOU/content races; the Phase 03 cooperative-locking and path-race residual limits remain authoritative.
 41. NTPX Fortress bootstrap monitoring is a carried-forward repository gate. Do not weaken, bypass, or seed secrets/high-classification material to make that gate pass.
+42. Treat a validated Agent Zero execution contract as evidence only. It is never an authorization permit and cannot be used to infer permission to create a process.
+43. Agent Zero execution must bind to the exact predeclared Governor principal, `Permission::Execute`, `ScopeKind::Tool`, and tool resource; any mismatch fails closed.
+44. Request-provided environment variables must be explicitly allowlisted. Never inherit or expose ambient secrets merely because a process contract exists.
+45. Runtime workers must obtain Governor authorization before process creation and must enforce declared time, output, argument, cancellation, and isolation limits rather than treating declarations as best-effort hints.
+46. Do not claim B000029 provides process spawning, OS/container isolation, runtime resource enforcement, network isolation, credential isolation, or engine execution; those require separate implementation and executable verification.
