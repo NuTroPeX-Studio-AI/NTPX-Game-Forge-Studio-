@@ -54,7 +54,10 @@ pub fn build_reference_graph(
 ) -> Result<ReferenceGraph, CodeIntelligenceError> {
     let mut symbols_by_name: BTreeMap<&str, Vec<&SymbolRecord>> = BTreeMap::new();
     for symbol in index.files.values().flat_map(|file| &file.symbols) {
-        symbols_by_name.entry(&symbol.name).or_default().push(symbol);
+        symbols_by_name
+            .entry(&symbol.name)
+            .or_default()
+            .push(symbol);
     }
     for candidates in symbols_by_name.values_mut() {
         candidates.sort_by(|left, right| left.id.cmp(&right.id));
@@ -171,7 +174,9 @@ mod tests {
             panic!("duplicate symbol name must remain ambiguous");
         };
         assert_eq!(candidate_symbol_ids.len(), 2);
-        assert!(candidate_symbol_ids.windows(2).all(|pair| pair[0] < pair[1]));
+        assert!(candidate_symbol_ids
+            .windows(2)
+            .all(|pair| pair[0] < pair[1]));
     }
 
     #[test]
