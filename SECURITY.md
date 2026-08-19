@@ -2,7 +2,7 @@
 
 ## Default posture
 
-NTPX GameForge Ω∞ is offline-first, least-privilege, and deny-by-default.
+NTPX GameForge Ω∞ is offline-first, least-privilege, deny-by-default, and fail-closed on ambiguous or corrupted evidence.
 
 ## Protected actions
 
@@ -24,81 +24,109 @@ The following always require explicit human authorization:
 - Human approval proofs are HMAC-SHA256 authenticated, bound to the exact request, expire, and carry one-time nonces.
 - Approval nonces are durably consumed through the cross-process locked audit append and cannot be replayed by cooperating processes.
 - Authorization records are append-only SHA-256 hash-chained JSONL and are fully verified before append.
-- In-process runtime operations supplied to `GovernanceRuntime` execute only after durable authorization evidence; denied operations are audited and not invoked.
-- Governed file mutation requires an absolute canonical scope, rejects symlink ancestors and symlink targets, and revalidates parent identity before entering the transaction boundary.
-- Governed writes persist durable pre-write snapshots, stage bytes durably, replace through a platform-aware primitive, record authorization evidence, and automatically restore the pre-write state when audit/replay failure occurs after replacement.
+- `GovernanceRuntime` executes supplied in-process operations only after durable authorization evidence; denials are audited and not invoked.
+- Governed file mutation requires an absolute canonical scope, rejects symlink ancestors/targets, and revalidates parent identity before mutation.
+- Governed writes persist durable pre-write snapshots, stage bytes durably, use platform-aware replacement, record authorization evidence, and expose explicit rollback receipts.
 - Human-approved file writes verify the exact proof before mutation and cannot use a proof to override denial.
-- Multi-file batches reject duplicate canonical targets before mutation and roll earlier members back if a later member fails.
-- Crash-recovery discovery is read-only. Explicit recovery verifies snapshot integrity/target binding and rejects corrupt or symlink-substituted artifacts.
-- The Autonomy Governor is compiled and tested on Windows in addition to the full Ubuntu workspace CI gate.
+- Multi-file batches reject duplicate canonical targets before mutation and roll earlier members back if a later member fails under ordinary failure conditions.
+- Recovery discovery is read-only; explicit recovery verifies snapshot integrity and target binding.
+- The Governor is compiled/tested on Windows in addition to the full Ubuntu workspace gate.
 
 ## Verified Model Router guarantees
 
-- Model/provider selection is provider-neutral and based only on declared catalog metadata plus a typed routing request/policy.
-- Local-only privacy constraints exclude cloud models before ranking.
-- Capability, context/output capacity, cost, latency, and reliability constraints fail closed by rejecting non-qualifying models with explicit evidence.
-- Model/provider enumeration order is normalized and stable identity is the final tie-breaker, making equivalent request/policy/catalog inputs reproducible.
-- Duplicate model identities, adapter provider/class inconsistencies, invalid reliability values, and repeated/empty ranking policies fail closed.
-- The result is an ordered primary/fallback selection or explicit abstention; the router does not silently relax hard constraints to force a result.
-- Routing evidence is SHA-256 digested for deterministic correlation.
-- `ProviderAdapter`, `LocalProviderAdapter`, and `CloudProviderAdapter` expose catalog information only. Phase 04 adds no provider network-call or credential-use API.
+- Provider selection is provider-neutral and based on declared catalog metadata plus typed routing request/policy inputs.
+- Local-only privacy and capability/context/output/cost/latency/reliability constraints fail closed.
+- Equivalent inputs produce deterministic primary/fallback or explicit abstention evidence.
+- Provider catalog adapters expose metadata only; routing does not authorize provider network calls, credentials, paid usage, or tools.
 
-## Phase 05 Agent Orchestrator candidate guarantees
+## Verified Agent Orchestrator guarantees
 
-- Agent/task contracts are validated before orchestration and canonicalized into a deterministic task graph.
-- Agent identifiers must match their Autonomy Governor `PrincipalId`; task-governed requests must already name that same assigned principal.
-- Duplicate identifiers, unknown assigned agents, unknown dependencies, self-dependencies, dependency cycles, and required-skill mismatches fail closed.
-- Ready-task order and the canonical plan digest are deterministic for equivalent contracts regardless of input enumeration order.
-- Per-agent `max_parallel_tasks` bounds concurrent running task state.
-- Model selection is delegated to the verified Model Router. Routing abstention escalates rather than weakening hard model constraints.
-- Retry budgets are immutable task-contract inputs. Exhausted retryable failures escalate rather than extending the budget automatically.
-- Permanent failure/escalation/blocking propagates dependency blocking to downstream pending work.
-- Governed authorization can be requested only for a running task and only when the exact request was predeclared in that task contract.
-- Exact governed requests are submitted to `GovernanceRuntime::authorize`; the orchestrator cannot manufacture a permit, override denial, or bypass required human approval.
-- Phase 05 adds no model invocation, network connection, credential use, tool execution, repository mutation, engine execution, publishing, or release API.
+- Agent/task contracts are validated and canonicalized into a deterministic task graph.
+- Agent identity is bound to the Autonomy Governor principal used by its governed requests.
+- Duplicate IDs, unknown assignments/dependencies, self/cyclic dependencies, and skill mismatches fail closed.
+- Ready ordering and plan evidence are deterministic; per-agent concurrency and retry budgets are explicit bounds.
+- Model routing abstention escalates rather than silently weakening constraints.
+- Governed authorization can be requested only for running tasks and only for the exact predeclared request.
+- Requests are delegated to `GovernanceRuntime`; orchestration cannot manufacture a permit or bypass human approval.
+- Phase 05 adds no external executor, model invocation, network connection, credential use, tool execution, repository mutation, engine execution, publishing, signing, or release API.
+
+## Phase 06 Code Intelligence candidate guarantees
+
+### Analysis and syntax evidence
+
+- Repository/source/symbol/reference/dependency/search/diagnostic/syntax outputs are deterministic correlation evidence, not authority.
+- Ambiguous and unresolved lexical references remain explicit; ambiguity never selects an arbitrary mutation target.
+- Incremental reuse requires verified prior repository evidence and exact file path/language/generated-state/content-digest matching.
+- Rust syntax uses `syn`; TypeScript and C++ syntax use Tree-sitter; textual Blueprint metadata remains a separate deterministic parser.
+- These products are not represented as compiler/LSP semantic resolution, type analysis, or true semantic call graphs.
+
+### Edit planning
+
+- `code-intelligence-edits` remains read-only.
+- Exact edit plans bind path/language/current source SHA-256, repository evidence SHA-256, replacement-content SHA-256, and plan correlation evidence.
+- Generated-source, no-op, stale repository, and stale source plans fail closed.
+
+### Governed application
+
+- `code-intelligence-apply` is the narrow Phase 06 mutation bridge; it does not introduce a parallel permission, audit, transaction, or rollback system.
+- Replacement-content and full-plan evidence are recomputed before mutation.
+- Repository root must canonicalize to an existing directory.
+- Plan target paths must be non-empty normal repository-relative paths; absolute, prefix, current-directory, and parent-traversal components are rejected.
+- Targets are resolved through the Autonomy Governor filesystem boundary before the current on-disk source is read.
+- Current source is re-read and plan freshness is revalidated immediately before entering the governed write path.
+- Direct application calls only `GovernanceRuntime::write_file`; human-gated application calls only `write_file_with_approval`.
+- A valid/tampered plan cannot override denial or weaken/satisfy a human approval requirement.
+- Successful writes return the existing audited rollback-capable `TransactionReceipt`.
+- Tests cover successful mutation + rollback, stale source refusal, replacement tamper refusal, repository traversal refusal, human-gate refusal, and exact approved application.
+
+## NTPX Fortress bootstrap gate
+
+- Fortress repository monitoring is carried forward as a required CI gate.
+- Repository changes must stay within the configured bootstrap classification/secrets policy.
+- Do not commit production secrets, private signing keys, protected credentials, `.env` files, or crown-jewel higher-classification material to satisfy tests.
+- Fortress complements but does not replace the Autonomy Governor: Fortress protects/gates repository content while the Governor controls runtime capability authorization and reversible mutation.
 
 ## Authority boundaries
 
-- Selecting a cloud model does not authorize a network connection, API request, paid usage, or credential access.
-- Selecting a model that advertises tool-use capability does not authorize any tool invocation.
-- Scheduling or dispatching a task does not authorize that task to use a governed capability.
+- GameSpec validity is not permission.
+- Model selection is not network/model/tool execution authority.
+- Scheduling/dispatch is not governed capability authority.
+- Code analysis or an edit plan is not source-mutation authority.
 - A task cannot expand its own governed scopes; undeclared requests fail before Governor submission.
-- Routing evidence and orchestration evidence are not Autonomy Governor permits and cannot override a denial or human approval gate.
-- A returned `AuthorizationPermit` records authorization for an exact request; Phase 05 does not claim that an external operation was executed.
-- Provider capability, cost, latency, and reliability values are input metadata. Structural consistency is validated, but the router does not independently authenticate or prove those provider claims.
-- Future live-provider, tool, repository, engine, and Agent Zero execution adapters must keep credentials external, obtain Governor authorization for governed actions, and preserve protected-action human approval.
+- Routing/orchestration/Code Intelligence evidence cannot override a Governor denial or human approval gate.
+- Future Agent Zero, provider, tool, repository, and Unreal adapters must keep credentials external and consume the Governor rather than create parallel permission paths.
 
 ## Residual security boundaries
 
-- Advisory audit/transaction locks coordinate cooperating processes only. An actor bypassing Governor APIs is outside the locking guarantee.
-- Audit and rollback SHA-256 chains/digests are tamper-evident, not authenticated against an actor able to rewrite all relevant files and recompute hashes.
-- Canonical path resolution plus parent identity revalidation reduces path-alias, symlink, and directory-replacement risk but does not pin a directory handle for the entire mutation. Hostile TOCTOU races are therefore not claimed to be mathematically eliminated.
-- The Windows replacement fallback is reversible/failure-safe but not kernel-atomic across the target-to-backup and stage-to-target renames.
-- Multi-file batches are all-or-reverted for ordinary failures, not kernel-level atomic across multiple files or crash points.
-- Verified rollback snapshots are intentionally not auto-restored because a retained snapshot can represent a successful reversible transaction as well as interrupted work.
-- Phase 05 orchestrator state/evidence is in-memory and serializable but not a crash-safe durable scheduler journal.
-- Phase 05 has no distributed worker leases, heartbeats, cancellation propagation, or external executor. Task state therefore must not be represented as proof that real-world work occurred.
-- Workflow evidence is not a cryptographically authenticated authorization audit. Governor audit evidence remains authoritative for governed capability decisions.
+- Advisory audit/transaction locks coordinate cooperating processes only; actors bypassing Governor APIs are outside the locking guarantee.
+- Audit/rollback SHA-256 evidence is tamper-evident, not authenticated against an actor able to rewrite all relevant state and recompute hashes.
+- Canonical path resolution plus parent identity revalidation reduces alias/symlink/directory-replacement risk but does not pin a directory handle for the entire mutation; hostile TOCTOU elimination is not claimed.
+- B000028 rechecks source freshness immediately before Governor entry, but does not implement a kernel-level content compare-and-swap against a non-cooperating writer racing between those steps.
+- Windows fallback replacement is reversible/failure-safe but not kernel-atomic across both renames.
+- Multi-file batches are all-or-reverted for ordinary failures, not kernel-level atomic across multiple files/crash points.
+- Verified rollback snapshots are not auto-restored because a retained snapshot may represent a successful reversible transaction or interrupted work.
+- Phase 05 scheduler state is not a crash-safe durable distributed execution journal.
+- Phase 06 does not add external tool/process/model/engine execution, compiler/LSP semantic guarantees, Blueprint binary mutation, repository merge, network/credential, publishing, signing, or release authority.
 
 ## Agent execution principles
 
 - least privilege
-- scoped filesystem access
-- scoped network access
-- ephemeral credentials
+- scoped filesystem/network access
+- external/ephemeral credentials
 - complete audit trails
 - authorization before execution
-- transactional edits
-- snapshot/rollback before high-risk changes
-- fail closed on ambiguity or corrupted evidence
-- keep selection separate from authorization and execution
-- keep scheduling separate from authorization
-- predeclare governed capability requests in immutable task contracts
+- evidence/freshness validation before mutation
+- transactional edits with rollback evidence
+- fail closed on ambiguity/corruption/drift
+- selection ≠ authorization ≠ execution
+- scheduling ≠ authorization
+- planning/analysis ≠ mutation authority
+- predeclare governed capability requests
 - escalate rather than silently widening retries, scopes, or model constraints
 
 ## Secret handling
 
-Never commit secrets, tokens, private keys, certificates, `.env` files, or production credentials. Approval-signing secrets and future model-provider/execution credentials must remain external inputs and must not be serialized or logged. Use environment variables or an approved secret store.
+Never commit secrets, tokens, private keys, certificates, `.env` files, or production credentials. Approval-signing secrets and future model-provider/execution credentials remain external inputs and must not be serialized or logged. Use environment variables or an approved secret store.
 
 ## Reporting
 
