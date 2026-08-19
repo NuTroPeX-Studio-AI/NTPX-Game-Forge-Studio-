@@ -32,12 +32,12 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 05: Agent Orchestrator — IN PROGRESS. The first implementation increment introduces typed agent/task/state contracts, fail-closed dependency-graph validation, deterministic topological ordering, and capacity/capability-aware advisory scheduling. Its executable CI evidence is still pending, so no Phase 05 completion claim or continuous build increment is made yet. Remaining Phase 05 work includes bounded retry/state-transition semantics, delegation, evidence collection, escalation, Model Router integration for selection, and Autonomy Governor integration for governed actions.
+Phase 05: Agent Orchestrator — IN PROGRESS. Build B000014 verified the typed agent/task/state contracts, fail-closed dependency graph, deterministic topological ordering, and capacity/capability-aware advisory scheduler; its exact stamped head passed CI run `32200062490`. Build B000015 adds bounded retry/state-transition semantics with retained attempt counts, exact retry-budget exhaustion, fail-closed malformed attempt state, retry-aware scheduling, and explicit non-empty escalation state. Remaining Phase 05 work includes explicit delegation, deterministic orchestration evidence collection, Model Router integration for selection, Autonomy Governor integration for governed actions, and broader escalation routing/policy layered on the explicit escalation state.
 
 ## Boundaries carried forward
 
 - A Model Router decision selects a candidate model; it does not authorize network access, credential use, model invocation, tool execution, repository mutation, engine execution, publishing, or release.
-- Agent scheduling/delegation decisions are advisory and must not become a parallel permission path.
+- Agent scheduling, retry, delegation, and escalation decisions are advisory and must not become a parallel permission path.
 - Catalog capability, cost, latency, and reliability values are routing inputs and require explicit provenance/versioning before future telemetry can update them.
 - Model routing evidence is deterministic SHA-256 correlation evidence, not an authorization token or secret-key authenticity proof.
 - Protected actions remain human-gated regardless of which model or future agent recommends them.
