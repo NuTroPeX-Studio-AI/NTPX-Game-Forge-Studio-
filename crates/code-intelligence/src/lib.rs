@@ -9,6 +9,11 @@ use std::{collections::BTreeMap, error::Error, fmt};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+mod resolution;
+pub use resolution::{
+    build_reference_graph, ReferenceGraph, ReferenceResolution, ResolvedReferenceRecord,
+};
+
 /// Language class handled by a code-intelligence driver.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
