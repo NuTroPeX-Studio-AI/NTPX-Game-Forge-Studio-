@@ -35,7 +35,9 @@ impl fmt::Display for SymbolSearchError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptyQuery => formatter.write_str("symbol-search query must not be empty"),
-            Self::Encode(error) => write!(formatter, "symbol-search evidence encoding failed: {error}"),
+            Self::Encode(error) => {
+                write!(formatter, "symbol-search evidence encoding failed: {error}")
+            }
         }
     }
 }
@@ -114,7 +116,11 @@ pub fn search_symbols(
 }
 
 fn normalize(value: &str) -> String {
-    value.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase()
+    value
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_lowercase()
 }
 
 fn lexical_score(name: &str, normalized_query: &str) -> Option<u16> {
