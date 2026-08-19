@@ -1,4 +1,4 @@
-//! Executable contract for the complete NTPX GameForge Ω∞ roadmap.
+//! Executable contract for the complete NTPX `GameForge` Ω∞ roadmap.
 //!
 //! The manifest is intentionally data-driven so CI can detect omitted phases/components and status
 //! drift without turning roadmap prose into an implicit source of truth.
@@ -7,18 +7,21 @@ use std::{collections::BTreeSet, error::Error, fmt};
 
 use serde::{Deserialize, Serialize};
 
+const REQUIRED_RULES: [&str; 8] = [
+    "engineNeutralCore",
+    "providerNeutralCore",
+    "offlineFirst",
+    "denyByDefault",
+    "protectedActionsHumanGated",
+    "auditableWrites",
+    "reversibleAutomatedWrites",
+    "verificationRequiredForPhaseCompletion",
+];
+
 /// Global non-negotiable roadmap rules.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct RoadmapRules {
-    pub engine_neutral_core: bool,
-    pub provider_neutral_core: bool,
-    pub offline_first: bool,
-    pub deny_by_default: bool,
-    pub protected_actions_human_gated: bool,
-    pub auditable_writes: bool,
-    pub reversible_automated_writes: bool,
-    pub verification_required_for_phase_completion: bool,
+    pub required: BTreeSet<String>,
 }
 
 /// One required roadmap phase.
@@ -51,7 +54,8 @@ pub enum RoadmapError {
     EmptyComponents(u8),
     EmptyComponent { phase: u8 },
     DuplicateComponent { phase: u8, component: String },
-    RequiredRuleDisabled(&'static str),
+    MissingRequiredRule(&'static str),
+    UnexpectedRequiredRule(String),
     Parse(String),
 }
 
@@ -82,8 +86,11 @@ impl fmt::Display for RoadmapError {
                 formatter,
                 "phase {phase} contains duplicate component '{component}'"
             ),
-            Self::RequiredRuleDisabled(rule) => {
-                write!(formatter, "required roadmap rule '{rule}' is disabled")
+            Self::MissingRequiredRule(rule) => {
+                write!(formatter, "required roadmap rule '{rule}' is missing")
+            }
+            Self::UnexpectedRequiredRule(rule) => {
+                write!(formatter, "unexpected roadmap rule '{rule}' is declared")
             }
             Self::Parse(reason) => write!(formatter, "roadmap manifest parse failed: {reason}"),
         }
@@ -116,68 +123,68 @@ impl RoadmapManifest {
         if self.phases.len() != 18 {
             return Err(RoadmapError::WrongPhaseCount(self.phases.len()));
         }
-        for (index, phase) in self.phases.iter().enumerate() {
-            let expected = u8::try_from(index + 1).expect("18 phases fit in u8");
-            if phase.id != expected {
-                return Err(RoadmapError::NonContiguousPhase {
-                    expected,
-                    actual: phase.id,
-                });
-            }
-            if phase.name.trim().is_empty() {
-                return Err(RoadmapError::EmptyPhaseName(phase.id));
-            }
-            if !matches!(
-                phase.status.as_str(),
-                "verified" | "in_progress" | "planned" | "blocked"
-            ) {
-                return Err(RoadmapError::InvalidStatus {
-                    phase: phase.id,
-                    status: phase.status.clone(),
-                });
-            }
-            if phase.components.is_empty() {
-                return Err(RoadmapError::EmptyComponents(phase.id));
-            }
-            let mut seen = BTreeSet::new();
-            for component in &phase.components {
-                if component.trim().is_empty() {
-                    return Err(RoadmapError::EmptyComponent { phase: phase.id });
-                }
-                if !seen.insert(component) {
-                    return Err(RoadmapError::DuplicateComponent {
-                        phase: phase.id,
-                        component: component.clone(),
-                    });
-                }
-            }
-        }
-        let required = [
-            (self.rules.engine_neutral_core, "engineNeutralCore"),
-            (self.rules.provider_neutral_core, "providerNeutralCore"),
-            (self.rules.offline_first, "offlineFirst"),
-            (self.rules.deny_by_default, "denyByDefault"),
-            (
-                self.rules.protected_actions_human_gated,
-                "protectedActionsHumanGated",
-            ),
-            (self.rules.auditable_writes, "auditableWrites"),
-            (
-                self.rules.reversible_automated_writes,
-                "reversibleAutomatedWrites",
-            ),
-            (
-                self.rules.verification_required_for_phase_completion,
-                "verificationRequiredForPhaseCompletion",
-            ),
-        ];
-        for (enabled, name) in required {
-            if !enabled {
-                return Err(RoadmapError::RequiredRuleDisabled(name));
-            }
-        }
-        Ok(())
+        validate_phases(&self.phases)?;
+        validate_required_rules(&self.rules.required)
     }
+}
+
+fn validate_phases(phases: &[PhaseContract]) -> Result<(), RoadmapError> {
+    for (expected, phase) in (1_u8..=18).zip(phases) {
+        if phase.id != expected {
+            return Err(RoadmapError::NonContiguousPhase {
+                expected,
+                actual: phase.id,
+            });
+        }
+        if phase.name.trim().is_empty() {
+            return Err(RoadmapError::EmptyPhaseName(phase.id));
+        }
+        if !matches!(
+            phase.status.as_str(),
+            "verified" | "in_progress" | "planned" | "blocked"
+        ) {
+            return Err(RoadmapError::InvalidStatus {
+                phase: phase.id,
+                status: phase.status.clone(),
+            });
+        }
+        validate_components(phase)?;
+    }
+    Ok(())
+}
+
+fn validate_components(phase: &PhaseContract) -> Result<(), RoadmapError> {
+    if phase.components.is_empty() {
+        return Err(RoadmapError::EmptyComponents(phase.id));
+    }
+    let mut seen = BTreeSet::new();
+    for component in &phase.components {
+        if component.trim().is_empty() {
+            return Err(RoadmapError::EmptyComponent { phase: phase.id });
+        }
+        if !seen.insert(component) {
+            return Err(RoadmapError::DuplicateComponent {
+                phase: phase.id,
+                component: component.clone(),
+            });
+        }
+    }
+    Ok(())
+}
+
+fn validate_required_rules(rules: &BTreeSet<String>) -> Result<(), RoadmapError> {
+    for required in REQUIRED_RULES {
+        if !rules.contains(required) {
+            return Err(RoadmapError::MissingRequiredRule(required));
+        }
+    }
+    if let Some(unexpected) = rules
+        .iter()
+        .find(|rule| !REQUIRED_RULES.contains(&rule.as_str()))
+    {
+        return Err(RoadmapError::UnexpectedRequiredRule(unexpected.clone()));
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -216,5 +223,11 @@ mod tests {
             .components
             .iter()
             .any(|item| item == "human-release-approval"));
+    }
+
+    #[test]
+    fn required_rule_set_is_exact() {
+        let manifest = RoadmapManifest::embedded().expect("embedded roadmap must be valid");
+        assert_eq!(manifest.rules.required.len(), REQUIRED_RULES.len());
     }
 }
