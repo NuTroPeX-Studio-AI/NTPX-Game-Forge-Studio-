@@ -10,6 +10,7 @@ members = [
   "crates/code-intelligence-diagnostics",
   "crates/code-intelligence-search",
   "crates/code-intelligence-syntax",
+  "crates/code-intelligence-edits",
 ]
 exclude = [
   "apps/studio-desktop/src-tauri",
