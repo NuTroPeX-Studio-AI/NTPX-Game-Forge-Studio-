@@ -50,7 +50,7 @@ impl TypeScriptParserAdapter {
     ///
     /// # Errors
     /// Returns [`TypeScriptParserError`] for an empty path, non-TypeScript input, malformed
-    /// recognized declarations, or unbalanced brace structure outside comments and strings.
+    /// recognized declarations, or unbalanced structure outside comments and strings.
     pub fn parse(source: &SourceFile) -> Result<TypeScriptParseDocument, TypeScriptParserError> {
         if source.path.trim().is_empty() {
             return Err(TypeScriptParserError::EmptyPath);
@@ -68,7 +68,7 @@ impl TypeScriptParserAdapter {
 
         for (offset, raw_line) in source.content.lines().enumerate() {
             let line = u32::try_from(offset + 1).unwrap_or(u32::MAX);
-            if depth == 0 && !state.in_block_comment {
+            if depth == 0 && !state.in_block_comment && state.quote.is_none() {
                 if let Some(item) = parse_top_level_declaration(raw_line, line, items.len())? {
                     items.push(item);
                 }
@@ -81,7 +81,7 @@ impl TypeScriptParserAdapter {
             })?;
         }
 
-        if depth != 0 || state.in_block_comment {
+        if depth != 0 || state.in_block_comment || state.quote.is_some() {
             return Err(TypeScriptParserError::UnbalancedStructure {
                 path: source.path.clone(),
                 line: u32::try_from(source.content.lines().count()).unwrap_or(u32::MAX),
@@ -107,9 +107,11 @@ fn parse_top_level_declaration(
         return Ok(None);
     };
 
-    let name = extract_identifier(remainder).ok_or_else(|| TypeScriptParserError::MalformedDeclaration {
-        line,
-        declaration: raw_line.trim().to_owned(),
+    let name = extract_identifier(remainder).ok_or_else(|| {
+        TypeScriptParserError::MalformedDeclaration {
+            line,
+            declaration: raw_line.trim().to_owned(),
+        }
     })?;
 
     Ok(Some(TypeScriptItem {
@@ -150,11 +152,22 @@ fn declaration_prefix(source: &str) -> Option<(TypeScriptItemKind, &str)> {
     ];
 
     PREFIXES.iter().find_map(|(prefix, kind)| {
-        source
-            .strip_prefix(prefix)
-            .filter(|remainder| remainder.starts_with(char::is_whitespace) || remainder.starts_with('*'))
-            .map(|remainder| (*kind, remainder.trim_start_matches('*').trim_start()))
+        source.strip_prefix(prefix).and_then(|remainder| {
+            has_declaration_boundary(remainder).then(|| {
+                (
+                    *kind,
+                    remainder.trim_start_matches('*').trim_start(),
+                )
+            })
+        })
     })
+}
+
+fn has_declaration_boundary(remainder: &str) -> bool {
+    remainder
+        .chars()
+        .next()
+        .is_some_and(|character| character.is_whitespace() || character == '*')
 }
 
 fn split_token(source: &str) -> Option<(&str, &str)> {
@@ -175,17 +188,19 @@ fn extract_identifier(source: &str) -> Option<&str> {
     (is_identifier_start(first) && candidate.chars().all(is_identifier_continue)).then_some(candidate)
 }
 
-const fn is_identifier_start(character: char) -> bool {
+fn is_identifier_start(character: char) -> bool {
     character == '_' || character == '$' || character.is_ascii_alphabetic()
 }
 
-const fn is_identifier_continue(character: char) -> bool {
+fn is_identifier_continue(character: char) -> bool {
     is_identifier_start(character) || character.is_ascii_digit()
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 struct LexState {
     in_block_comment: bool,
+    quote: Option<char>,
+    escaped: bool,
 }
 
 fn scan_structure(
@@ -195,8 +210,6 @@ fn scan_structure(
     state: &mut LexState,
 ) -> Result<u32, u32> {
     let mut characters = line_text.chars().peekable();
-    let mut quote = None;
-    let mut escaped = false;
 
     while let Some(character) = characters.next() {
         if state.in_block_comment {
@@ -207,17 +220,17 @@ fn scan_structure(
             continue;
         }
 
-        if let Some(active_quote) = quote {
-            if escaped {
-                escaped = false;
+        if let Some(active_quote) = state.quote {
+            if state.escaped {
+                state.escaped = false;
                 continue;
             }
             if character == '\\' {
-                escaped = true;
+                state.escaped = true;
                 continue;
             }
             if character == active_quote {
-                quote = None;
+                state.quote = None;
             }
             continue;
         }
@@ -228,13 +241,14 @@ fn scan_structure(
                 let _ = characters.next();
                 state.in_block_comment = true;
             }
-            '\'' | '"' | '`' => quote = Some(character),
+            '\'' | '"' | '`' => state.quote = Some(character),
             '{' => depth = depth.saturating_add(1),
             '}' => depth = depth.checked_sub(1).ok_or(line_number)?,
             _ => {}
         }
     }
 
+    state.escaped = false;
     Ok(depth)
 }
 
@@ -344,6 +358,18 @@ mod tests {
 
         assert_eq!(document.items.len(), 3);
         assert_eq!(document.items[2].name, "Player");
+    }
+
+    #[test]
+    fn multiline_template_does_not_promote_embedded_text() {
+        let document = TypeScriptParserAdapter::parse(&typescript_source(
+            "const TEMPLATE = `start {\nclass Hidden {}\n} end`;\nclass Visible {}\n",
+        ))
+        .expect("multiline template must be shielded");
+
+        assert_eq!(document.items.len(), 2);
+        assert_eq!(document.items[0].name, "TEMPLATE");
+        assert_eq!(document.items[1].name, "Visible");
     }
 
     #[test]
