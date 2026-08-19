@@ -41,7 +41,9 @@ B000017 adds a VERIFIED deterministic advisory lexical dependency graph derived 
 
 B000018 adds VERIFIED deterministic incremental repository indexing. Unchanged file evidence is reused only when path, language, generated-file state, and current source-content SHA-256 match exactly. Prior repository evidence is recomputed before reuse and fails closed on mismatch; removed files are excluded and reuse/reindex/removal counts remain explicit. Repaired implementation candidate CI `32221974551` passed the complete repository gate.
 
-Remaining Phase 06 work includes AST-native parsing/language services, compiler/LSP-grade semantic resolution and call graphs, diagnostics, semantic search, refactor planning/application, persistent cache policy, and governance-bound write execution.
+B000019 adds VERIFIED deterministic advisory diagnostics over the existing lexical reference graph. Unresolved and ambiguous lexical references emit stable warning records with canonical ordering, normalized candidate symbol IDs, explicit counts, and SHA-256 report evidence. Repaired implementation candidate CI `32226278375` passed the complete repository gate.
+
+Remaining Phase 06 work includes AST-native parsing/language services, compiler/LSP-grade semantic resolution and true call graphs, semantic search, refactor planning/application, persistent cache policy, and governance-bound write execution.
 
 ## Boundaries carried forward
 
@@ -49,8 +51,8 @@ Remaining Phase 06 work includes AST-native parsing/language services, compiler/
 - Agent Orchestrator scheduling does not grant tool, network, credential, repository, engine, publishing, or release authority.
 - A task may request only exact governed capabilities declared in its validated task contract; undeclared capability expansion fails before Governor submission.
 - `GovernanceRuntime` remains the sole verified authorization boundary for governed requests and preserves human approval for protected actions.
-- Code Intelligence analysis/index/reference/dependency/incremental-index evidence does not authorize source mutation, repository writes, tool execution, model invocation, or engine actions.
-- The Phase 06 lexical drivers, B000016 resolver, B000017 dependency graph, and B000018 incremental reuse are not represented as AST-complete or compiler/LSP-grade semantic resolution; B000017 is not a call graph and B000018 is not a semantic dependency invalidator or persistent cache.
+- Code Intelligence analysis/index/reference/dependency/incremental-index/diagnostic evidence does not authorize source mutation, repository writes, tool execution, model invocation, or engine actions.
+- The Phase 06 lexical drivers, B000016 resolver, B000017 dependency graph, B000018 incremental reuse, and B000019 diagnostics are not represented as AST-complete or compiler/LSP-grade semantic analysis; B000017 is not a call graph, B000018 is not a semantic dependency invalidator or persistent cache, and B000019 is not a compiler/LSP diagnostic engine.
 - Incremental reuse requires verified prior repository evidence plus exact path/language/generated-state/content-digest matching; corrupted prior evidence fails closed.
 - Ambiguous lexical matches remain explicit and are never resolved or promoted into dependency edges by input or enumeration order.
 - Phase 05 workflow state/evidence is serializable in-memory state, not yet a crash-safe durable distributed scheduler journal.
