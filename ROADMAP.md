@@ -5,23 +5,23 @@
 3. ⬛ Autonomy Governor — VERIFIED
 4. 🧠 Model Router — VERIFIED
 5. 🧠 Agent Orchestrator — IN PROGRESS
-6. 🟥 Code Intelligence
-7. 0️⃣ Agent Zero Execution
-8. 🟧 Unreal Engine Bridge
-9. ⬜ Build / Test / Repair
-10. ☤ Hermes Memory + Skills
-11. 🦞 OpenClaw Remote Gateway
-12. 🟣 AGI Project World Model
-13. 🔺 ASI-Like Evaluation Council
-14. 🟩 Asset Production Agents
-15. 🟨 Narrative / Audio / NPC Agents
-16. 🔷 Controlled Self-Improvement
-17. 🎮 Signal Born Vertical Slice
-18. 🚀 Release Pipeline
+6. 🟥 Code Intelligence — SUBSTRATE CANDIDATE
+7. 0️⃣ Agent Zero Execution — SUBSTRATE CANDIDATE
+8. 🟧 Unreal Engine Bridge — SUBSTRATE CANDIDATE
+9. ⬜ Build / Test / Repair — SUBSTRATE CANDIDATE
+10. ☤ Hermes Memory + Skills — SUBSTRATE CANDIDATE
+11. 🦞 OpenClaw Remote Gateway — CONTRACT CANDIDATE
+12. 🟣 AGI Project World Model — SUBSTRATE CANDIDATE
+13. 🔺 ASI-Like Evaluation Council — SUBSTRATE CANDIDATE
+14. 🟩 Asset Production Agents — SUBSTRATE CANDIDATE
+15. 🟨 Narrative / Audio / NPC Agents — SUBSTRATE CANDIDATE
+16. 🔷 Controlled Self-Improvement — SUBSTRATE CANDIDATE
+17. 🎮 Signal Born Vertical Slice — CONTRACT CANDIDATE
+18. 🚀 Release Pipeline — CONTRACT CANDIDATE
 
 ## Phase progression rule
 
-A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence.
+A phase advances only after its acceptance criteria are implemented, compiled where applicable, tested, and recorded as verified evidence. A `SUBSTRATE CANDIDATE` or `CONTRACT CANDIDATE` is intentionally not a completed phase.
 
 ## Verified foundation
 
@@ -32,7 +32,15 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 05: Agent Orchestrator — IN PROGRESS. Build B000014 verified the typed agent/task/state contracts, fail-closed dependency graph, deterministic topological ordering, and capacity/capability-aware advisory scheduler; its exact stamped head passed CI run `32200062490`. Build B000015 verified bounded retry/state-transition semantics with retained attempt counts, exact retry-budget exhaustion, fail-closed malformed attempt state, retry-aware scheduling, and explicit non-empty escalation state. Build B000016 adds explicit assignment-bound delegation and deterministic versioned orchestration evidence: delegation must match the scheduler assignment, malformed evidence inputs fail closed, input enumeration is canonicalized, and equivalent evidence yields the same SHA-256 correlation digest. Remaining Phase 05 work includes Model Router integration for selection, Autonomy Governor integration for governed actions, and broader escalation routing/policy layered on the explicit escalation state.
+Phase 05: Agent Orchestrator — IN PROGRESS. Builds B000014–B000016 remain the verified base. The full-roadmap orchestration stream now contains implementation candidates for the three previously listed Phase 05 gaps: exact scheduler-assignment binding to Model Router selection, exact assignment binding to Autonomy Governor policy evaluation, and deterministic human/supervisor/safety escalation routing. These candidates do not invoke a model/tool or grant execution authority and are not considered verified until the exact combined head passes CI.
+
+## Full-roadmap construction stream
+
+`orchestration/roadmap.manifest.json` is the machine-checkable completeness inventory for all 18 phases. `roadmap-contract` validates phase continuity, component uniqueness, required safety rules, and the distinction between verified/in-progress/planned state. Later phase crates provide compile-targeted boundaries so native drivers can be added without leaking provider-, engine-, network-, signing-, or release authority into shared core modules.
+
+Current candidate substrates cover Code Intelligence; governed Agent Zero execution envelopes; Windows/Linux Unreal command drivers; build/test/repair planning; local memory and skill metadata; a transport-neutral remote gateway contract; the project world model; independent evaluation council; asset-production jobs and provenance; narrative/audio/NPC graphs; controlled self-improvement promotion gates; the full Signal Born vertical-slice capability contract; and cross-platform release evidence/human-promotion gates.
+
+Native/runtime work remains unfinished. This includes AST-native language services, real sandbox/process execution, real Unreal installation discovery and engine execution, build/test driver execution, durable memory persistence and retrieval, authenticated remote transport, live model/asset/audio provider adapters, runtime world-model synchronization, actual game-engine gameplay implementations, platform SDK/toolchains, real package/sign/notarize/store drivers, console devkit integrations, and real-device/platform validation.
 
 ## Boundaries carried forward
 
@@ -44,3 +52,4 @@ Phase 05: Agent Orchestrator — IN PROGRESS. Build B000014 verified the typed a
 - Model routing evidence is deterministic SHA-256 correlation evidence, not an authorization token or secret-key authenticity proof.
 - Protected actions remain human-gated regardless of which model or future agent recommends execution.
 - Phase 03 path/locking/replacement/recovery residual limits remain as documented in `ARCHITECTURE.md` and `SECURITY.md`.
+- Later phase substrate/contract candidates must not be represented as native/runtime completion until their concrete drivers, platform dependencies, and execution evidence exist.
