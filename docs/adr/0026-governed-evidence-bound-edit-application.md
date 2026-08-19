@@ -1,6 +1,6 @@
 # ADR 0026 — Governed evidence-bound edit application
 
-Status: Accepted for the Phase 06 B000028 candidate.
+Status: Accepted.
 
 ## Context
 
@@ -37,7 +37,7 @@ Application rejects:
 
 B000028 acceptance includes executable coverage for successful governed mutation plus explicit rollback, stale on-disk source rejection before mutation, replacement-evidence tamper rejection, repository escape rejection even with recomputed plan correlation evidence, and preservation of a human approval gate with a successful approved path.
 
-The repository CI gate remains Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop typecheck/build, Windows Autonomy Governor tests, and the NTPX Fortress bootstrap monitor.
+The exact B000028 stamped candidate passed repository CI `32261483993` and NTPX Fortress `32261483663`. The repository CI gate covers Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop typecheck/build, and Windows Autonomy Governor tests.
 
 ## Residual limits
 
