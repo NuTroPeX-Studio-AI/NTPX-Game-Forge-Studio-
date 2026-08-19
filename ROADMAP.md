@@ -4,7 +4,7 @@
 2. 🟪 GameSpec — VERIFIED
 3. ⬛ Autonomy Governor — VERIFIED
 4. 🧠 Model Router — VERIFIED
-5. 🧠 Agent Orchestrator — NEXT
+5. 🧠 Agent Orchestrator — IN PROGRESS
 6. 🟥 Code Intelligence
 7. 0️⃣ Agent Zero Execution
 8. 🟧 Unreal Engine Bridge
@@ -32,12 +32,15 @@ A phase advances only after its acceptance criteria are implemented, compiled wh
 
 ## Current target
 
-Phase 05: Agent Orchestrator — introduce typed agent/task contracts, dependency-aware task graphs, scheduling, delegation, bounded retries, evidence collection, state transitions, escalation, and integration with the verified Model Router for model selection and the Autonomy Governor for governed actions. Orchestration must not create a parallel permission path.
+Phase 05: Agent Orchestrator — IN PROGRESS. Build B000014 verified the typed agent/task/state contracts, fail-closed dependency graph, deterministic topological ordering, and capacity/capability-aware advisory scheduler; its exact stamped head passed CI run `32200062490`. Build B000015 verified bounded retry/state-transition semantics with retained attempt counts, exact retry-budget exhaustion, fail-closed malformed attempt state, retry-aware scheduling, and explicit non-empty escalation state. Build B000016 adds explicit assignment-bound delegation and deterministic versioned orchestration evidence: delegation must match the scheduler assignment, malformed evidence inputs fail closed, input enumeration is canonicalized, and equivalent evidence yields the same SHA-256 correlation digest. Remaining Phase 05 work includes Model Router integration for selection, Autonomy Governor integration for governed actions, and broader escalation routing/policy layered on the explicit escalation state.
 
 ## Boundaries carried forward
 
 - A Model Router decision selects a candidate model; it does not authorize network access, credential use, model invocation, tool execution, repository mutation, engine execution, publishing, or release.
+- Agent scheduling, retry, delegation, evidence, and escalation decisions are advisory and must not become a parallel permission path.
+- A delegation directive is valid only when its delegate matches the deterministic scheduler assignment; delegation evidence cannot silently replace scheduling.
+- Orchestration evidence SHA-256 digests are deterministic correlation evidence, not authorization tokens or secret-key authenticity proofs.
 - Catalog capability, cost, latency, and reliability values are routing inputs and require explicit provenance/versioning before future telemetry can update them.
 - Model routing evidence is deterministic SHA-256 correlation evidence, not an authorization token or secret-key authenticity proof.
-- Protected actions remain human-gated regardless of which model or future agent recommends them.
+- Protected actions remain human-gated regardless of which model or future agent recommends execution.
 - Phase 03 path/locking/replacement/recovery residual limits remain as documented in `ARCHITECTURE.md` and `SECURITY.md`.

@@ -2,6 +2,53 @@
 
 All notable verified changes to NTPX GameForge Ω∞ are recorded here.
 
+## 0.5.0-dev.3 — Phase 05 — Build B000016
+
+### Verified delegation-bound orchestration evidence increment
+- Added the provider-neutral, engine-neutral `agent-orchestrator-evidence` workspace crate on top of the verified advisory scheduler/state machine.
+- Added explicit `DelegationDirective` records containing task, delegator, delegate, and non-empty reason.
+- Bound delegation fail-closed to the scheduler assignment: a delegate that differs from the task's advisory assignment is rejected rather than becoming a parallel scheduling path.
+- Added versioned canonical orchestration evidence covering deterministic task order, task states, assignments, and delegation directives.
+- Canonicalized assignment/delegation vector ordering and added reproducible SHA-256 evidence digests for equivalent inputs.
+- Added fail-closed validation for empty/duplicate task IDs, missing/unknown states, unknown assignment/delegation tasks, empty agent IDs, duplicate assignments, self-delegation, empty reasons, and unbound delegation.
+- Added unit tests for deterministic evidence, assignment-binding enforcement, duplicate assignment rejection, missing-state rejection, and invalid delegation metadata.
+- Initial candidate CI `32207288582` identified rustfmt-only differences; the formatter output was applied without weakening behavior or checks.
+- Formatter repair CI `32207368160` passed formatting and then strict Clippy identified only a function-length quality finding. Validation/canonicalization was refactored into private helpers instead of suppressing the lint.
+- Repaired implementation candidate `2728c4d12c16e026ce7806fe8033a9f1ecc4eb2e` passed CI `32207504756`: Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0014 and build-specific Phase 05 verification evidence.
+- Phase 05 remains IN PROGRESS. Model Router selection integration, Autonomy Governor-governed execution, and broader escalation routing/policy remain unfinished.
+- Delegation and evidence remain advisory only. This increment introduces no model/tool invocation, credentials, network access, runtime repository/filesystem mutation, engine execution, merge, publishing, signing, or release authority.
+
+## 0.5.0-dev.2 — Phase 05 — Build B000015
+
+### Verified bounded retry/state-transition increment
+- Added explicit `TaskEvent` start/succeed/fail/escalate inputs and retained `RetryPending { attempts }` state to make retry budgets enforceable.
+- Added deterministic attempt progression: first start is attempt 1, retry starts advance by one, failures remain retryable only while budget remains, and failure at exactly `max_attempts` becomes terminal `Failed`.
+- Added fail-closed validation for externally supplied retry/running/failed attempt counters that disagree with the task specification.
+- Updated advisory scheduling so valid retry-pending work can be reassigned without relaxing dependency, capability, stable-ordering, or concurrency constraints.
+- Added explicit escalation with a required non-empty reason; escalation is terminal orchestration state, not authorization or human approval.
+- Added unit tests for retry exhaustion, retry rescheduling, malformed attempt counters, success, escalation, and terminal restart refusal.
+- Initial candidate CI run `32203477072` failed only `cargo fmt --check`; frontend and Windows Governor jobs were green. Exact formatter output was applied without changing semantics or weakening tests.
+- Repaired implementation candidate CI run `32203642042` passed Rust formatting, strict Clippy with warnings denied, full workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0013 and build-specific Phase 05 verification evidence.
+- Phase 05 remains IN PROGRESS. Delegation, deterministic orchestration evidence collection, Model Router selection integration, Autonomy Governor-governed execution, and broader escalation routing/policy remain unfinished.
+- This increment introduces no model/tool invocation, credentials, network access, runtime filesystem/repository mutation, engine execution, merge, publishing, signing, or release authority.
+
+## 0.5.0-dev.1 — Phase 05 — Build B000014
+
+### Verified Agent Orchestrator substrate
+- Added the provider-neutral, engine-neutral `agent-orchestrator` Rust workspace crate.
+- Added typed agent, task, capability, task-state, and advisory assignment contracts.
+- Added fail-closed task graph validation for duplicate/empty task IDs, unknown/self dependencies, zero attempt budgets, and dependency cycles.
+- Added deterministic topological ordering and dependency-ready scheduling using stable task/agent identity ordering.
+- Added capability and declared-concurrency enforcement without silently relaxing hard scheduling constraints.
+- Kept this increment advisory-only: it introduces no model/tool invocation, credentials, network access, filesystem/repository mutation, engine execution, merge, publishing, or release authority.
+- Added unit tests for cycle rejection, dependency readiness, deterministic agent selection, capability filtering, and capacity bounds.
+- Safely repaired CI findings from rustfmt and strict Clippy by applying formatter output, correcting documentation markup, and removing two internal panic paths rather than suppressing checks.
+- CI run `32199879479` passed Rust formatting, strict Clippy with warnings denied, all workspace tests, desktop frontend typecheck/build, and Windows Autonomy Governor check/tests.
+- Recorded ADR 0012 for the deterministic advisory orchestration substrate and preserved the Autonomy Governor as the required future execution-authority boundary.
+- Phase 05 remains IN PROGRESS. Bounded retries/state transitions, delegation, evidence collection, escalation, Model Router selection integration, and Autonomy Governor-governed execution remain unfinished.
+
 ## 0.4.0-dev.1 — Phase 04 — Build B000013
 
 ### Verified Model Router
