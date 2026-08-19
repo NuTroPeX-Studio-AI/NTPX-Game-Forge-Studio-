@@ -1,4 +1,4 @@
-//! Deterministic advisory task orchestration for NTPX GameForge Ω∞.
+//! Deterministic advisory task orchestration for NTPX `GameForge` Ω∞.
 //!
 //! This crate models agents, tasks, dependency graphs, state, and scheduling decisions. It does
 //! not invoke models or tools, access credentials, mutate repositories/filesystems, or grant any
@@ -183,10 +183,11 @@ impl TaskGraph {
             order.push(id.clone());
             if let Some(children) = dependents.get(&id) {
                 for child in children {
-                    let count = indegree.get_mut(child).expect("validated child must exist");
-                    *count -= 1;
-                    if *count == 0 {
-                        ready.insert(child.clone());
+                    if let Some(count) = indegree.get_mut(child) {
+                        *count -= 1;
+                        if *count == 0 {
+                            ready.insert(child.clone());
+                        }
                     }
                 }
             }
@@ -274,13 +275,13 @@ impl TaskGraph {
                 load.get(&agent.id).copied().unwrap_or_default() < agent.max_concurrent_tasks
                     && task.required_capabilities.is_subset(&agent.capabilities)
             }) {
-                *load
-                    .get_mut(&agent.id)
-                    .expect("validated agent load must exist") += 1;
-                assignments.push(Assignment {
-                    task_id: task_id.clone(),
-                    agent_id: agent.id.clone(),
-                });
+                if let Some(agent_load) = load.get_mut(&agent.id) {
+                    *agent_load += 1;
+                    assignments.push(Assignment {
+                        task_id: task_id.clone(),
+                        agent_id: agent.id.clone(),
+                    });
+                }
             }
         }
         Ok(assignments)
