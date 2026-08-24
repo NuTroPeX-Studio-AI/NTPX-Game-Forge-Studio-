@@ -41,3 +41,6 @@
 39. A Code Intelligence plan cannot override denial or human approval. Human-gated mutation must use the exact existing request-bound approval path.
 40. Do not claim B000028 eliminates hostile TOCTOU/content races; the Phase 03 cooperative-locking and path-race residual limits remain authoritative.
 41. NTPX Fortress bootstrap monitoring is a carried-forward repository gate. Do not weaken, bypass, or seed secrets/high-classification material to make that gate pass.
+42. For Codex continuation, read `CODEX_START.md` after the canonical architecture/security/roadmap files; it must never override stricter repository controls.
+43. Treat `docs/reference/GAME_DEVELOPER_ECOSYSTEM.md` and `data/registry/game-development-tools.json` as discovery/planning metadata only; registry presence proves only that a technology is known.
+44. Before executing a registered engine/tool, separately verify installed/licensed/authenticated/callable state and route governed actions through the existing authorization boundary.
